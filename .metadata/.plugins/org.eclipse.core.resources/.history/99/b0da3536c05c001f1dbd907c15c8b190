@@ -1,0 +1,15 @@
+package com.test.entity;
+
+import jakarta.persistence.Entity;
+import lombok.Data;
+
+@Entity
+@Data
+public class Laptop {
+
+	private Long lid;
+	private String lName;
+	
+	
+	
+}

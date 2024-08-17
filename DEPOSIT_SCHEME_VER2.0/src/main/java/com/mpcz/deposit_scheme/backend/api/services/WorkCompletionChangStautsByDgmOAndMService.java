@@ -1,0 +1,10 @@
+package com.mpcz.deposit_scheme.backend.api.services;
+
+import com.mpcz.deposit_scheme.backend.api.domain.WorkCompletionChangStautsByDgmOAndM;
+import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
+
+public interface WorkCompletionChangStautsByDgmOAndMService {
+
+	WorkCompletionChangStautsByDgmOAndM saveAndChange(WorkCompletionChangStautsByDgmOAndM workCompletionChangStautsByDgmOAndM) throws ConsumerApplicationDetailException;
+
+}

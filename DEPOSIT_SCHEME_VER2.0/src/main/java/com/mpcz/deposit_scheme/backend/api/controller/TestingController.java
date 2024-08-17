@@ -1,0 +1,93 @@
+package com.mpcz.deposit_scheme.backend.api.controller;
+
+import java.util.Arrays;
+
+import org.json.JSONObject;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
+import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
+import com.mpcz.deposit_scheme.backend.api.dto.TestDto;
+import com.mpcz.deposit_scheme.backend.api.response.Response;
+
+import io.swagger.annotations.Api;
+@CrossOrigin(origins = "*", maxAge = 3600)
+@Api(value = "Testing Controller", description = "Rest api for ContractorDetailForBidController.")
+@RestController
+@RequestMapping("/api/user")
+public class TestingController {
+	
+	
+	@GetMapping("/getsp/{circleId}")
+	// ParticipantAndNotParticipantDto getQcConsumerbid() throws Exception {
+	ResponseEntity<Response<?>> getQcConsumerbid(@PathVariable Long circleId) throws Exception {
+		
+		Response<TestDto> response = new Response<>();
+
+		TestDto dto=null;
+		try {
+			RestTemplate restTemplate = new RestTemplate();
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Content-Type", "application/json");
+			String url = "https://rooftop-uat.mpcz.in:8443/security-deposit/circlemaster/circle/"+circleId;
+			
+
+			HttpEntity<String> entity = new HttpEntity<>(url, headers);
+			ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			
+			String body = responseEntity.getBody();
+			
+			if(body != null) {
+				
+				JSONObject job = new JSONObject(body);
+				
+				if(job.getString("code").equals("200")) {
+					
+					
+					String string = job.getString("message");
+					System.out.println(string);
+					
+					
+					JSONObject jsonObject = job.getJSONObject("object");
+					System.out.println(jsonObject.getString("circleId"));
+					System.out.println(jsonObject.getString("circleName"));
+					System.out.println(jsonObject.getString("gmName"));
+					System.out.println(jsonObject.getString("dgmStcName"));
+					//System.out.println(jsonObject.getString("circleCode));
+				
+					 dto = new TestDto();
+					
+					dto.setMessage(string);
+					//dto.setCircleCode(string);
+					dto.setCircleId(circleId);
+					dto.setCircleName(jsonObject.getString("circleName"));
+					dto.setGmName(jsonObject.getString("gmName"));
+					dto.setDgmStcName(jsonObject.getString("dgmStcName"));
+			
+				}
+			
+			}
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+		}
+
+		response.setList(Arrays.asList(dto));
+		response.setCode(HttpCode.OK);
+		response.setMessage("Record Retrieve Successfully");
+
+		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+	}
+
+}

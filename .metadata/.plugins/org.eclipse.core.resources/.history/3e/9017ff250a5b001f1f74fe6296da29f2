@@ -1,0 +1,26 @@
+package com.test.javaPractice;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collector;
+
+public class _1 {
+
+	
+//	Given a list of integers, find out all the even numbers that exist in the list using Stream functions?
+//	10,15,8,49,25,98,32
+	public static void main(String[] args) {
+		
+		List<Integer> li = Arrays.asList(10,15,8,49,25,98,32);
+		for(Integer i : li) {
+			if(i%2==0) {
+				System.out.println(i);
+			}
+		}
+//		li.stream().filter(x->x%2==0).forEach(System.out::println);
+		
+	}
+	
+	
+}

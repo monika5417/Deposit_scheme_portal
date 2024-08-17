@@ -1,0 +1,65 @@
+package com.test.javaPractice;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+public class _1 {
+
+	
+
+	public static void main(String[] args) {
+		
+//		Given a list of integers, find out all the even numbers that exist in the list using Stream functions?
+//		10,15,8,49,25,98,32
+		List<Integer> li = Arrays.asList(10,15,8,49,25,98,32,15,10,49);
+		
+//		with using norman approach
+//		for(Integer i : li) {
+//			if(i%2==0) {
+//				System.out.println(i);
+//			}
+//		}
+		
+//		with using java 8
+//		li.stream().filter(x->x%2==0).forEachOrdered(System.out::println);
+		
+//		Given a list of integers, find out all the numbers starting with 1 using Stream functions?
+		
+//		for(Integer i : li) {
+//			String numberString = Integer.toString(i);
+//			
+//			if(numberString.startsWith("1")) {
+//				System.out.println(i);
+//			}
+//		}
+		
+		
+//		li.stream().map(s->s+"").filter(s->s.startsWith("1")).forEach(System.out::println);
+		
+//		 How to find duplicate elements in a given integers list in java using Stream functions?
+		for(Integer i : li) {
+			
+			ArrayList<Integer> arrayList = new ArrayList<>();
+			arrayList.add(i);
+			for(Integer j : arrayList) {
+				if(j==null || j==0) {
+					int k = 0;
+				}
+				if(i!=j) {
+					arrayList.add(i);
+				}
+			}
+			System.out.println(arrayList);
+			
+		}
+		
+		
+//		li.stream().distinct().forEach(System.out::println);
+		
+	}
+	
+	
+}
