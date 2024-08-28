@@ -1,0 +1,19 @@
+package com.deposit_scheme_webhook.backend.api.services;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import com.deposit_scheme_webhook.backend.api.builddesk.CustomerBillDTO;
+
+
+public interface BillDeskPaymentService {
+	
+	//public Response<Object> prePaymentProcessingBillDesk(CustomerBillDTO billDto, List<Object> list , Response<String> response,HttpServletRequest request) throws Exception;
+
+	Response<Object> prePaymentProcessingBillDesk(CustomerBillDTO billDto, List<Object> list, Response<Object> response,
+			HttpServletRequest request) throws Exception;
+
+	
+
+}

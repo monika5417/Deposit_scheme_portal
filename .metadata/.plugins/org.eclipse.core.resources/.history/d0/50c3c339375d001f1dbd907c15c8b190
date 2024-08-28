@@ -1,0 +1,15 @@
+package com.TestMapping.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity
+public class Student {
+
+	@Id
+	private Long rollNo;
+	private String name;
+	private String standard;
+	
+	
+}

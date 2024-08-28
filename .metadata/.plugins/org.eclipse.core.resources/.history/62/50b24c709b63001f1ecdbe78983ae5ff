@@ -1,0 +1,19 @@
+package com.test.javaPractice;
+
+public class String_practice_question {
+
+	
+	public static StringBuffer reverseStringUsingStringBuffer(String str) {
+//	Reverse a String: Write a method to reverse a given string.
+	StringBuffer sb = new StringBuffer(str);
+	StringBuffer reverse = sb.reverse();
+	System.out.println("The reverse string by string buffer : " +reverse);
+	return reverse;
+		
+	}
+	
+	
+	public static void main(String[] args) {
+		reverseStringUsingStringBuffer("java");
+	}
+}

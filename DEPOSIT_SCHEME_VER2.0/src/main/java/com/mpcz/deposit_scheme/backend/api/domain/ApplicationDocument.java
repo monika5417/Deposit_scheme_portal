@@ -184,11 +184,28 @@ public @Data class ApplicationDocument extends Auditable<Long> {
 	@JoinColumn(name = "DOC_CHECK_OR_PASSBOOK_FILE", referencedColumnName = "UPLOAD_ID")
 	private Upload docCheckOrPassBookFile;
 	
+//	28-AUGUST-2024 added DOC_CONSUMER_REF_LETTER_FILE
+	@ManyToOne
+	@JoinColumn(name = "DOC_CONSUMER_REF_LETTER_FILE", referencedColumnName = "UPLOAD_ID")
+	private Upload docConsumerRefundLetterFile;
+	
 //	end
+	
+	
 	
 	
 	public Upload getDocRefundLetterFile() {
 		return docRefundLetterFile;
+	}
+
+
+	public Upload getDocConsumerRefundLetterFile() {
+		return docConsumerRefundLetterFile;
+	}
+
+
+	public void setDocConsumerRefundLetterFile(Upload docConsumerRefundLetterFile) {
+		this.docConsumerRefundLetterFile = docConsumerRefundLetterFile;
 	}
 
 

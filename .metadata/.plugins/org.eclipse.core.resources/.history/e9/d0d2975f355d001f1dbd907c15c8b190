@@ -1,0 +1,5 @@
+package com.TestMapping.entity;
+
+public class Laptop {
+
+}

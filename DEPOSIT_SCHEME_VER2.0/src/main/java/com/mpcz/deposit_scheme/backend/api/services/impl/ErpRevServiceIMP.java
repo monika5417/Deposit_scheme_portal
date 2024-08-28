@@ -78,6 +78,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 		BigDecimal newEstimateAmount = new BigDecimal(0.0);
 		BigDecimal remReturnAmt = new BigDecimal(0.0);
 		BigDecimal oAndMReturnAmount = new BigDecimal(0.0);
+		BigDecimal minusCost = new BigDecimal(0.0);
 
 		try {
 			ConsumerApplicationDetail findConsumerApplicationDetailByApplicationNo = ConsumerApplicationDetailService
@@ -285,15 +286,34 @@ public class ErpRevServiceIMP implements ErpRevService {
 							erpRev.setOldColonyOrSlum(colonyOrSlum);
 							erpRev.setOldPayableAmt(oldTotalBalanceDepositAmount);
 
-							BigDecimal newDepositAmt = newEstimateAmount.subtract(newSuperVisionAmt).subtract(newCgst)
+//							minus cost code added on 27- august -2024 by monika rajpoot
+							 minusCost = roundAmountCgstAndSgst(new BigDecimal(jsonArray.getJSONObject(i).getString("MINUS_COST")));
+							
+//							 BigDecimal newDepositAmt = newEstimateAmount.subtract(newSuperVisionAmt).subtract(newCgst)
+//										.subtract(newSgst);
+							
+							BigDecimal newDepositAmount = newEstimateAmount.subtract(newSuperVisionAmt).subtract(newCgst)
 									.subtract(newSgst);
+							
+							BigDecimal newDepositAmt = newDepositAmount.subtract(minusCost);
+							
+//							y new estimate amount after adding minus cost init
+							BigDecimal newEstimateAmnt = newDepositAmt.add(newSuperVisionAmt).add(newCgst).add(newSgst);
 
+							erpRev.setNewMinusCost(minusCost);
+//							minus cost code added on 27- august -2024 by monika rajpoot
 							erpRev.setNewDepositAmt(newDepositAmt);
 							erpRev.setRemmDepositAmt(roundAmountCgstAndSgst(newDepositAmt.subtract(oldDepositAmountDb)));
 							erpRev.setRemSupervisionAmt(roundAmountCgstAndSgst(newSuperVisionAmt.subtract(oldSupervisionAmountDb)));
-							erpRev.setRemEstimateAmt(newEstimateAmount.subtract(oldEstimateAmount));
-							erpRev.setNewPayAmt(newEstimateAmount.add(oAndMReturnAmount));
-							erpRev.setPayAmt(roundAmountCgstAndSgst(newEstimateAmount.add(oAndMReturnAmount).subtract(oldTotalBalanceDepositAmount)));
+//							erpRev.setRemEstimateAmt(newEstimateAmount.subtract(oldEstimateAmount));
+//							erpRev.setNewPayAmt(newEstimateAmount.add(oAndMReturnAmount));
+//							erpRev.setPayAmt(roundAmountCgstAndSgst(newEstimateAmount.add(oAndMReturnAmount).subtract(oldTotalBalanceDepositAmount)));
+							
+							erpRev.setRemEstimateAmt(newEstimateAmnt.subtract(oldEstimateAmount));
+							erpRev.setNewPayAmt(newEstimateAmnt.add(oAndMReturnAmount));
+							erpRev.setPayAmt(roundAmountCgstAndSgst(newEstimateAmnt.add(oAndMReturnAmount).subtract(oldTotalBalanceDepositAmount)));
+							
+							
 							// Deposit Nature of work 3 Legal case
 							if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
 									.getNatureOfWorkTypeId().equals(3L)) {
@@ -308,18 +328,25 @@ public class ErpRevServiceIMP implements ErpRevService {
 									BigDecimal remKvaLoad = roundAmountCgstAndSgst(newKvaLoad.subtract(erpEstimateAmountData.getKvaLoad()));
 									erpRev.setRemKvaAmt(remKvaLoad);
 									// These line added for adding remaining return amount
-									BigDecimal newTotalEstimate = newEstimateAmount.add(remKvaLoad).add(remReturnAmt);
+//									BigDecimal newTotalEstimate = newEstimateAmount.add(remKvaLoad).add(remReturnAmt);
+									
+									BigDecimal newTotalEstimate = newEstimateAmnt.add(remKvaLoad).add(remReturnAmt);
 									erpRev.setPayAmt(roundAmountCgstAndSgst(newTotalEstimate.subtract(oldTotalBalanceDepositAmount)));
 								} else {
 
+//									erpRev.setPayAmt(
+//											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
 									erpRev.setPayAmt(
-											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+											roundAmountCgstAndSgst(newEstimateAmnt.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+									
 								}
 
 								if (newKvaLoad.compareTo(BigDecimal.ZERO) == 0) {
-									erpRev.setNewPayAmt(newEstimateAmount);
+//									erpRev.setNewPayAmt(newEstimateAmount);
+									erpRev.setNewPayAmt(newEstimateAmnt);
 								} else {
-									erpRev.setNewPayAmt(newEstimateAmount.add(newKvaLoad));
+//									erpRev.setNewPayAmt(newEstimateAmount.add(newKvaLoad));
+									erpRev.setNewPayAmt(newEstimateAmnt.add(newKvaLoad));
 								}
 								erpRev.setRemSupervisionAmt(roundAmountCgstAndSgst(newSuperVisionAmt.subtract(oldSupervisionAmountDb)));
 							}
@@ -335,8 +362,11 @@ public class ErpRevServiceIMP implements ErpRevService {
 										|| findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
 												.getIndividualOrGroupId() == 2L) {
 
+//									erpRev.setPayAmt(
+//											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+									
 									erpRev.setPayAmt(
-											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+											roundAmountCgstAndSgst(newEstimateAmnt.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
 								} else if (findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
 										.getIndividualOrGroupId() == 1L) {
 									BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
@@ -370,16 +400,26 @@ public class ErpRevServiceIMP implements ErpRevService {
 											erpRev.setPayAmt(roundAmountCgstAndSgst(remColonyOrSlum.subtract(oldTotalBalanceDepositAmount)));
 										}
 									} else {
-										erpRev.setNewPayAmt(newEstimateAmount.add(remReturnAmt));
-										erpRev.setPayAmt(roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt)
+//										erpRev.setNewPayAmt(newEstimateAmount.add(remReturnAmt));
+//										erpRev.setPayAmt(roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt)
+//												.subtract(oldTotalBalanceDepositAmount)));
+										
+										
+										erpRev.setNewPayAmt(newEstimateAmnt.add(remReturnAmt));
+										erpRev.setPayAmt(roundAmountCgstAndSgst(newEstimateAmnt.add(remReturnAmt)
 												.subtract(oldTotalBalanceDepositAmount)));
 									}
 								} 
 								else {
+//									erpRev.setNewPayAmt(
+//											newEstimateAmount.add(remReturnAmt));
+//									erpRev.setPayAmt(
+//											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+									
 									erpRev.setNewPayAmt(
-											newEstimateAmount.add(remReturnAmt));
+											newEstimateAmnt.add(remReturnAmt));
 									erpRev.setPayAmt(
-											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+											roundAmountCgstAndSgst(newEstimateAmnt.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
 								}
 							}
 

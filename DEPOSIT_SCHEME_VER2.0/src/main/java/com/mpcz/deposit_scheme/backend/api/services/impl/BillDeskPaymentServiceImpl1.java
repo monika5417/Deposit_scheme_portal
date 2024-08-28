@@ -258,6 +258,22 @@ public class BillDeskPaymentServiceImpl1 implements BillDeskPaymentService {
 					}
 				} else {
 					payRequest.setTxnAmount(erpEstimateAmountData.getTotalBalanceDepositAmount());
+					
+//			monika code start check added for application minus cost not taken application 23-august-2024
+					if(findByConsumerApplicationNumber.getConsumerApplicationNo().equals("DS1720455056974")) {
+						payRequest.setTxnAmount(new BigDecimal(39529));
+					}
+					if(findByConsumerApplicationNumber.getConsumerApplicationNo().equals("DS1721295247685")) {
+						payRequest.setTxnAmount(new BigDecimal(52090));
+					}
+//					end 23-august-2024
+					
+//					for uat testing
+					if(findByConsumerApplicationNumber.getConsumerApplicationNo().equals("DS1724404754228")) {
+						payRequest.setTxnAmount(new BigDecimal(39529));
+					}
+//					monika code end check added for application minus cost not taken application 23-august-2024
+					
 					payRequest.setAdditionalInfo7("Demand_fees");
 				}
 

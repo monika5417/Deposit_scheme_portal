@@ -48,7 +48,7 @@ import com.mpcz.deposit_scheme.backend.api.services.UploadService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/refund_process")
+@RequestMapping("/api/user/refund_process")
 public class RefundProcessController {
 	@Autowired
 	   private ConsumerApplictionDetailRepository consumerApplictionDetailRepository;
@@ -72,10 +72,14 @@ public class RefundProcessController {
 	   private PoseMachinePostDataRepository poseMachinePostDataRepository;
 
 	   @PostMapping({"/saveRefundProcessData"})
-	   public ResponseEntity<Response> saveRefundProcessData(@RequestPart("refundForm") String refundFormData, @RequestPart("docRefundLetter") Optional<MultipartFile> docRefundLetterFile, @RequestPart("docCheckOrPassBook") Optional<MultipartFile> docCheckOrPassBookFile) throws ErpEstimateAmountException, ConsumerApplicationDetailException, DocumentTypeException {
+	   public ResponseEntity<Response> saveRefundProcessData(@RequestPart("refundForm") String refundFormData,
+			   @RequestPart("docRefundLetter") Optional<MultipartFile> docRefundLetterFile,
+			   @RequestPart("docCheckOrPassBook") Optional<MultipartFile> docCheckOrPassBookFile,
+			   @RequestPart("docConsumerRefundLetterFile") Optional<MultipartFile> docConsumerRefundLetterFile) throws ErpEstimateAmountException, ConsumerApplicationDetailException, DocumentTypeException {
 	      Response response = new Response();
 	      Upload checkOrPassBookUpload = null;
 	      Upload refundLetterUpload = null;
+	      Upload consumerRefundLetter=null;
 	      BigDecimal jeReturnAmount = null;
 	      PoseMachinePostData demandDataFromPoseMachine = null;
 	      ManualPayment demandDataFromManualPayment = null;
@@ -92,14 +96,20 @@ public class RefundProcessController {
 	            response.setMessage("Refund already initiated for this application -- " + findByConsumerApplicationNo.getRefundType());
 	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 	         } else {
-	            refundLetterUpload = this.checkAndUploadDocument(docRefundLetterFile, "REFUND_LETTER", response);
+	            refundLetterUpload = checkAndUploadDocument(docRefundLetterFile, "REFUND_LETTER", response);
 	            if (refundLetterUpload == null) {
 	               return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-	            } else {
-	               checkOrPassBookUpload = this.checkAndUploadDocument(docCheckOrPassBookFile, "CHECK_OR_PASSBOOK", response);
+	            } 
+	               checkOrPassBookUpload = checkAndUploadDocument(docCheckOrPassBookFile, "CHECK_OR_PASSBOOK", response);
 	               if (checkOrPassBookUpload == null) {
 	                  return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-	               } else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() > 12L) {
+	               } 
+	               
+	                consumerRefundLetter = checkAndUploadDocument(docConsumerRefundLetterFile,"CONSUMER_REFUND_LETTER",response);
+	                if (consumerRefundLetter == null) {
+		                  return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		               }
+	               if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() > 12L) {
 	                  demandDataFromBilldesk = billPaymentResponseeeeeeeRepository.getDemandDataFromBilldesk(refundData.getConsumerApplicationNo());
 	                  if (demandDataFromBilldesk == null) {
 	                     demandDataFromPoseMachine = poseMachinePostDataRepository.getDemandDataFromPoseMachine(refundData.getConsumerApplicationNo());
@@ -120,21 +130,22 @@ public class RefundProcessController {
 	                     jeReturnAmount = findByEstimateNumber.getJeReturnAmount();
 	                     BigDecimal cgst = (BigDecimal)Optional.ofNullable(findByEstimateNumber.getCgst()).orElse(BigDecimal.ZERO);
 	                     BigDecimal sgst = (BigDecimal)Optional.ofNullable(findByEstimateNumber.getSgst()).orElse(BigDecimal.ZERO);
+//	                     value 1 mtlb demand note refund krna hai
 	                     if (refundData.getValue() == 1L) {
 	                        if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
 	                           refundData.setRefundableAmnt(totalBalanceSupervisionAmount.subtract(cgst).subtract(sgst));
 	                        } else {
 	                           refundData.setRefundableAmnt(totalBalanceDepositAmount.subtract(cgst).subtract(sgst));
 	                        }
-	                     } else if (refundData.getValue() == 2L) {
+	                     } else if (refundData.getValue() == 2L) {  //value 2 mtlb return data refund krna hai
 	                        refundData.setRefundableAmnt(jeReturnAmount);
 	                     } else {
 	                        ErpRev findByConsAppNo;
 	                        BigDecimal remCgst;
 	                        BigDecimal remSgst;
 	                        BigDecimal payAmt;
-	                        if (refundData.getValue() == 3L) {
-	                           findByConsAppNo = this.erpRevRepository.findByConsAppNo(refundData.getConsumerApplicationNo());
+	                        if (refundData.getValue() == 3L) {   //value mtlb  revise demand ka negative amount refund krna hai
+	                           findByConsAppNo = erpRevRepository.findByConsAppNo(refundData.getConsumerApplicationNo());
 	                           if (findByConsAppNo.getPayAmt().compareTo(BigDecimal.ZERO) >= 0) {
 	                              response.setCode("406");
 	                              response.setMessage("Your amount is not in negative so we can not refund it");
@@ -149,15 +160,15 @@ public class RefundProcessController {
 	                           } else {
 	                              refundData.setRefundableAmnt(payAmt.subtract(remCgst).subtract(remSgst).abs());
 	                           }
-	                        } else if (refundData.getValue() == 4L) {
-	                           demandDataFromBilldesk = this.billPaymentResponseeeeeeeRepository.getDemandDataFromBilldesk(refundData.getConsumerApplicationNo());
+	                        } else if (refundData.getValue() == 4L) {  //value 4 mtlb demand + revise demand ka amount refund krna hai
+	                           demandDataFromBilldesk = billPaymentResponseeeeeeeRepository.getDemandDataFromBilldesk(refundData.getConsumerApplicationNo());
 	                           if (demandDataFromBilldesk == null) {
 	                              response.setCode("406");
 	                              response.setMessage("You have not paid demand fees");
 	                              return ResponseEntity.ok(response);
 	                           }
 
-	                           reviseDemandDataFromBilldesk = this.billPaymentResponseeeeeeeRepository.getReviseDemandDataFromBilldesk(refundData.getConsumerApplicationNo());
+	                           reviseDemandDataFromBilldesk = billPaymentResponseeeeeeeRepository.getReviseDemandDataFromBilldesk(refundData.getConsumerApplicationNo());
 	                           if (reviseDemandDataFromBilldesk == null) {
 	                              response.setCode("406");
 	                              response.setMessage("You have not paid revise demand fees");
@@ -165,7 +176,7 @@ public class RefundProcessController {
 	                           }
 
 	                           if (demandDataFromBilldesk != null && reviseDemandDataFromBilldesk != null) {
-	                              findByConsAppNo = this.erpRevRepository.findByConsAppNo(refundData.getConsumerApplicationNo());
+	                              findByConsAppNo = erpRevRepository.findByConsAppNo(refundData.getConsumerApplicationNo());
 	                              remCgst = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemCgst()).orElse(BigDecimal.ZERO);
 	                              remSgst = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemSgst()).orElse(BigDecimal.ZERO);
 	                              payAmt = findByConsAppNo.getPayAmt();
@@ -191,10 +202,12 @@ public class RefundProcessController {
 	                     ApplicationDocument applicationDocument = new ApplicationDocument();
 	                     applicationDocument.setDocRefundLetterFile(refundLetterUpload);
 	                     applicationDocument.setDocCheckOrPassBookFile(checkOrPassBookUpload);
-	                     ApplicationDocument existingDocument = this.applicationDocumentRepository.findByConsumerApplicationDetailId(findByConsumerApplicationNumber.getConsumerApplicationId());
+	                     applicationDocument.setDocConsumerRefundLetterFile(consumerRefundLetter);
+	                     ApplicationDocument existingDocument = applicationDocumentRepository.findByConsumerApplicationDetailId(findByConsumerApplicationNumber.getConsumerApplicationId());
 	                     if (existingDocument != null) {
 	                        existingDocument.setDocRefundLetterFile(applicationDocument.getDocRefundLetterFile());
 	                        existingDocument.setDocCheckOrPassBookFile(applicationDocument.getDocCheckOrPassBookFile());
+	                        existingDocument.setDocConsumerRefundLetterFile(consumerRefundLetter);
 	                        this.applicationDocumentRepository.save(existingDocument);
 	                     } else {
 	                        applicationDocument.setConsumerApplicationDetail(findByConsumerApplicationNumber);
@@ -208,12 +221,12 @@ public class RefundProcessController {
 	                  return ResponseEntity.ok(response);
 	               } else {
 	                  response.setCode("406");
-	                  System.out.println("You are not eligible for refund amount as you have not paid any demand fees ");
+	                  System.out.println("You are not eligible for refund amount as you have not paid any demand fees and your application status > 12");
 	                  response.setMessage("You are not eligible for refund amount as you have not paid any demand fees and your application status > 12");
 	                  return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	               }
 	            }
-	         }
+	         
 	      }
 	   }
 
@@ -232,7 +245,7 @@ public class RefundProcessController {
 
 	   private Upload checkAndUploadDocument(Optional<MultipartFile> fileOptional, String fileType, Response response) throws ConsumerApplicationDetailException, DocumentTypeException {
 	      if (fileOptional.isPresent()) {
-	         Upload upload = this.uploadService.uploadFile((MultipartFile)fileOptional.get(), fileType);
+	         Upload upload = uploadService.uploadFile((MultipartFile)fileOptional.get(), fileType);
 	         if (upload == null) {
 	            response.setCode("100");
 	            response.setMessage("Document " + fileType + " not uploaded.");

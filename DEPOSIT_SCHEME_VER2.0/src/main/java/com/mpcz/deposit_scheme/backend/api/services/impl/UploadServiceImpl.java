@@ -240,6 +240,11 @@ public class UploadServiceImpl implements UploadService {
 			documentType = documentTypeService.findDocumentTypeById(48l);
 		}
 		
+//		28-AUGUST-2024 added CONSUMER_REFUND_LETTER
+		if(fileTypeName.equals("CONSUMER_REFUND_LETTER")) {
+			documentType = documentTypeService.findDocumentTypeById(49l);
+		}
+		
 //		CODE END
 		
 		String loginId = SecurityContextHolder.getContext().getAuthentication().getName();

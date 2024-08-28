@@ -178,7 +178,7 @@ public class ErpRev extends Auditable<Long> {
    	private BigDecimal oldkvaloadAmt;  //SUPPly affording charges
     
     @Transient
-   	private BigDecimal oldkWloadAmt;  // syster development chargers
+   	private BigDecimal oldkWloadAmt;  // system development chargers
     
     @Transient
     private BigDecimal refundReviseDemandAmnt;
@@ -188,9 +188,18 @@ public class ErpRev extends Auditable<Long> {
     private BigDecimal reviseRefundAmnt;
 
     
+//    added this minus cost on 27- august - 2024
+    @Column(name="NEW_MINUS_COST")
+    private BigDecimal newMinusCost;
     
-    
-    
+	public BigDecimal getNewMinusCost() {
+		return newMinusCost;
+	}
+
+	public void setNewMinusCost(BigDecimal newMinusCost) {
+		this.newMinusCost = newMinusCost;
+	}
+
 	public BigDecimal getRefundReviseDemandAmnt() {
 		return refundReviseDemandAmnt;
 	}

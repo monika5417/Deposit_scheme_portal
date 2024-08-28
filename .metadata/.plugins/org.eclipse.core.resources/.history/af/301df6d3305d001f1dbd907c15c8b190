@@ -1,0 +1,14 @@
+package com.test.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity
+public class Student {
+
+	@Id
+	private Long rollNo;
+	private String name;
+	private Long marks;
+	
+}

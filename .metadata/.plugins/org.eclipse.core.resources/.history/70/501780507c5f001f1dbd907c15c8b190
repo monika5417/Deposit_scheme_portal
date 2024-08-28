@@ -1,0 +1,402 @@
+package com.dsp.payment.update.scheduler.billdesk.backcheck;
+
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.sql.Timestamp;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import com.dsp.payment.update.scheduler.billdesk.entity.ApplicationStatus;
+import com.dsp.payment.update.scheduler.billdesk.entity.BillDeskPaymentRequest;
+import com.dsp.payment.update.scheduler.billdesk.entity.BillDeskPaymentResponse;
+import com.dsp.payment.update.scheduler.billdesk.entity.ConsumerApplicationDetail;
+import com.dsp.payment.update.scheduler.billdesk.enums.ApplicationStatusEnum;
+import com.dsp.payment.update.scheduler.billdesk.repository.BillPaymentResponseeeeeeeRepository;
+import com.dsp.payment.update.scheduler.billdesk.repository.BllDeskPaymentRequestRepository;
+import com.dsp.payment.update.scheduler.billdesk.repository.ConsumerApplictionDetailRepository;
+import com.dsp.payment.update.scheduler.billdesk.repository.DSPMasterRepository;
+import com.dsp.payment.update.scheduler.billdesk.service.ApplicationStatusService;
+import com.dsp.payment.update.scheduler.response.Response;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+
+@Service
+@EnableScheduling
+public class BillDeskBackcheckScheduler {
+	
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	BllDeskPaymentRequestRepository billDeskPaymentRequestRepository;
+
+	@Autowired
+	BillPaymentResponseeeeeeeRepository billPaymentResponseeeeeeeRepository;
+	
+	@Autowired
+	ConsumerApplictionDetailRepository consumerApplictionDetailRepository;
+
+	@Autowired
+	ApplicationStatusService applicationStatusService;
+	
+	@Autowired
+	DSPMasterRepository dspMasterRepository;
+	
+	
+	@Value("${client.id}")
+	private String clientId;
+	
+	
+	@Value("${hash.key}")
+	private String hashKey;
+	
+	@Value("${client.key}")
+	private String clientKey;
+
+	@Value("${return.url}")
+	private String returnUrl;
+	
+	@Value("${create.order}")
+	private String createOrder;
+	
+	@Value("${ravindra.send.data.after.payment}")
+	private String ravindraSendDataAfterPayment;
+	
+	@Value("${transaction.url}")
+	private String transactionUrl;
+	
+	@Value("${refund.create}")
+	private String refundCreate;
+	
+	
+	@Scheduled(fixedRate = 3600000)
+	public void updateStartEndDateDaily() {
+		String response = dspMasterRepository.getByPropertyName("AUTO_UPDATE_BILLDESK_PAYMENT_START_END_DT");
+		if(response!= null && response.equals("Y")) {
+			dspMasterRepository.updateByPropertyName("BILLDESK_PAYMENT_START_END_DT", getDateInFormat());
+		}
+	}
+
+	private String getDateInFormat() {
+		Format formatter = new SimpleDateFormat("dd-MMM-yy");
+	    Calendar cal = Calendar.getInstance();
+	    cal.setTime(new Date());
+	    cal.add(Calendar.DATE, -Integer.parseInt(dspMasterRepository.getByPropertyName("BILL_DESK_PAYMENT_START_END_DATE_DIFF_RANGE").trim()));
+	    Date dateBefore30Days = cal.getTime();
+		return formatter.format(dateBefore30Days)+" & "+formatter.format(new Date());
+	}
+
+	@Scheduled(fixedRate = 300000)
+	public void billdeskPaymentRetriveProcessByDate() {
+
+		Response<Object> response = new Response<Object>();
+		String s = dspMasterRepository.getByPropertyName("BILLDESK_PAYMENT_START_END_DT");
+		String []startEndDate = s.split("&");
+		 
+		List<BillDeskPaymentRequest> billdesk = null;
+		try {
+			billdesk = billDeskPaymentRequestRepository.findbyPaymentUpdateDate(startEndDate[0].trim(), startEndDate[1].trim());
+		
+		for (BillDeskPaymentRequest bill : billdesk) {
+			System.out.println(bill.getConsumerAppliNo());
+			performBillDeskPaymentBackcheck(bill.getOrderId(), response);
+		}
+//		return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	
+	}
+	
+	public void performBillDeskPaymentBackcheck(String orderId, Response<Object> response) {
+		try {
+			BillDeskPaymentResponse billDeskPaymentResponse = billPaymentResponseeeeeeeRepository
+					.findByOrderid(orderId);
+			if (billDeskPaymentResponse == null) {
+			JSONObject createObjectForbillDesk = new JSONObject();
+//		uat code 
+			//createObjectForbillDesk.put("mercid", "UATMPMKVV");
+			//createObjectForbillDesk.put("orderid", bill.getOrderId());
+			//String convertObjectInString = encryptAndSignJWSWithHMAC(createObjectForbillDesk.toString(),
+			//		"Z4aBcHyD9QS5KiGvYDVZxZxXFSex8TOA", "uatmpmkvv");
+
+//		producation code		
+		createObjectForbillDesk.put("mercid", clientId);
+		createObjectForbillDesk.put("orderid", orderId);
+		String convertObjectInString = encryptAndSignJWSWithHMAC(createObjectForbillDesk.toString(),
+				"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6", "mpmkdspv2");
+
+			SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
+			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
+			clientHttpReq.setProxy(proxy);
+
+			RestTemplate restTemplate = new RestTemplate(clientHttpReq);
+
+			HttpHeaders headers = new HttpHeaders();
+
+			Long time = Timestamp.valueOf(LocalDateTime.now()).getTime();
+			System.out.println("valueOf--->" + time.toString());
+			headers.set("Content-Type", "application/jose");
+			headers.set("BD-timestamp", time.toString());
+			headers.set("Accept", "application/jose");
+			headers.set("BD-traceid", time.toString() + "123");
+
+//		uat url
+//			String url = "https://pguat.billdesk.io/payments/ve1_2/transactions/get";
+
+//		production url
+		String url = "https://api.billdesk.com/payments/ve1_2/transactions/get";
+
+			HttpEntity httpEntity = new HttpEntity<>(convertObjectInString, headers);
+			System.err.println("httpEntity-->" + httpEntity);
+
+			ResponseEntity<String> postForEntity = restTemplate.postForEntity(url, httpEntity, String.class);
+
+			System.err.println("postForEntity-->" + postForEntity);
+			String forObject = postForEntity.getBody();
+			System.out.println("forObject-------------" + forObject);
+			if (forObject == null && forObject.length() <= 0) {
+				response.setMessage("response body is null");
+				response.setCode("200");
+				System.out.println("response body is null");
+//				return response;
+			}
+
+//		uat  code
+	//	String verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(forObject,
+	//				"Z4aBcHyD9QS5KiGvYDVZxZxXFSex8TOA");
+
+//		production code
+		String verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(forObject,
+				"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6");
+
+			JSONObject jobObject = new JSONObject(verifyAndDecryptJWSWithHMAC);
+			System.out.println(jobObject.getString("auth_status").equalsIgnoreCase("0300"));
+			if (jobObject.getString("auth_status").equalsIgnoreCase("0300")) {
+				String saveResponseBillDeskTable = saveResponseBillDeskTable(jobObject);
+				if (saveResponseBillDeskTable.equals("data save")) {
+					response.setMessage("data save payment Response class");
+					System.out.println("data save payment Response class");
+					System.out.println("data save payment Response class");
+				}
+			} else {
+				response.setMessage("payment not successfull");
+				System.out.println("payment not successfull");
+//				return response;
+			}
+		}else {
+			response.setMessage("order id -:"+orderId+" Already exists");
+			System.out.println("payment already exist hai data base me");
+		} 
+		}catch (HttpClientErrorException e) {
+			System.out.println(e.getStatusCode().toString());
+			if(e.getStatusCode().toString().equals("404 NOT_FOUND")) {
+				e.printStackTrace();
+				response.setMessage("record not found for order id-"+orderId);
+				System.out.println("record not found for order id-"+orderId);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			response.setMessage("order id -:"+orderId+" either not present or any other issue occured");
+			System.out.println("order id -:"+orderId+" either not present or any other issue occured");
+		}
+	}
+
+	
+
+	private static String getData() {
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");//dd/MM/yyyy
+        Date now = new Date();
+        String strDate = sdfDate.format(now);
+        String cleanedTimestamp = strDate.replaceAll("[-:\\s]", "");
+       return cleanedTimestamp;
+	}
+	
+	private static final AtomicLong LAST_TIME_MS = new AtomicLong();
+
+	public static long uniqueCurrentTimeMS() {
+		long now = System.currentTimeMillis();
+		while (true) {
+			long lastTime = LAST_TIME_MS.get();
+			if (lastTime >= now)
+				now = lastTime + 1;
+			if (LAST_TIME_MS.compareAndSet(lastTime, now))
+				return now;
+		}
+	}
+	
+	public String verifyAndDecryptJWSWithHMAC(String encryptedSignedMessage, String verificationKey) throws Exception {
+
+		JWSObject jwsObject = JWSObject.parse(encryptedSignedMessage);
+
+		String clientId = jwsObject.getHeader().getCustomParam("clientid").toString();
+		System.out.println("clientId = " + clientId);
+		JWSVerifier verifier = new MACVerifier(verificationKey);
+		boolean isVerified = jwsObject.verify(verifier);
+		System.out.println("is valid " + isVerified);
+		String message = jwsObject.getPayload().toString();
+		return message;
+	}
+	
+	public String saveResponseBillDeskTable(JSONObject jobObject) {
+		BillDeskPaymentResponse payres = new BillDeskPaymentResponse();
+		try {
+//			uat ki mercId
+//			payres.setMercid("UATMPMKVV");
+
+//			prod ka mercId
+			payres.setMercid(clientId);
+
+			payres.setAmount(jobObject.getString("amount"));
+			payres.setAuth_status(jobObject.getString("auth_status"));
+			payres.setBankId(jobObject.getString("bankid"));
+			payres.setBankRefNo(jobObject.getString("bank_ref_no"));
+			payres.setChargeAmount(jobObject.getString("charge_amount"));
+			payres.setCurrency(jobObject.getString("currency"));
+			payres.setObjectId(jobObject.getString("objectid"));
+			payres.setOrderid(jobObject.getString("orderid"));
+			payres.setPaymentMethodType(jobObject.getString("payment_method_type"));
+			payres.setRu(jobObject.getString("ru"));
+			payres.setSurcharge(jobObject.getString("surcharge"));
+			payres.setTranErrorCode(jobObject.getString("transaction_error_code"));
+			payres.setTranErrorDesc(jobObject.getString("transaction_error_desc"));
+			payres.setTranId(jobObject.getString("transactionid"));
+			payres.setTranProcessType(jobObject.getString("txn_process_type"));
+			payres.setTransactionDate(jobObject.getString("transaction_date"));
+			payres.setConsumerApplicationNo(jobObject.getJSONObject("additional_info").getString("additional_info3"));
+			payres.setConsumerName(jobObject.getJSONObject("additional_info").getString("additional_info1"));
+			payres.setMobileNo(jobObject.getJSONObject("additional_info").getString("additional_info2"));
+			String consumerApp = jobObject.getJSONObject("additional_info").getString("additional_info3");
+			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+					.findByConsumerApplicationNumber(consumerApp);
+			ApplicationStatus appStatusDb = null;
+			if (jobObject.getString("auth_status").equalsIgnoreCase("0300")) {
+				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 5l) {
+
+					appStatusDb = applicationStatusService
+							.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+				} else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 12l) {
+					if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
+							.equalsIgnoreCase("Deposit")) {
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
+							.equalsIgnoreCase("Supervision")
+							&& findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5l) {
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
+					} else {
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.WAITING_FOR_72_HOURS.getId());
+					}
+					Date currentDate = new Date();
+
+					// Create a calendar instance and set it to the current date
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime(currentDate);
+
+					// Add three days to the current date
+					calendar.add(Calendar.DAY_OF_MONTH, 3);
+
+					// Get the new date
+					Date newDate = calendar.getTime();
+
+					// Create a formatter for the desired date format
+					SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+					// Format the dates using the formatter
+					String currentDateFormatted = formatter.format(currentDate);
+					String newDateFormatted = formatter.format(newDate);
+
+					// Display the current date and the new date
+					System.out.println("Current Date: " + currentDateFormatted);
+					System.out.println("New Date: " + newDateFormatted);
+
+					if (!findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
+							.equalsIgnoreCase("Supervision")) {
+						findByConsumerApplicationNumber.setPaymentDate(newDateFormatted);
+					}
+				}
+
+				else {
+					appStatusDb = applicationStatusService
+							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());
+				}
+			} else {
+				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 5l) {
+					appStatusDb = applicationStatusService
+							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());
+				} else {
+					appStatusDb = applicationStatusService
+							.findById(ApplicationStatusEnum.DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId());
+				}
+			}
+			Integer count  = billPaymentResponseeeeeeeRepository.getByTransactionId(payres.getTranId());
+			if(count==null || count==0) {
+				
+				findByConsumerApplicationNumber.setApplicationStatus(appStatusDb);
+				consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
+				
+				BillDeskPaymentResponse save = billPaymentResponseeeeeeeRepository.save(payres);
+				if (save == null) {
+					return "data not save";
+				}
+			} else {
+				return "data not save duplicate transaction id "+payres.getTranId();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "data save";
+	}
+	
+	private static String encryptAndSignJWSWithHMAC(String reqStr, String secretKey, String clientid) throws JOSEException {
+
+		JWSSigner signer = new MACSigner(secretKey);
+		HashMap<String, Object> customParams = new HashMap<String, Object>();
+		customParams.put("clientid", clientid);
+		JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256, null, null, null, null, null, null, null, null, null,
+				null, customParams, null);
+		JWSObject jwsObject = new JWSObject(jwsHeader, new Payload(reqStr)); // Apply the HMAC
+		jwsObject.sign(signer);
+		return jwsObject.serialize();
+	}
+	
+	public static void main(String[] args) throws JOSEException, JSONException {
+		JSONObject createObjectForbillDesk = new JSONObject();
+		createObjectForbillDesk.put("mercid", clientId);
+		createObjectForbillDesk.put("orderid", "DS20230706122515");
+		String convertObjectInString = encryptAndSignJWSWithHMAC(createObjectForbillDesk.toString(),
+				"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6", "mpmkdspv2");
+		System.out.println(convertObjectInString);
+	}
+}

@@ -129,7 +129,7 @@ public class ERPEstimateController {
 
 	@Autowired
 	ErpRevRepository erpRevRepository;
-	
+
 	@ApiOperation(value = "Retrieve all ERP Estimate details", notes = "Fetch all ERP Estimate details", response = Response.class, responseContainer = "List", tags = RestApiUrl.URJAS_PORTAL_TAGS)
 	@ApiResponses(value = {
 			@ApiResponse(code = ApiResponseCode.SUCCESS_CODE, message = ResponseMessage.RECORD_INSERTED_MESSAGE),
@@ -932,7 +932,8 @@ public class ERPEstimateController {
 
 		sanchayPortalDto
 				.setMobileNumber(findConsumerApplicationDetailByApplicationNo.getConsumers().getConsumerMobileNo());
-		// code start sending gst no. if exist to sanchay portal (10-june-2024) -Monika Rajpoot
+		// code start sending gst no. if exist to sanchay portal (10-june-2024) -Monika
+		// Rajpoot
 		if (findConsumerApplicationDetailByApplicationNo.getGstNumber() != null) {
 			sanchayPortalDto.setGstNumber(findConsumerApplicationDetailByApplicationNo.getGstNumber());
 		}
@@ -1008,188 +1009,256 @@ public class ERPEstimateController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
 		}
 	}
-	
+
 	@GetMapping("/getErpData/{consumerApplicationNo}/{value}")
-	   public ResponseEntity<?> getErpData(@PathVariable String consumerApplicationNo, @PathVariable Long value) throws ErpEstimateAmountException {
-	      Response response = new Response();
-	      ConsumerApplicationDetail findByConsumerApplicationNumber = this.consumerApplictionDetailRepository.findByConsumerApplicationNumber(consumerApplicationNo);
-	      if (findByConsumerApplicationNumber == null) {
-	         response.setMessage("Data not found for given application");
-	         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-	      } else {
-	         ErpEstimateAmountData findByEstimateNumber;
-	         BigDecimal totalBalanceSupervisionAmount;
-	         BigDecimal totalBalanceDepositAmount;
-	         BigDecimal cgst;
-	         BigDecimal sgst;
-	         if (value == 1L) {
-	            findByEstimateNumber = this.erpEstimateAmountService.findByEstimateNumber(findByConsumerApplicationNumber.getErpWorkFlowNumber());
-	            if (findByEstimateNumber == null) {
-	               response.setCode("100");
-	               response.setMessage("Data not found for this ERP number");
-	               return ResponseEntity.ok(response);
-	            } else {
-	               totalBalanceSupervisionAmount = (BigDecimal)Optional.ofNullable(findByEstimateNumber.getCgst()).orElse(BigDecimal.ZERO);
-	               totalBalanceDepositAmount = (BigDecimal)Optional.ofNullable(findByEstimateNumber.getSgst()).orElse(BigDecimal.ZERO);
-	               cgst = findByEstimateNumber.getTotalBalanceSupervisionAmount();
-	               sgst = findByEstimateNumber.getTotalBalanceDepositAmount();
-	               BigDecimal jeReturnAmount = findByEstimateNumber.getJeReturnAmount();
-	               if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
-	                  findByEstimateNumber.setRefundDemandAmnt(cgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount));
-	               } else {
-	                  findByEstimateNumber.setRefundDemandAmnt(sgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount));
-	               }
+	public ResponseEntity<?> getErpData(@PathVariable String consumerApplicationNo, @PathVariable Long value)
+			throws ErpEstimateAmountException {
+		Response response = new Response();
+		ConsumerApplicationDetail findByConsumerApplicationNumber = this.consumerApplictionDetailRepository
+				.findByConsumerApplicationNumber(consumerApplicationNo);
+		if (findByConsumerApplicationNumber == null) {
+			response.setMessage("Data not found for given application");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+		} else {
+			ErpEstimateAmountData findByEstimateNumber;
+			BigDecimal totalBalanceSupervisionAmount;
+			BigDecimal totalBalanceDepositAmount;
+			BigDecimal cgst;
+			BigDecimal sgst;
+			if (value == 1L) { // value 1 mtlb demand ka amount refund krna hai
+				findByEstimateNumber = this.erpEstimateAmountService
+						.findByEstimateNumber(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+				if (findByEstimateNumber == null) {
+					response.setCode("100");
+					response.setMessage("Data not found for this ERP number");
+					return ResponseEntity.ok(response);
+				} else {
+					totalBalanceSupervisionAmount = (BigDecimal) Optional.ofNullable(findByEstimateNumber.getCgst())
+							.orElse(BigDecimal.ZERO);
+					totalBalanceDepositAmount = (BigDecimal) Optional.ofNullable(findByEstimateNumber.getSgst())
+							.orElse(BigDecimal.ZERO);
+					cgst = findByEstimateNumber.getTotalBalanceSupervisionAmount();
+					sgst = findByEstimateNumber.getTotalBalanceDepositAmount();
+					BigDecimal jeReturnAmount = findByEstimateNumber.getJeReturnAmount();
+					if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
+						findByEstimateNumber.setRefundDemandAmnt(
+								cgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount));
+					} else {
+						findByEstimateNumber.setRefundDemandAmnt(
+								sgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount));
+					}
 
-	               response.setCode("200");
-	               response.setMessage("Data Returned Successfully");
-	               response.setList(Arrays.asList(findByEstimateNumber));
-	               return ResponseEntity.status(HttpStatus.OK).body(response);
-	            }
-	         } else if (value == 2L) {
-	            ErpRev findByConsAppNo = this.erpRevRepository.findByConsAppNo(consumerApplicationNo);
-	            if (findByConsAppNo == null) {
-	               response.setCode("100");
-	               response.setMessage("Data not found for this ERP Rev");
-	               return ResponseEntity.ok(response);
-	            } else {
-	               totalBalanceSupervisionAmount = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemCgst()).orElse(BigDecimal.ZERO);
-	               totalBalanceDepositAmount = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemSgst()).orElse(BigDecimal.ZERO);
-	               cgst = findByConsAppNo.getPayAmt();
-	               if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
-	                  findByConsAppNo.setRefundReviseDemandAmnt(cgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount).abs());
-	               } else {
-	                  findByConsAppNo.setRefundReviseDemandAmnt(cgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount).abs());
-	               }
+					response.setCode("200");
+					response.setMessage("Data Returned Successfully");
+					response.setList(Arrays.asList(findByEstimateNumber));
+					return ResponseEntity.status(HttpStatus.OK).body(response);
+				}
+			} else if (value == 2L) { // only revise demand ka data refund krne k liye
+				ErpRev findByConsAppNo = this.erpRevRepository.findByConsAppNo(consumerApplicationNo);
+				if (findByConsAppNo == null) {
+					response.setCode("100");
+					response.setMessage("Data not found for this ERP Rev");
+					return ResponseEntity.ok(response);
+				} else {
+					totalBalanceSupervisionAmount = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemCgst())
+							.orElse(BigDecimal.ZERO);
+					totalBalanceDepositAmount = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemSgst())
+							.orElse(BigDecimal.ZERO);
+					cgst = findByConsAppNo.getPayAmt();
+					if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
+						findByConsAppNo.setRefundReviseDemandAmnt(
+								cgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount).abs());
+					} else {
+						findByConsAppNo.setRefundReviseDemandAmnt(
+								cgst.subtract(totalBalanceSupervisionAmount).subtract(totalBalanceDepositAmount).abs());
+					}
 
-	               response.setCode("200");
-	               response.setMessage("Data Returned Successfully");
-	               response.setList(Arrays.asList(findByConsAppNo));
-	               return ResponseEntity.status(HttpStatus.OK).body(response);
-	            }
-	         } else if (value == 3L) {
-	            findByEstimateNumber = this.erpEstimateAmountService.findByEstimateNumber(findByConsumerApplicationNumber.getErpWorkFlowNumber());
-	            totalBalanceSupervisionAmount = findByEstimateNumber.getTotalBalanceSupervisionAmount();
-	            totalBalanceDepositAmount = findByEstimateNumber.getTotalBalanceDepositAmount();
-	            cgst = (BigDecimal)Optional.ofNullable(findByEstimateNumber.getCgst()).orElse(BigDecimal.ZERO);
-	            sgst = (BigDecimal)Optional.ofNullable(findByEstimateNumber.getSgst()).orElse(BigDecimal.ZERO);
-	            ErpRev findByConsAppNo = this.erpRevRepository.findByConsAppNo(consumerApplicationNo);
-	            BigDecimal remCgst = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemCgst()).orElse(BigDecimal.ZERO);
-	            BigDecimal remSgst = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemSgst()).orElse(BigDecimal.ZERO);
-	            BigDecimal payAmt = findByConsAppNo.getPayAmt();
-	            BigDecimal ReviseDemandReturnAmnt = payAmt.subtract(remCgst).subtract(remSgst);
-	            BigDecimal demandReturnSupervisionAmnt;
-	            if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
-	               demandReturnSupervisionAmnt = totalBalanceSupervisionAmount.subtract(cgst).subtract(sgst);
-	               findByConsAppNo.setDemandRefundAmnt(demandReturnSupervisionAmnt);
-	               findByConsAppNo.setReviseRefundAmnt(ReviseDemandReturnAmnt);
-	               findByConsAppNo.setRefundReviseDemandAmnt(demandReturnSupervisionAmnt.add(ReviseDemandReturnAmnt));
-	            } else {
-	               demandReturnSupervisionAmnt = totalBalanceDepositAmount.subtract(cgst).subtract(sgst);
-	               findByConsAppNo.setDemandRefundAmnt(demandReturnSupervisionAmnt);
-	               findByConsAppNo.setReviseRefundAmnt(ReviseDemandReturnAmnt);
-	               findByConsAppNo.setRefundReviseDemandAmnt(demandReturnSupervisionAmnt.add(ReviseDemandReturnAmnt));
-	            }
+					response.setCode("200");
+					response.setMessage("Data Returned Successfully");
+					response.setList(Arrays.asList(findByConsAppNo));
+					return ResponseEntity.status(HttpStatus.OK).body(response);
+				}
+			} else if (value == 3L) { // demand and revise demand refund krne k liye
+				findByEstimateNumber = this.erpEstimateAmountService
+						.findByEstimateNumber(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+				totalBalanceSupervisionAmount = findByEstimateNumber.getTotalBalanceSupervisionAmount();
+				totalBalanceDepositAmount = findByEstimateNumber.getTotalBalanceDepositAmount();
+				cgst = (BigDecimal) Optional.ofNullable(findByEstimateNumber.getCgst()).orElse(BigDecimal.ZERO);
+				sgst = (BigDecimal) Optional.ofNullable(findByEstimateNumber.getSgst()).orElse(BigDecimal.ZERO);
+				ErpRev findByConsAppNo = this.erpRevRepository.findByConsAppNo(consumerApplicationNo);
+				BigDecimal remCgst = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemCgst())
+						.orElse(BigDecimal.ZERO);
+				BigDecimal remSgst = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemSgst())
+						.orElse(BigDecimal.ZERO);
+				BigDecimal payAmt = findByConsAppNo.getPayAmt();
+				BigDecimal ReviseDemandReturnAmnt = payAmt.subtract(remCgst).subtract(remSgst);
+				BigDecimal demandReturnSupervisionAmnt;
+				if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
+					demandReturnSupervisionAmnt = totalBalanceSupervisionAmount.subtract(cgst).subtract(sgst);
+					findByConsAppNo.setDemandRefundAmnt(demandReturnSupervisionAmnt);
+					findByConsAppNo.setReviseRefundAmnt(ReviseDemandReturnAmnt);
+					findByConsAppNo.setRefundReviseDemandAmnt(demandReturnSupervisionAmnt.add(ReviseDemandReturnAmnt));
+				} else {
+					demandReturnSupervisionAmnt = totalBalanceDepositAmount.subtract(cgst).subtract(sgst);
+					findByConsAppNo.setDemandRefundAmnt(demandReturnSupervisionAmnt);
+					findByConsAppNo.setReviseRefundAmnt(ReviseDemandReturnAmnt);
+					findByConsAppNo.setRefundReviseDemandAmnt(demandReturnSupervisionAmnt.add(ReviseDemandReturnAmnt));
+				}
 
-	            response.setCode("200");
-	            response.setMessage("Data Returned Successfully");
-	            response.setList(Arrays.asList(findByConsAppNo));
-	            return ResponseEntity.status(HttpStatus.OK).body(response);
-	         } else {
-	            response.setCode("406");
-	            response.setMessage("Invalid value parameter");
-	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-	         }
-	      }
-	   }
+				response.setCode("200");
+				response.setMessage("Data Returned Successfully");
+				response.setList(Arrays.asList(findByConsAppNo));
+				return ResponseEntity.status(HttpStatus.OK).body(response);
+			} else {
+				response.setCode("406");
+				response.setMessage("Invalid value parameter");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+			}
+		}
+	}
 
-	@GetMapping({"/getErpRevDataForRefund/{consumerApplicationNo}"})
-	   public ResponseEntity<?> getErpRevDataForRefund(@PathVariable String consumerApplicationNo) throws ErpEstimateAmountException {
-	      Response response = new Response();
-	      ConsumerApplicationDetail findByConsumerApplicationNumber = this.consumerApplictionDetailRepository.findByConsumerApplicationNumber(consumerApplicationNo);
-	      if (findByConsumerApplicationNumber == null) {
-	         response.setMessage("Data not found for given application");
-	         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-	      } else {
-	         ErpEstimateAmountData findByEstimateNumber = this.erpEstimateAmountService.findByEstimateNumber(findByConsumerApplicationNumber.getErpWorkFlowNumber());
-	         if (findByEstimateNumber == null) {
-	            response.setCode("100");
-	            response.setMessage("Data not found for this ERP number");
-	            return ResponseEntity.ok(response);
-	         } else {
-	            BigDecimal oldCgst = findByEstimateNumber.getCgst();
-	            BigDecimal oldSgst = findByEstimateNumber.getSgst();
-	            ErpRev findByConsAppNo = this.erpRevRepository.findByConsAppNo(consumerApplicationNo);
-	            if (findByConsAppNo == null) {
-	               response.setCode("100");
-	               response.setMessage("Data not found for this ERP Rev");
-	               return ResponseEntity.ok(response);
-	            } else {
-	               BigDecimal newSuperVisionAmnt = (BigDecimal)Optional.ofNullable(findByConsAppNo.getNewSupervisionAmt()).orElse(BigDecimal.ZERO);
-	               BigDecimal newKvaAmnt = (BigDecimal)Optional.ofNullable(findByConsAppNo.getNewKvaAmt()).orElse(BigDecimal.ZERO);
-	               BigDecimal remSuperVision = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemSupervisionAmt()).orElse(BigDecimal.ZERO);
-	               BigDecimal remKva = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemKvaAmt()).orElse(BigDecimal.ZERO);
-	               BigDecimal remColonyOrSlum = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemColonyOrSlum()).orElse(BigDecimal.ZERO);
-	               BigDecimal newDepositAmnt = (BigDecimal)Optional.ofNullable(findByConsAppNo.getNewDepositAmt()).orElse(BigDecimal.ZERO);
-	               BigDecimal remDeposit = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemmDepositAmt()).orElse(BigDecimal.ZERO);
-	               BigDecimal remSuperVisionAmnt = (BigDecimal)Optional.ofNullable(findByConsAppNo.getRemSupervisionAmt()).orElse(BigDecimal.ZERO);
-	               BigDecimal newColonySlumAmnt = (BigDecimal)Optional.ofNullable(findByConsAppNo.getNewColonyOrSlum()).orElse(BigDecimal.ZERO);
-	               if (findByConsAppNo.getPayAmt().compareTo(BigDecimal.ZERO) < 0) {
-	                  ErpRevRefundDto dto = new ErpRevRefundDto();
-	                  if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
-	                     if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(3L)) {
-	                        dto.setNewSupervisionAmnt(newSuperVisionAmnt);
-	                        dto.setOldSgst(oldSgst);
-	                        dto.setOldCgst(oldCgst);
-	                        dto.setNewKvaAmnt(newKvaAmnt);
-	                        dto.setRemKvaAmnt(remKva);
-	                        dto.setRemSupervisionAmnt(remSuperVisionAmnt);
-	                        dto.setRefundableAmnt(remSuperVision.add(remKva).abs());
-	                     } else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(4L)) {
-	                        dto.setNewColonySlumAmnt(newColonySlumAmnt);
-	                        dto.setRemColonySlumAmnt(remColonyOrSlum);
-	                        dto.setRefundableAmnt(remColonyOrSlum.abs());
-	                     } else {
-	                        dto.setNewSupervisionAmnt(newSuperVisionAmnt);
-	                        dto.setRemSupervisionAmnt(remSuperVisionAmnt);
-	                        dto.setOldSgst(oldSgst);
-	                        dto.setOldCgst(oldCgst);
-	                        dto.setRefundableAmnt(remSuperVision.abs());
-	                     }
-	                  } else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(3L)) {
-	                     dto.setNewSupervisionAmnt(newSuperVisionAmnt);
-	                     dto.setOldSgst(oldSgst);
-	                     dto.setOldCgst(oldCgst);
-	                     dto.setNewKvaAmnt(newKvaAmnt);
-	                     dto.setRemKvaAmnt(remKva);
-	                     dto.setRemSupervisionAmnt(remSuperVisionAmnt);
-	                     dto.setNewDepositAmnt(newDepositAmnt);
-	                     dto.setRemDepositAmnt(remDeposit);
-	                     dto.setRefundableAmnt(remSuperVision.add(remKva).add(remDeposit).abs());
-	                  } else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(4L)) {
-	                     dto.setNewColonySlumAmnt(newColonySlumAmnt);
-	                     dto.setRemColonySlumAmnt(remColonyOrSlum);
-	                     dto.setRefundableAmnt(remColonyOrSlum.abs());
-	                  } else {
-	                     dto.setNewSupervisionAmnt(newSuperVisionAmnt);
-	                     dto.setOldSgst(oldSgst);
-	                     dto.setOldCgst(oldCgst);
-	                     dto.setRefundableAmnt(remSuperVision.add(remDeposit).abs());
-	                  }
+	@GetMapping({ "/getErpRevDataForRefund/{consumerApplicationNo}" })
+	public ResponseEntity<?> getErpRevDataForRefund(@PathVariable String consumerApplicationNo)
+			throws ErpEstimateAmountException {
+		Response response = new Response();
+		ConsumerApplicationDetail findByConsumerApplicationNumber = this.consumerApplictionDetailRepository
+				.findByConsumerApplicationNumber(consumerApplicationNo);
+		if (findByConsumerApplicationNumber == null) {
+			response.setMessage("Data not found for given application");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+		} else {
+			ErpEstimateAmountData findByEstimateNumber = this.erpEstimateAmountService
+					.findByEstimateNumber(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+			if (findByEstimateNumber == null) {
+				response.setCode("100");
+				response.setMessage("Data not found for this ERP number");
+				return ResponseEntity.ok(response);
+			} else {
+				BigDecimal oldCgst = findByEstimateNumber.getCgst();
+				BigDecimal oldSgst = findByEstimateNumber.getSgst();
+				ErpRev findByConsAppNo = this.erpRevRepository.findByConsAppNo(consumerApplicationNo);
+				if (findByConsAppNo == null) {
+					response.setCode("100");
+					response.setMessage("Data not found for this ERP Rev");
+					return ResponseEntity.ok(response);
+				} else {
+					BigDecimal newSuperVisionAmnt = (BigDecimal) Optional
+							.ofNullable(findByConsAppNo.getNewSupervisionAmt()).orElse(BigDecimal.ZERO);
+					BigDecimal newKvaAmnt = (BigDecimal) Optional.ofNullable(findByConsAppNo.getNewKvaAmt())
+							.orElse(BigDecimal.ZERO);
+					BigDecimal remSuperVision = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemSupervisionAmt())
+							.orElse(BigDecimal.ZERO);
+					BigDecimal remKva = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemKvaAmt())
+							.orElse(BigDecimal.ZERO);
+					BigDecimal remColonyOrSlum = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemColonyOrSlum())
+							.orElse(BigDecimal.ZERO);
+					BigDecimal newDepositAmnt = (BigDecimal) Optional.ofNullable(findByConsAppNo.getNewDepositAmt())
+							.orElse(BigDecimal.ZERO);
+					BigDecimal remDeposit = (BigDecimal) Optional.ofNullable(findByConsAppNo.getRemmDepositAmt())
+							.orElse(BigDecimal.ZERO);
+					BigDecimal remSuperVisionAmnt = (BigDecimal) Optional
+							.ofNullable(findByConsAppNo.getRemSupervisionAmt()).orElse(BigDecimal.ZERO);
+					BigDecimal newColonySlumAmnt = (BigDecimal) Optional
+							.ofNullable(findByConsAppNo.getNewColonyOrSlum()).orElse(BigDecimal.ZERO);
+					if (findByConsAppNo.getPayAmt().compareTo(BigDecimal.ZERO) < 0) {
+						ErpRevRefundDto dto = new ErpRevRefundDto();
+						if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(1L)) {
+							if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
+									.equals(3L)) {
+								dto.setNewSupervisionAmnt(newSuperVisionAmnt);
+								dto.setOldSgst(oldSgst);
+								dto.setOldCgst(oldCgst);
+								dto.setNewKvaAmnt(newKvaAmnt);
+								dto.setRemKvaAmnt(remKva);
+								dto.setRemSupervisionAmnt(remSuperVisionAmnt);
+								dto.setRefundableAmnt(remSuperVision.add(remKva).abs());
+							} else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
+									.equals(4L)) {
+								dto.setNewColonySlumAmnt(newColonySlumAmnt);
+								dto.setRemColonySlumAmnt(remColonyOrSlum);
+								dto.setRefundableAmnt(remColonyOrSlum.abs());
+							} else {
+								dto.setNewSupervisionAmnt(newSuperVisionAmnt);
+								dto.setRemSupervisionAmnt(remSuperVisionAmnt);
+								dto.setOldSgst(oldSgst);
+								dto.setOldCgst(oldCgst);
+								dto.setRefundableAmnt(remSuperVision.abs());
+							}
+						} else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
+								.equals(3L)) {
+							dto.setNewSupervisionAmnt(newSuperVisionAmnt);
+							dto.setOldSgst(oldSgst);
+							dto.setOldCgst(oldCgst);
+							dto.setNewKvaAmnt(newKvaAmnt);
+							dto.setRemKvaAmnt(remKva);
+							dto.setRemSupervisionAmnt(remSuperVisionAmnt);
+							dto.setNewDepositAmnt(newDepositAmnt);
+							dto.setRemDepositAmnt(remDeposit);
+							dto.setRefundableAmnt(remSuperVision.add(remKva).add(remDeposit).abs());
+						} else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
+								.equals(4L)) {
+							dto.setNewColonySlumAmnt(newColonySlumAmnt);
+							dto.setRemColonySlumAmnt(remColonyOrSlum);
+							dto.setRefundableAmnt(remColonyOrSlum.abs());
+						} else {
+							dto.setNewSupervisionAmnt(newSuperVisionAmnt);
+							dto.setOldSgst(oldSgst);
+							dto.setOldCgst(oldCgst);
+							dto.setRefundableAmnt(remSuperVision.add(remDeposit).abs());
+						}
 
-	                  response.setCode("200");
-	                  response.setMessage("Data retrieved successfully");
-	                  response.setList(Arrays.asList(dto));
-	                  return ResponseEntity.ok(response);
-	               } else {
-	                  response.setCode("406");
-	                  response.setMessage("Your amount is not in negative so we can not refund it");
-	                  return ResponseEntity.ok(response);
-	               }
-	            }
-	         }
-	      }
-	   }
-	
-	
-	
+						response.setCode("200");
+						response.setMessage("Data retrieved successfully");
+						response.setList(Arrays.asList(dto));
+						return ResponseEntity.ok(response);
+					} else {
+						response.setCode("406");
+						response.setMessage("Your amount is not in negative so we can not refund it");
+						return ResponseEntity.ok(response);
+					}
+				}
+			}
+		}
+	}
+
+	@GetMapping("/checkDemandOrReviseDemandRefund/{consumerApplicationNo}")
+	public ResponseEntity<?> checkDemandOrReviseDemandRefund(@PathVariable String consumerApplicationNo)
+			throws ErpEstimateAmountException {
+		Response response = new Response();
+
+		ConsumerApplicationDetail byConsumerApplicationNumber = consumerApplictionDetailRepository
+				.findByConsumerApplicationNumber(consumerApplicationNo);
+
+		if (byConsumerApplicationNumber == null) {
+
+			response.setCode(HttpCode.NULL_OBJECT);
+			response.setMessage("Consumer Application not found");
+			return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+		}
+
+		ErpEstimateAmountData byEstimateNumber = erpEstimateAmountService
+				.findByEstimateNumber(byConsumerApplicationNumber.getErpWorkFlowNumber());
+		ErpRev byConsAppNo = erpRevRepository.findByConsAppNo(consumerApplicationNo);
+
+		if (byEstimateNumber != null && byConsAppNo == null) {
+			response.setCode("200");
+			response.setList(Arrays.asList(1)); // return 1 jab only demand payment return hoga
+			return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+
+		} else if (byEstimateNumber != null && byConsAppNo != null) {
+			if (byConsAppNo.getPayAmt().compareTo(BigDecimal.ZERO) >= 0) {
+				response.setCode("200");
+				response.setList(Arrays.asList(3));// Return 3 when amount is not negative
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+			} else {
+				response.setCode("200");
+				response.setList(Arrays.asList(1)); // return 1 jab only demand payment return hoga
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+			}
+		}
+		response.setCode("200");
+		response.setList(Arrays.asList(0)); // return 1 jab only demand payment return hoga
+		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+	}
+
 }

@@ -226,9 +226,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/consumer/consumer-application/getAllApplicantFeedback/{consumerApplicationNo}",
 			"/api/consumer/consumer-application/getAllApplicantWorkIssues/{consumerApplicationNo}",
 			"/api/consumer/bill-desk/saveBillRequest", "/api/consumer/bill-desk/settlementDate",
-			"/api/user/erp/getErpData/{consumerApplicationNo}/{value}", "/api/refund_process/saveRefundProcessData",
-//			"/api/consumer/consumer-application//user/reselectionOfContractor",
-
+			"/api/user/erp/getErpData/{consumerApplicationNo}/{value}", "/api/user/refund_process/saveRefundProcessData",
+			"/api/consumer/consumer-application/user/reselectionOfContractor",
+			 "/api/user/refund_process/refundApplicationByGM",
+			  "/api/user/refund_process/getRefundProcessDataByApplicationNo/{consumerApplicationNo}",
+			  "/api/user/erp/checkDemandOrReviseDemandRefund/{consumerApplicationNo}",
 			// Monika API End
 			"/ErpRev/RevErpDataNew/{erpNo}/{applicationNo}/{value}", "/api/consumer/bill-desk/billPaymentProcess/{id}",
 			"/api/user/consumer-application/get/{id}", "/poseMachine/savedata",

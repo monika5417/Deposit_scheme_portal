@@ -1,0 +1,54 @@
+package com.deposit_scheme_webhook.backend.api.builddesk;
+
+public class CustomerBillDTO {
+   private String consumerAppllicationNo;
+
+   public String getConsumerAppllicationNo() {
+      return this.consumerAppllicationNo;
+   }
+
+   public void setConsumerAppllicationNo(String consumerAppllicationNo) {
+      this.consumerAppllicationNo = consumerAppllicationNo;
+   }
+
+   public boolean equals(final Object o) {
+      if (o == this) {
+         return true;
+      } else if (!(o instanceof CustomerBillDTO)) {
+         return false;
+      } else {
+         CustomerBillDTO other = (CustomerBillDTO)o;
+         if (!other.canEqual(this)) {
+            return false;
+         } else {
+            Object this$consumerAppllicationNo = this.getConsumerAppllicationNo();
+            Object other$consumerAppllicationNo = other.getConsumerAppllicationNo();
+            if (this$consumerAppllicationNo == null) {
+               if (other$consumerAppllicationNo != null) {
+                  return false;
+               }
+            } else if (!this$consumerAppllicationNo.equals(other$consumerAppllicationNo)) {
+               return false;
+            }
+
+            return true;
+         }
+      }
+   }
+
+   protected boolean canEqual(final Object other) {
+      return other instanceof CustomerBillDTO;
+   }
+
+   public int hashCode() {
+      int PRIME = true;
+      int result = 1;
+      Object $consumerAppllicationNo = this.getConsumerAppllicationNo();
+      int result = result * 59 + ($consumerAppllicationNo == null ? 43 : $consumerAppllicationNo.hashCode());
+      return result;
+   }
+
+   public String toString() {
+      return "CustomerBillDTO(consumerAppllicationNo=" + this.getConsumerAppllicationNo() + ")";
+   }
+}
