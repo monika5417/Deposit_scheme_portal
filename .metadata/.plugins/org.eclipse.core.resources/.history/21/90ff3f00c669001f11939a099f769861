@@ -1,0 +1,56 @@
+package com.TestMapping.controller;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+
+import com.TestMapping.entity.Customer;
+import com.TestMapping.repository.CustomerRepository;
+import com.itextpdf.html2pdf.HtmlConverter;
+
+@RestController
+public class ThymleadPDFController {
+
+	@Autowired
+	private SpringTemplateEngine templateEngine;
+
+	@Autowired
+	CustomerRepository customerRepository;
+
+	@GetMapping("/download-customer-pdf")
+	public ResponseEntity<byte[]> downloadCustomerPdf() throws IOException {
+		ByteArrayOutputStream out = generatePdf();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=customers.pdf");
+
+		return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(out.toByteArray());
+	}
+
+	public ByteArrayOutputStream generatePdf() throws IOException {
+		// Retrieve customer data
+		List<Customer> customers = customerRepository.findAll();
+
+		// Prepare Thymeleaf context
+		Context context = new Context();
+		context.setVariable("customers", customers);
+
+		// Render HTML using Thymeleaf
+		String htmlContent = templateEngine.process("customer-pdf", context);
+
+		// Convert rendered HTML to PDF
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		HtmlConverter.convertToPdf(htmlContent, out);
+
+		return out;
+	}
+}

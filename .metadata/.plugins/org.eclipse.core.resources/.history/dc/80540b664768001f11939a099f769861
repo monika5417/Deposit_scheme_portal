@@ -1,0 +1,61 @@
+package com.TestMapping.controller;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.element.Paragraph;
+
+@RestController
+public class PdfDownloadController {
+
+   
+
+    @GetMapping("/download-pdf")
+    public ResponseEntity<byte[]> downloadPdf(@RequestParam("content") String content) throws IOException {
+       ByteArrayOutputStream out = createPdf(content);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=sample.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(out.toByteArray());
+    }
+    
+    public ByteArrayOutputStream createPdf(String content) throws IOException {
+    	ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(out);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document document = new Document(pdfDoc);
+
+        // Load the image from the resources directory
+        InputStream imageStream = getClass().getResourceAsStream("/static/images/logo.jfif");
+        if (imageStream != null) {
+            ImageData imageData = ImageDataFactory.create(imageStream.readAllBytes());
+            Image image = new Image(imageData);
+
+            // Add the image to the document
+            document.add(image);
+        }
+
+        // Add the text content to the document
+        document.add(new Paragraph(content));
+
+        document.close();
+        return out;
+    }
+}

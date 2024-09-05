@@ -1,0 +1,27 @@
+package com.TestMapping.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.TestMapping.entity.Customer;
+import com.TestMapping.repository.CustomerRepository;
+
+@RestController
+public class CustomerController {
+
+	@Autowired
+	CustomerRepository customerRepository;
+	
+	@PostMapping("/customers")
+    public ResponseEntity<List<Customer>> saveCustomers(@RequestBody List<Customer> customers) {
+        List<Customer> savedCustomers = customerRepository.saveAll(customers);
+        return ResponseEntity.ok(savedCustomers);
+    }
+	
+	
+}

@@ -1,0 +1,74 @@
+package com.Library_Management_System.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Getter(AccessLevel.PUBLIC)
+@Setter(AccessLevel.PUBLIC)
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public class Auditable<U> implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@JsonIgnore
+	@CreatedBy
+	@Column(name = "CREATED_BY")
+	private U createdBy;
+
+	@JsonIgnore
+//	@JsonFormat(shape=Shape.STRING,pattern="dd-MM-yyyy hh:mm:ss",timezone="IST")
+	@JsonFormat(shape=Shape.STRING,pattern="dd-MM-yyyy",timezone="IST")
+	@Temporal(TemporalType.TIMESTAMP)
+	@CreatedDate
+	@Column(name = "CREATED")
+	private Date created;
+
+	@JsonIgnore
+	@LastModifiedBy
+	@Column(name = "UPDATED_BY")
+	private U updatedBy;
+
+	@JsonIgnore
+	// @JsonFormat(shape=Shape.STRING,pattern="dd-MM-yyyy hh:mm:ss",timezone="IST")
+	@LastModifiedDate
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "UPDATED")
+	private Date updated;
+
+	@JsonIgnore
+	@Column(name = "IS_ACTIVE")
+	protected boolean isActive = true;
+
+	@JsonIgnore
+	@Column(name = "IS_DELETED")
+	private boolean isDeleted = false;
+	
+	
+}

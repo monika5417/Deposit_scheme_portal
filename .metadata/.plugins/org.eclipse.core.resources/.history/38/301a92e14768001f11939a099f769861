@@ -1,0 +1,5 @@
+package com.TestMapping.controller;
+
+public class CustomerController {
+
+}

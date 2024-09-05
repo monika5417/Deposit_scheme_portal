@@ -1,0 +1,8 @@
+package com.deposit_scheme_webhook.backend.api.domain;
+
+public class Snippet {
+	public static void main(String[] args) {
+		ApplicantFeedbackDSP.java
+	}
+}
+
