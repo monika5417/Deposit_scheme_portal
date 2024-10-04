@@ -1,0 +1,38 @@
+
+#spring.profiles.active=${ACTIVE_PROFILE}
+spring.profiles.active=prod
+#port configuration
+server.port=8083
+
+# OracleDB connection settings  
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+spring.jpa.database-platform=org.hibernate.dialect.Oracle10gDialect
+server.servlet.context-path=/deposit_scheme
+ 
+
+jwt.header=Authorization
+jwt.secret =  serviceAmit4321!@#$
+jwt.expiration = 30000
+
+spring.datasource.hikari.maximum-pool-size=5000
+spring.datasource.hikari.connection-timeout=6000
+spring.datasource.hikari.minimumIdle=5
+spring.datasource.hikari.idleTimeout=60000
+spring.datasource.hikari.poolName=ServicesHikariCP
+
+
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+logging.level.org.springframework.web=DEBUG
+
+maxFileCount = 10000
+
+upload.path = D://UploadDocsNew
+#upload.path = ${uploadPathNew}
+
+spring.servlet.multipart.max-file-size=2MB
+spring.servlet.multipart.max-request-size=5MB
+
+logging.file.name=D:/LogFile/log/info.log
+logging.file.max-size=200MB
+logging.file.max-history=10

@@ -1,0 +1,130 @@
+package com.mpcz.deposit_scheme.backend.api.services.impl;
+
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.stereotype.Service;
+
+import com.mpcz.deposit_scheme.backend.api.constant.ConstantProperty;
+import com.mpcz.deposit_scheme.backend.api.domain.Consumer;
+import com.mpcz.deposit_scheme.backend.api.domain.ConsumerLoginToken;
+import com.mpcz.deposit_scheme.backend.api.dto.SSPDto;
+import com.mpcz.deposit_scheme.backend.api.jwt.security.JwtConsumer;
+import com.mpcz.deposit_scheme.backend.api.jwt.security.JwtTokenUtil;
+import com.mpcz.deposit_scheme.backend.api.repository.ConsumerRepository;
+import com.mpcz.deposit_scheme.backend.api.response.Response;
+import com.mpcz.deposit_scheme.backend.api.services.SSPService;
+
+@Service
+public class SSPServiceImpl implements SSPService {
+
+	@Autowired
+	private ConsumerRepository consumerRepository;
+
+	@Autowired
+	private AuthenticationManager authenticationManager;
+
+	@Autowired
+	private JwtTokenUtil jwtTokenUtil;
+
+	@Override
+	public String sspSignUp(SSPDto sspDto, HttpServletRequest request) {
+		// TODO Auto-generated method stub
+
+		Optional<Consumer> consumer = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
+
+		String consumerCredentials = consumer.get().getConsumerCredentials();
+
+		if (consumer.isPresent()) {
+			ResponseEntity<Response> checkCredentials = checkCredentials(consumer.get(), request);
+			System.out.println("tokkkkkkkkkkkkken   : " + checkCredentials.getBody().getToken());
+			Optional<Consumer> consumer3 = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
+			Consumer consumer10 = consumer3.get();
+			consumer10.setConsumerCredentials(consumerCredentials);
+			consumerRepository.save(consumer10);
+			return checkCredentials.getBody().getToken();
+		}
+		return null;
+	}
+
+	public ResponseEntity<Response> checkCredentials(Consumer consumer1, HttpServletRequest request) {
+		Response response = new Response();
+
+		System.out.println("consumerVerificationCaptcha method calling!!!");
+
+		String orginalpassword = consumer1.getConsumerCredentials();
+
+		consumer1.setConsumerCredentials("$2a$10$GvpWoJdgmP1YziOVXUUF5ewrtCTFR16XM2/vT09u6vh8fR2eqyt5i");
+		String consumerLoginId = consumer1.getConsumerLoginId();
+		String consumerLoginPwd = "Pass@1234";
+
+		Consumer save = consumerRepository.save(consumer1);
+		try {
+			if (consumerLoginId == null || consumerLoginId.isEmpty()) {
+				response.setCode("400");
+				response.setMessage("Id should not be null");
+				return ResponseEntity.ok().body(response);
+			}
+			if (consumerLoginPwd == null || consumerLoginPwd.isEmpty()) {
+				response.setCode("400");
+				response.setMessage("Password should not be null");
+				return ResponseEntity.ok().body(response);
+			}
+
+			Timestamp today = new java.sql.Timestamp(new java.util.Date().getTime());
+			Consumer consumer = null;
+			Optional<Consumer> consumerDetail = consumerRepository.findByConsumerLoginId(consumerLoginId);
+
+			if (!consumerDetail.isPresent()) {
+				response.setCode("404");
+				response.setMessage("Consumer not found");
+				return ResponseEntity.ok().body(response);
+			}
+
+			if (BCrypt.checkpw(consumerLoginPwd, consumerDetail.get().getConsumerCredentials())) {
+				ConsumerLoginToken consumerLoginToken = new ConsumerLoginToken();
+
+				Authentication authentication = authenticationManager.authenticate(
+						new UsernamePasswordAuthenticationToken(consumerLoginId + ":CONSUMER", consumerLoginPwd));
+				final JwtConsumer jwtConsumer = (JwtConsumer) authentication.getPrincipal();
+
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+				final String token = jwtTokenUtil.generateToken(jwtConsumer, null, request);
+				System.out.println("bbbbbbbbbbbbbbbb : " + token);
+				final HttpHeaders headers = new HttpHeaders();
+				headers.set(ConstantProperty.CONTENT_TYPE, ConstantProperty.APPLICATION_JSON);
+				headers.set("authorization", token);
+				headers.set("Access-Control-Expose-Headers", "authorization");
+
+				response.setCode("200");
+				response.setMessage("Login Successfully");
+				response.setToken(token);
+				response.setList(Arrays.asList(consumerDetail));
+
+				return ResponseEntity.ok().headers(headers).body(response);
+			} else {
+				response.setCode("404");
+				response.setMessage("Invalid credentials");
+				return ResponseEntity.ok().body(response);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			response.setCode("500");
+			response.setMessage(e.getMessage());
+			return ResponseEntity.ok().body(response);
+		}
+
+	}
+}

@@ -908,113 +908,6 @@ public class BillPaymentProcessController {
 
 	}
 
-//	public String saveResponseBillDeskTable(JSONObject jobObject) {
-//		BillDeskPaymentResponse payres = new BillDeskPaymentResponse();
-//		try {
-////			uat ki mercId
-//			payres.setMercid(clientId);
-//
-////			prod ka mercId
-////			payres.setMercid("MPMKDSPV2");
-//
-//			payres.setAmount(jobObject.getString("amount"));
-//			payres.setAuth_status(jobObject.getString("auth_status"));
-//			payres.setBankId(jobObject.getString("bankid"));
-//			payres.setBankRefNo(jobObject.getString("bank_ref_no"));
-//			payres.setChargeAmount(jobObject.getString("charge_amount"));
-//			payres.setCurrency(jobObject.getString("currency"));
-//			payres.setObjectId(jobObject.getString("objectid"));
-//			payres.setOrderid(jobObject.getString("orderid"));
-//			payres.setPaymentMethodType(jobObject.getString("payment_method_type"));
-//			payres.setRu(jobObject.getString("ru"));
-//			payres.setSurcharge(jobObject.getString("surcharge"));
-//			payres.setTranErrorCode(jobObject.getString("transaction_error_code"));
-//			payres.setTranErrorDesc(jobObject.getString("transaction_error_desc"));
-//			payres.setTranId(jobObject.getString("transactionid"));
-//			payres.setTranProcessType(jobObject.getString("txn_process_type"));
-//			payres.setTransactionDate(jobObject.getString("transaction_date"));
-//			payres.setConsumerApplicationNo(jobObject.getJSONObject("additional_info").getString("additional_info3"));
-//			payres.setConsumerName(jobObject.getJSONObject("additional_info").getString("additional_info1"));
-//			payres.setMobileNo(jobObject.getJSONObject("additional_info").getString("additional_info2"));
-//			String consumerApp = jobObject.getJSONObject("additional_info").getString("additional_info3");
-//			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
-//					.findByConsumerApplicationNumber(consumerApp);
-//			ApplicationStatus appStatusDb = null;
-//			if (jobObject.getString("auth_status").equalsIgnoreCase("0300")) {
-//				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 5l) {
-//
-//					appStatusDb = applicationStatusService
-//							.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
-//				} else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 12l) {
-//					if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName().equalsIgnoreCase("Deposit")
-//							|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
-//									.equals(8L)) {
-//						appStatusDb = applicationStatusService
-//								.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
-//					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
-//							.equalsIgnoreCase("Supervision")
-//							&& findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5l) {
-//						appStatusDb = applicationStatusService
-//								.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
-//					} else {
-//						appStatusDb = applicationStatusService
-//								.findById(ApplicationStatusEnum.WAITING_FOR_72_HOURS.getId());
-//					}
-//					Date currentDate = new Date();
-//
-//					// Create a calendar instance and set it to the current date
-//					Calendar calendar = Calendar.getInstance();
-//					calendar.setTime(currentDate);
-//
-//					// Add three days to the current date
-//					calendar.add(Calendar.DAY_OF_MONTH, 3);
-//
-//					// Get the new date
-//					Date newDate = calendar.getTime();
-//
-//					// Create a formatter for the desired date format
-//					SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-//
-//					// Format the dates using the formatter
-//					String currentDateFormatted = formatter.format(currentDate);
-//					String newDateFormatted = formatter.format(newDate);
-//
-//					// Display the current date and the new date
-//					System.out.println("Current Date: " + currentDateFormatted);
-//					System.out.println("New Date: " + newDateFormatted);
-//
-//					if (!findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
-//							.equalsIgnoreCase("Supervision")) {
-//						findByConsumerApplicationNumber.setPaymentDate(newDateFormatted);
-//					}
-//				}
-//
-//				else {
-//					appStatusDb = applicationStatusService
-//							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());
-//				}
-//			} else {
-//				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 5l) {
-//					appStatusDb = applicationStatusService
-//							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());
-//				} else {
-//					appStatusDb = applicationStatusService
-//							.findById(ApplicationStatusEnum.DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId());
-//				}
-//			}
-//			findByConsumerApplicationNumber.setApplicationStatus(appStatusDb);
-//			consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
-//
-//			BillDeskPaymentResponse save = billPaymentResponseeeeeeeRepository.save(payres);
-//			if (save == null) {
-//				return "data not save";
-//			}
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		return "data save";
-//	}
 
 	@PostMapping("/Billdesk_payment_refundDemandAmount")
 	public Response<Object> refundDemandAmount(
@@ -1493,171 +1386,6 @@ public class BillPaymentProcessController {
 	}
 
 
-//	BillDesk
-//	Merchant ID :  UMPMKLTV2
-//	 
-//
-//	ClientID : umpmkltv2
-//	 
-//
-//	Secret key : Attached above
-//	UMPMKLTV2 - TmssLq3YPQK9j36zA83hr8ubYiLG7UYw
-	
-	
-	@GetMapping("/vidhitSir/{id}")
-	public Response<Object> vidhitSir(@PathVariable Long id, HttpServletRequest request)
-			throws Exception {
-		final String method = "PaymentGatewayController : billPaymentProcess2() method";
-		Response<Object> response = new Response<Object>();
-		AuthorizationResponseDto authorizationResponseDto = new AuthorizationResponseDto();
-
-		try {
-			Optional<BillDeskPaymentRequest1> findById = billDeskPaymentRequestRepository.findById(id);
-
-			// String orderDate = billDeskPaymentRequestRepository.findByDateId(id);
-			System.err.println("BillDeskPaymentRequest1  " + findById.get().toString());
-			BillDeskPaymentRequest1 billDeskPaymentRequest1 = findById.get();
-
-			JSONObject map = new JSONObject();
-			// BillDto h=new BillDto();
-			JSONObject deviceMap = new JSONObject();
-			deviceMap.put("accept_header", "text/html");
-			deviceMap.put("init_channel", "internet");
-			deviceMap.put("ip", "124.124.1.1");
-			deviceMap.put("fingerprintid", "61b12c18b5d0cf901be34a23ca64bb19");
-
-
-			JSONObject additionalinfoMap = new JSONObject();
-
-			if (billDeskPaymentRequest1.getConsumerName().length() > 10) {
-				additionalinfoMap.put("additional_info1", billDeskPaymentRequest1.getConsumerName().substring(0, 10));
-			} else {
-				additionalinfoMap.put("additional_info1", billDeskPaymentRequest1.getConsumerName());
-			}
-
-			additionalinfoMap.put("additional_info2", billDeskPaymentRequest1.getConsumerMobileNo());
-			additionalinfoMap.put("additional_info3", billDeskPaymentRequest1.getConsumerAppliNo());
-			additionalinfoMap.put("additional_info7", billDeskPaymentRequest1.getAdditionalInfo7());
-
-			System.out.println(billDeskPaymentRequest1.getAdditionalInfo7());
-			LocalDateTime now = java.time.LocalDateTime.now();
-
-//			String orderId = "DS-" + LocalDate.now().toString() + LocalTime.now().getHour()
-//					+ LocalTime.now().getMinute() + LocalTime.now().getSecond();
-//			orderId = orderId.replaceAll("\\-|\\:|\\.", "");
-			String orderId = billDeskPaymentRequest1.getOrderId();
-
-			map.put("amount", billDeskPaymentRequest1.getTxnAmount());
-			String localDateTime = LocalDateTime.now().toString();
-			int indexOf = LocalDateTime.now().toString().indexOf(".");
-			localDateTime = localDateTime.substring(0, indexOf) + "+05:30";
-			map.put("order_date", localDateTime);
-
-//			    uat marchent Id /client id
-			map.put("mercid", "UMPMKLTV2");
-
-
-//			    uat return url***********			
-			map.put("ru",
-					"https://rooftop-uat.mpcz.in:8888/deposit_scheme/api/consumer/bill-desk/save_payment_response");
-
-
-			map.put("currency", "356");
-			map.put("itemcode", "DIRECT");
-			map.put("orderid", orderId);
-
-			map.put("additional_info", additionalinfoMap);
-			map.put("device", deviceMap);
-
-			System.err.println("------------------------------" + localDateTime);
-
-//			uat hash key****************************
-			String encryptAndSignJWSWithHMAC = encryptAndSignJWSWithHMAC(map.toString(),
-					"TmssLq3YPQK9j36zA83hr8ubYiLG7UYw", "umpmkltv2");
-
-			System.err.println("BillPaymentSaveController : " + new Gson().toJson(map));
-
-
-
-			// System.out.println(encryptAndSignJWSWithHMAC);
-
-			SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
-			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
-			clientHttpReq.setProxy(proxy);
-
-			RestTemplate restTemplate = new RestTemplate(clientHttpReq);
-			// RestTemplate restTemplate = new RestTemplate();
-			HttpHeaders headers = new HttpHeaders();
-
-			// String token = getToken(restTemplate);
-			Long time = Timestamp.valueOf(LocalDateTime.now()).getTime();
-			System.out.println("valueOf--->" + time.toString());
-			headers.set("content-type", "application/jose");
-			headers.set("bd-timestamp", time.toString());
-			headers.set("accept", "application/jose");
-			headers.set("bd-traceid", time.toString() + "123");
-
-//				uat url
-			String url = "https://uat1.billdesk.com/u2/payments/ve1_2/orders/create";
-
-
-
-			HttpEntity httpEntity = new HttpEntity<>(encryptAndSignJWSWithHMAC, headers);
-			System.err.println("httpEntity-->" + httpEntity);
-
-			ResponseEntity<String> postForEntity = restTemplate.postForEntity(url, httpEntity, String.class);
-
-			System.err.println("postForEntity-->" + postForEntity);
-			String forObject = postForEntity.getBody();
-			System.out.println("forObject-------------" + forObject);
-			if (forObject == null && forObject.length() <= 0) {
-				response.setMessage("response body is null");
-				response.setCode("200");
-				return response;
-			}
-// 			uat hash keycl   ****
-
-			String verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(postForEntity.getBody(),
-					hashKey);// IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6
-
-//			prod  hash key
-//			String verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(postForEntity.getBody(),
-//					"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6");
-
-			System.out.println("-------------------------+++++++++++++++" + verifyAndDecryptJWSWithHMAC);
-			JSONObject jobObject = new JSONObject(verifyAndDecryptJWSWithHMAC);
-
-			authorizationResponseDto.setBdorderid(jobObject.getString("bdorderid"));
-			authorizationResponseDto.setMercid(jobObject.getString("mercid"));
-
-			JSONArray jsonArray = jobObject.getJSONArray("links");
-
-			for (int i = 0; i < jsonArray.length(); i++) {
-				// jsonArray.getJSONObject(i).keys("");
-				if (jsonArray.getJSONObject(i).toString().contains("headers")
-						&& jsonArray.getJSONObject(i).getJSONObject("headers").toString().contains("authorization")) {
-
-					authorizationResponseDto.setAuthorizationToken(
-							jsonArray.getJSONObject(i).getJSONObject("headers").getString("authorization"));
-
-					// authorizationResponseDto.setAuthorizationToken(forObject);
-				}
-
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setCode("500");
-			response.setMessage(e.getMessage());
-			System.out.println(e);
-			return response;
-		}
-
-		response.setList(Arrays.asList(authorizationResponseDto));
-		response.setMessage("Data found successfully");
-		response.setCode("200");
-		return response;
-	}
 	public static BigDecimal roundAmountCgstAndSgst(BigDecimal amount) {
 		BigDecimal roundedAmount = amount.setScale(0, RoundingMode.FLOOR); // Get the integer part
 
@@ -1701,8 +1429,6 @@ public class BillPaymentProcessController {
 	        }
 	    }
 	 
-	    
-	    
 	    if (consumerFound) {
 	        return "Data cannot be saved in request table";
 	    } else {
@@ -1738,64 +1464,86 @@ public class BillPaymentProcessController {
 			payres.setConsumerApplicationNo(jobObject.getJSONObject("additional_info").getString("additional_info3"));
 			payres.setConsumerName(jobObject.getJSONObject("additional_info").getString("additional_info1"));
 			payres.setMobileNo(jobObject.getJSONObject("additional_info").getString("additional_info2"));
+			payres.setAdditionalInfo(jobObject.getJSONObject("additional_info").getString("additional_info7"));
 			String consumerApp = jobObject.getJSONObject("additional_info").getString("additional_info3");
+			
 			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
 					.findByConsumerApplicationNumber(consumerApp);
 			ApplicationStatus appStatusDb = null;
-			if (jobObject.getString("auth_status").equalsIgnoreCase("0300")) {
-				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 5l) {
+			
+			String transactionDateStr = jobObject.getString("transaction_date");
+			SimpleDateFormat isoFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-					appStatusDb = applicationStatusService
-							.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
-				} else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 12l) {
-					if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName().equalsIgnoreCase("Deposit")
-							|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
-									.equals(8L)) {
-						appStatusDb = applicationStatusService
-								.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
-					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
-							.equalsIgnoreCase("Supervision")
-							&& findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5l) {
-						appStatusDb = applicationStatusService
-								.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
-					} else {
-						appStatusDb = applicationStatusService
-								.findById(ApplicationStatusEnum.WAITING_FOR_72_HOURS.getId());
-					}
-					Date currentDate = new Date();
+			// Parse the transaction date string to a Date object
+			Date transactionDate = isoFormatter.parse(transactionDateStr);
 
-					// Create a calendar instance and set it to the current date
-					Calendar calendar = Calendar.getInstance();
-					calendar.setTime(currentDate);
+			// Create a calendar instance and set it to the transaction date
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(transactionDate);
 
-					// Add three days to the current date
-					calendar.add(Calendar.DAY_OF_MONTH, 3);
+			// Add three days to the transaction date
+			calendar.add(Calendar.DAY_OF_MONTH, 3);
 
-					// Get the new date
-					Date newDate = calendar.getTime();
+			// Get the new date (3 days after the transaction date)
+			Date newDate = calendar.getTime();
 
-					// Create a formatter for the desired date format
-					SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+			// Create a formatter for the desired output format (dd-MM-yyyy)
+			SimpleDateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy");
 
-					// Format the dates using the formatter
-					String currentDateFormatted = formatter.format(currentDate);
-					String newDateFormatted = formatter.format(newDate);
+			// Format the new date
+			String newDateFormatted = outputFormatter.format(newDate);
 
-					// Display the current date and the new date
-					System.out.println("Current Date: " + currentDateFormatted);
-					System.out.println("New Date: " + newDateFormatted);
+			// Display the transaction date and the new date
+			System.out.println("Transaction Date: " + isoFormatter.format(transactionDate));
+			System.out.println("New Date (3 days after transaction): " + newDateFormatted);
+			System.out.println("new date is : " +newDate);
+			
+			if (jobObject.getString("auth_status").equals("0300")) {
 
-					if (!findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
-							.equalsIgnoreCase("Supervision")) {
-						findByConsumerApplicationNumber.setPaymentDate(newDateFormatted);
-					}
-				}
+			    // Check if application status ID is 5
+			    if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().equals(5L)) {
 
-				else {
-					appStatusDb = applicationStatusService
-							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());
-				}
-			} else {
+			        appStatusDb = applicationStatusService
+			                .findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+
+			    } else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().equals(12L)) {
+
+			        // Handle different Scheme Types and Nature of Work Types
+			        if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName().equalsIgnoreCase("Deposit")
+			                || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8L) {
+
+			            appStatusDb = applicationStatusService
+			                    .findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+
+			        } else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
+			                .equalsIgnoreCase("Supervision")
+			                && !findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5L)) {
+
+			            appStatusDb = applicationStatusService
+			                    .findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
+
+			        } else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
+			                .equalsIgnoreCase("Supervision")
+			                && findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5L)) {
+
+			        	Date today = new Date();
+
+			            // Compare the newDate (transaction date + 3 days) with today's date
+			            if (newDate.before(today)) {
+			                // newDate (transaction date + 3 days) is before today, meaning the payment is overdue
+			                appStatusDb = applicationStatusService
+			                        .findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
+			            } else {
+			                // newDate (transaction date + 3 days) is today or after today, so it's still valid
+			                appStatusDb = applicationStatusService
+			                        .findById(ApplicationStatusEnum.WAITING_FOR_72_HOURS.getId());
+			            }
+
+			            // Set the new payment date
+			            findByConsumerApplicationNumber.setPaymentDate(newDateFormatted);
+			        }
+			    }
+			}else {
 				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() == 5l) {
 					appStatusDb = applicationStatusService
 							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());

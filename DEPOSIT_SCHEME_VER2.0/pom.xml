@@ -103,14 +103,16 @@
 			<version>0.9.1</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
+		<!--
+		https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-core</artifactId>
 			<version>5.7.3</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
+		<!--
+		https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
@@ -124,7 +126,8 @@
 			<version>2.9.2</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/io.springfox/springfox-bean-validators -->
+		<!--
+		https://mvnrepository.com/artifact/io.springfox/springfox-bean-validators -->
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-bean-validators</artifactId>
@@ -161,7 +164,8 @@
 			<version>6.4.0</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<!--
+		https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -204,9 +208,13 @@
 			<artifactId>okhttp</artifactId>
 			<version>4.9.1</version>
 		</dependency>
-
-
-
+		
+		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.11.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>deposit_scheme</finalName>
@@ -219,7 +227,9 @@
 
 					<includeSystemScope>true</includeSystemScope>
 					<executable>C:\Program Files\Java\jdk1.8.0_301\bin\javac.exe</executable>
-					<!-- <excludes> <exclude> <groupId>org.projectlombok</groupId> <artifactId>lombok</artifactId> 
+					<!-- <excludes> <exclude>
+					<groupId>org.projectlombok</groupId>
+					<artifactId>lombok</artifactId> 
 						</exclude> </excludes> -->
 				</configuration>
 			</plugin>

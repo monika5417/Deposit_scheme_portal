@@ -1,0 +1,14 @@
+package com.mpcz.deposit_scheme.backend.api.services;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.http.ResponseEntity;
+
+import com.mpcz.deposit_scheme.backend.api.dto.SSPDto;
+import com.mpcz.deposit_scheme.backend.api.response.Response;
+
+public interface SSPService {
+
+	String sspSignUp(SSPDto sspDto, HttpServletRequest request);
+
+}
