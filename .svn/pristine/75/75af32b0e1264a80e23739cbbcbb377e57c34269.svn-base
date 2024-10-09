@@ -61,5 +61,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	
 	
 	@Query(value = "select discom_id,REGION_ID,circle_id,div_id,sub_division_id,distribution_center_id,access_level from ad_user where userid =:ID", nativeQuery = true)
-	Map<String,Object> findUsersByUserID(@Param("ID") String ID);
+	Map<String,String> findUsersByUserID(@Param("ID") String ID);
 }

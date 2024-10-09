@@ -74,7 +74,6 @@ public class PaginationController {
 
 	public ConsumerApplicationDetailsFilterDTO checkUser() {
 		String userLoginId = SecurityContextHolder.getContext().getAuthentication().getName();
-		
 		ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
 		filterDTO.setUserLoginId(userLoginId);
 
@@ -235,75 +234,4 @@ public class PaginationController {
 
 		return response;
 	}
-	
-	
-	@GetMapping("/getAllApplicationByApplicationStatusByUserId/{applicationStatusId}/{userId}")
-	public Response getAllApplicationByApplicationStatusByUserId(@PathVariable String applicationStatusId,@PathVariable String userId) {
-		Response response = new Response();
-		List<String> statusIdList = Arrays.asList(applicationStatusId.split(","));
-		System.err.println("Before entering database: " + LocalDateTime.now());
-
-		System.err.println("Before entering database: " + LocalDateTime.now());
-		Map<String, Object> usersByUserID = userRepository.findUsersByUserID(userId);
-		System.err.println(new Gson().toJson(usersByUserID));
-		Object accessLevel = usersByUserID.get("ACCESS_LEVEL");
-
-		List<Map<String, Object>> allDataCount = null;
-
-		if (accessLevel.equals("1")) {
-
-			ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
-			allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatus1(statusIdList,1l, filterDTO.getRegionId(),
-					filterDTO.getCircleId(), filterDTO.getDivisionId(), filterDTO.getSubDivisionId(),
-					filterDTO.getDcId());
-		} else if (accessLevel.equals("2")) {
-
-			Object object1 = usersByUserID.get("REGION_ID");
-
-			ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
-			allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatus1(statusIdList,filterDTO.getDiscomId(),
-					Long.valueOf(object1.toString()), filterDTO.getCircleId(), filterDTO.getDivisionId(),
-					filterDTO.getSubDivisionId(), filterDTO.getDcId());
-		}else if (accessLevel.equals("3")) {
-
-			Object object1 = usersByUserID.get("CIRCLE_ID");
-
-			ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
-			allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatus1(statusIdList,filterDTO.getDiscomId(),
-					filterDTO.getRegionId(), Long.valueOf(object1.toString()), filterDTO.getDivisionId(),
-					filterDTO.getSubDivisionId(), filterDTO.getDcId());
-		}else if (accessLevel.equals("4")) {
-
-			Object object1 = usersByUserID.get("DIV_ID");
-
-			ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
-			allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatus1(statusIdList,filterDTO.getDiscomId(),
-					filterDTO.getRegionId(), filterDTO.getCircleId(), Long.valueOf(object1.toString()),
-					filterDTO.getSubDivisionId(), filterDTO.getDcId());
-		}else if (accessLevel.equals("5")) {
-
-			Object object1 = usersByUserID.get("SUB_DIVISION_ID");
-
-			ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
-			allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatus1(statusIdList,filterDTO.getDiscomId(),
-					filterDTO.getRegionId(), filterDTO.getCircleId(), filterDTO.getDivisionId(),
-					Long.valueOf(object1.toString()), filterDTO.getDcId());
-		}else if (accessLevel.equals("6")) {
-
-			Object object1 = usersByUserID.get("DISTRIBUTION_CENTER_ID");
-
-			ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
-			allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatus1(statusIdList,filterDTO.getDiscomId(),
-					filterDTO.getRegionId(), filterDTO.getCircleId(), filterDTO.getDivisionId(),
-					filterDTO.getSubDivisionId(), Long.valueOf(object1.toString()));
-		}
-
-		response.setCode("200");
-		response.setMessage("Data found successfully");
-		response.setList(allDataCount);
-
-		return response;
-	}
-	
-	
 }
