@@ -44,6 +44,7 @@ public class VendorWorkOrderServiceImpl implements VendorWorkOrderService {
 		vendorWorkOrders.setDgmStcId(vendorWorkOrder.getDgmStcId());
 		vendorWorkOrders.setWorkOrderDate(vendorWorkOrder.getWorkOrderDate());
 		vendorWorkOrders.setWorkOrderNo(vendorWorkOrder.getWorkOrderNo());
+		vendorWorkOrders.setWorkOrderGeneratedRoleCode(vendorWorkOrder.getWorkOrderGeneratedRoleCode());
 
 		
 		

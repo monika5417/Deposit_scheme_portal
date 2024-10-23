@@ -46,7 +46,21 @@ public class VendorWorkOrder  extends Auditable<Long>{
 	@Column(name="WO_VERSION")
 	private String woVersion;
 	
+//	14-Oct-2024 start
+	@Column(name="WO_GEN_ROLE_CODE")
+	private String workOrderGeneratedRoleCode;
 	
+//	end
+	
+	
+	public String getWorkOrderGeneratedRoleCode() {
+		return workOrderGeneratedRoleCode;
+	}
+
+	public void setWorkOrderGeneratedRoleCode(String workOrderGeneratedRoleCode) {
+		this.workOrderGeneratedRoleCode = workOrderGeneratedRoleCode;
+	}
+
 	public String getWoVersion() {
 		return woVersion;
 	}

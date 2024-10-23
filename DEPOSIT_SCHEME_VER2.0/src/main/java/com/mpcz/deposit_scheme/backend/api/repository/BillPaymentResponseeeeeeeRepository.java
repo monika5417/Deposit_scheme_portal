@@ -53,4 +53,19 @@ public interface BillPaymentResponseeeeeeeRepository extends JpaRepository<BillD
 	@Query(value = "select * from billdesk_payment_res where auth_status='0300' and additional_info1='Revised_Demand_fees' \r\nand consumer_application_no =:consumerApplicationNo", nativeQuery = true)
 	BillDeskPaymentResponse getReviseDemandDataFromBilldesk(String consumerApplicationNo);
 
+	@Query(value = "SELECT * \r\n"
+			+ "FROM (\r\n"
+			+ "    SELECT * \r\n"
+			+ "    FROM billdesk_payment_res \r\n"
+			+ "    WHERE additional_info1 = 'Demand_fees' \r\n"
+			+ "      AND auth_status = '0300' \r\n"
+			+ "      AND merc_refund_ref_no IS NULL \r\n"
+			+ "      AND consumer_application_no = :consumerApplicationNo \r\n"
+			+ "    ORDER BY bill_desk_res_id DESC\r\n"
+			+ ") \r\n"
+			+ "WHERE ROWNUM = 1", nativeQuery = true)
+	BillDeskPaymentResponse getBillDeskLatestDemand(String consumerApplicationNo);
+	
+	@Query(value ="select * from billdesk_payment_res where consumer_application_no=:consumerApplicationNo and auth_status='0300'",nativeQuery = true)
+	List<BillDeskPaymentResponse> getAllPaymentDetails(String consumerApplicationNo);
 }

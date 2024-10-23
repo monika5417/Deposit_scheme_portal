@@ -35,10 +35,10 @@ public enum ApplicationStatusEnum {
 			"Application Rejected By DC User Due To Uploaded Wrong Document By Consumer"),
 	REJECTION_PROPOSAL_BY_DGM(37L, "Rejection Proposal By DGM"),
 	APPLIACATION_BACK_TO_CONSUMER_END_FOR_UPDATION(38L, "Application Back To Consumer End For Updation"),
-	REFUND_PROPOSAL_BY_DGM(39L, "Refund Proposal By DGM"),
-	REFUND_APPLICATION_MOVED_TO_MD(40L, "Refund Application Moved To MD"),
-	NEGATIVE_REVISE_AMOUNT_REFUND_TO_APPLICANT(41L,"Negative Revise Amount Refund To Applicant"),
-	AMOUNT_REFUNDED_TO_APPLICANT_SUCCESSFULLY(42L,"Amount Refunded To Applicant Successfully");
+	APPLICATION_PENDING_AT_DGM_FOR_REFUND(39L, "Application Pending At DGM(O&M) For Refund"),
+	APPLICATION_PENDING_AT_GM_FOR_REFUND(40L, "Application Pending At GM(O&M) For Refund"),
+	APPLICATION_PENDING_AT_FINANCE_AO_FOR_REFUND(41L,"Application Pending At Finance AO For Refund"),
+	CANCELLATION_AMOUNT_REFUNDED_TO_APPLICANT_SUCCESSFULLY(42L,"Cancellation Amount Refunded To Applicant Successfully");
 
 	private Long id;
 	private String value;

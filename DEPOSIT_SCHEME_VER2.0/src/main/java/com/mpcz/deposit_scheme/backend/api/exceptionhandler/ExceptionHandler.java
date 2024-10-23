@@ -19,7 +19,9 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.mpcz.deposit_scheme.backend.api.exception.ApplicationDemandApprovalException;
+import com.mpcz.deposit_scheme.backend.api.exception.ApplicationDocumentException;
 import com.mpcz.deposit_scheme.backend.api.exception.ApplicationHeadChargesException;
+import com.mpcz.deposit_scheme.backend.api.exception.BillDeskPaymentResponseException;
 import com.mpcz.deposit_scheme.backend.api.exception.ChangePasswordException;
 import com.mpcz.deposit_scheme.backend.api.exception.CircleException;
 import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDcCorrectionException;
@@ -52,6 +54,7 @@ import com.mpcz.deposit_scheme.backend.api.exception.NatureOfWorkException;
 import com.mpcz.deposit_scheme.backend.api.exception.OtpInvalidException;
 import com.mpcz.deposit_scheme.backend.api.exception.PaymentTypeException;
 import com.mpcz.deposit_scheme.backend.api.exception.PreviousStageDetailException;
+import com.mpcz.deposit_scheme.backend.api.exception.RefundAmountException;
 import com.mpcz.deposit_scheme.backend.api.exception.RegionException;
 import com.mpcz.deposit_scheme.backend.api.exception.RoleException;
 import com.mpcz.deposit_scheme.backend.api.exception.SubDivisionException;
@@ -330,12 +333,35 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
 	
+	@org.springframework.web.bind.annotation.ExceptionHandler(BillDeskPaymentResponseException.class)
+	public final ResponseEntity<Response<?>> handleBillDeskPaymentResponseExceptionException(
+			BillDeskPaymentResponseException ex, WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside RoleException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	}
 	
+	@org.springframework.web.bind.annotation.ExceptionHandler(ApplicationDocumentException.class)
+	public final ResponseEntity<Response<?>> handleApplicationDocumentExceptionException(
+			ApplicationDocumentException ex, WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside RoleException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	}
 	
 	@org.springframework.web.bind.annotation.ExceptionHandler(ConsumerException.class)
     public ResponseEntity<?> handleConsumerException(ConsumerException ex) {
         return new ResponseEntity<>(ex.getResponse(), HttpStatus.BAD_REQUEST);
     }
+	
+	@org.springframework.web.bind.annotation.ExceptionHandler(RefundAmountException.class)
+	public final ResponseEntity<Response<?>> handleRefundAmountException(
+			RefundAmountException ex, WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside RoleException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	}
+	
 	// Monika code end
 
 	@org.springframework.web.bind.annotation.ExceptionHandler(ConsumerNotFoundByApplicationIdException.class)

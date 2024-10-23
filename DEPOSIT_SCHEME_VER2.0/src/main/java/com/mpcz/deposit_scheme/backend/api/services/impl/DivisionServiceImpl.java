@@ -223,7 +223,7 @@ public class DivisionServiceImpl implements DivisionService {
 			throw new DivisionException(response);
 		} else {
 			logger.info("Response is returning successfully");
-			return divisions;
+			return returnModel;
 		}
 	}
 

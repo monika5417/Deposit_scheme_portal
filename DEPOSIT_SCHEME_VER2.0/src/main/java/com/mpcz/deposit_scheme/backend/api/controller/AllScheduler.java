@@ -86,30 +86,30 @@
 //	
 //	private static final Logger logger = LoggerFactory.getLogger(AllScheduler.class);
 //
-//	@GetMapping("/demandFees")
-//	@Scheduled(fixedRate = 240000)         //  1 Minute (60000)
-////	@Scheduled(cron = "0 50 12 * * ?")
-//	public void AdditionalInfoSetDemandFees() {
-//
-//		billPaymentResponseeeeeeeRepository.AdditionalInfoSetDemandFees().stream().forEach(bill -> {
-//			bill.setAdditionalInfo("Demand_fees");
-//			System.out.println(bill.getConsumerApplicationNo());
-//			logger.error("AdditionalInfoSetDemandFees : " +bill.toString());
-//			billPaymentResponseeeeeeeRepository.save(bill);
-//		});
-//	}
-//
-//	@GetMapping("/RegistrationFees")
-//	@Scheduled(fixedRate = 240000)     //4 minute
-//	public void AdditionalInfoSetRegistrationFees() {
-//
-//		billPaymentResponseeeeeeeRepository.AdditionalInfoSetRegistrationFees().stream().forEach(bill -> {
-//			bill.setAdditionalInfo("Registration_Fees");
-//			System.out.println(bill.getConsumerApplicationNo());
-//			logger.error("AdditionalInfoSetRegistrationFees : " +bill.toString());
-//			billPaymentResponseeeeeeeRepository.save(bill);
-//		});
-//	}
+////	@GetMapping("/demandFees")
+////	@Scheduled(fixedRate = 240000)         //  1 Minute (60000)
+//////	@Scheduled(cron = "0 50 12 * * ?")
+////	public void AdditionalInfoSetDemandFees() {
+////
+////		billPaymentResponseeeeeeeRepository.AdditionalInfoSetDemandFees().stream().forEach(bill -> {
+////			bill.setAdditionalInfo("Demand_fees");
+////			System.out.println(bill.getConsumerApplicationNo());
+////			logger.error("AdditionalInfoSetDemandFees : " +bill.toString());
+////			billPaymentResponseeeeeeeRepository.save(bill);
+////		});
+////	}
+////
+////	@GetMapping("/RegistrationFees")
+////	@Scheduled(fixedRate = 240000)     //4 minute
+////	public void AdditionalInfoSetRegistrationFees() {
+////
+////		billPaymentResponseeeeeeeRepository.AdditionalInfoSetRegistrationFees().stream().forEach(bill -> {
+////			bill.setAdditionalInfo("Registration_Fees");
+////			System.out.println(bill.getConsumerApplicationNo());
+////			logger.error("AdditionalInfoSetRegistrationFees : " +bill.toString());
+////			billPaymentResponseeeeeeeRepository.save(bill);
+////		});
+////	}
 //
 //	// Monika code start
 //

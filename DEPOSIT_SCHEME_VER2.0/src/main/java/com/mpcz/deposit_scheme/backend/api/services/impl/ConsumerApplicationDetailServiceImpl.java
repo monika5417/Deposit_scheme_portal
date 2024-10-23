@@ -2742,6 +2742,9 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		if (consumerApplicationDetailForm.getGstNumber() != null) {
 			consumerAppdetail.setGstNumber(consumerApplicationDetailForm.getGstNumber());
 		}
+		if (consumerApplicationDetailForm.getGstNumberProvide() != null) {
+			consumerAppdetail.setGstNumberProvide(consumerApplicationDetailForm.getGstNumberProvide());
+		}
 
 		if (consumerApplicationDetailForm.getBillNo() != null
 				&& !consumerApplicationDetailForm.getBillNo().equals("")) {
@@ -2996,4 +2999,65 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 	}
 
+	@Override
+	public Response updateMKMYDocument(MultipartFile samagraFile, MultipartFile khasraFile, String consumerApplicationNo) throws DocumentTypeException {
+
+	    ConsumerApplicationDetail applicationDetail = consumerApplicationDetailRepository.findByConsumerApplicationNumber(consumerApplicationNo);
+	    
+	    if (applicationDetail == null) {
+	        return new Response(HttpCode.NULL_OBJECT, "Application not found in database");
+	    }
+	   
+
+	    ApplicationDocument applicationDocument = applicationDocumentRepository.findByConsumerApplicationDetailId(applicationDetail.getConsumerApplicationId());
+	    ApplicationDocument docToSave = (applicationDocument == null) ? new ApplicationDocument() : applicationDocument;
+
+	    Upload samagraUpload = null;
+	    Upload khasraUpload = null;
+
+	    if (applicationDocument == null) {
+	      
+	        if (samagraFile == null || khasraFile == null) {
+	          
+	            return new Response(HttpCode.NULL_OBJECT, samagraFile == null ? "Please Upload Samagra Document" : "Please Upload Khasra-Khatoni Document");
+	        }
+	       
+	        samagraUpload = uploadService.uploadFile(samagraFile, "SAMAGRA_FILE");
+	        khasraUpload = uploadService.uploadFile(khasraFile, "KHASRA_KHATONI");
+	        docToSave.setDocSamagraFile(samagraUpload);
+	        docToSave.setDocKhasraKhatoni(khasraUpload);
+	    } else {
+	      
+	        if (applicationDocument.getDocSamagraFile() == null) {
+	            samagraUpload = uploadService.uploadFile(samagraFile, "SAMAGRA_FILE");
+	            docToSave.setDocSamagraFile(samagraUpload);
+	           
+	        }
+
+	        if (applicationDocument.getDocKhasraKhatoni() == null) {  
+	            khasraUpload = uploadService.uploadFile(khasraFile, "KHASRA_KHATONI");
+	            docToSave.setDocKhasraKhatoni(khasraUpload);
+	        }
+	    }
+
+	
+	    if (samagraUpload == null && applicationDocument.getDocSamagraFile() == null) {
+	        return new Response(HttpCode.NULL_OBJECT, "Document Samagra not uploaded.");
+	    }
+
+	    if (khasraUpload == null && applicationDocument.getDocKhasraKhatoni() == null) {
+	        return new Response(HttpCode.NULL_OBJECT, "Document Khasra-Khatoni not uploaded.");
+	    }
+   
+	    docToSave.setConsumerApplicationDetail(applicationDetail);
+
+	    ApplicationDocument savedDoc = applicationDocumentRepository.save(docToSave);
+
+	    return new Response(HttpCode.UPDATED, "Document Updated Successfully", Arrays.asList(savedDoc));
+	}
+
+	
+	
+	
+	
 }

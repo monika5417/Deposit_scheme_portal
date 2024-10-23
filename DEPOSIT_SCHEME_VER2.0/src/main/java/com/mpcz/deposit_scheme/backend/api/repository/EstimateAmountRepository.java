@@ -18,6 +18,8 @@ public interface EstimateAmountRepository extends JpaRepository<ErpEstimateAmoun
 	@Query(value="SELECT ESTIMATE_SANCTION_NO FROM ERP_BUDGET_WORKFLOW_AMOUNT WHERE ERP_NO=?1 AND ROWNUM<2",nativeQuery = true)
 	String getWorkflowNumber(String erpWorkFlowNumber);
 
+	ErpEstimateAmountData findByErpNo(String erpWorkFlowNumber);
+
 
 
 	

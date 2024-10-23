@@ -535,26 +535,27 @@ public class ErpRevServiceIMP implements ErpRevService {
 
 				}
 			}
-
+//			17-Oct-2024 start
+			BigDecimal payAmt = erpRev.getPayAmt();
+			BigDecimal remCgst = erpRev.getRemCgst();
+			BigDecimal remSgst = erpRev.getRemSgst();
+			System.err.println("getpayamount : " + payAmt);
+			System.err.println("get Rem Cgst : " + remCgst);
+			System.err.println("get Rem Sgst : " + remSgst);
+			System.err.println("aaaaaaaaaaaa : " + payAmt.subtract(remCgst).subtract(remSgst));
+			if(erpRev.getPayAmt().compareTo(BigDecimal.ZERO)<0) {
+				erpRev.setConsumerRefundableAmnt(erpRev.getPayAmt().subtract(erpRev.getRemCgst()).subtract(erpRev.getRemSgst()));
+			}
+			
+//			17-Oct-2024 end	
 			if (value == 2L) {
+				
 				ErpRev save = erpRevRepository.save(erpRev);
 
 				if (save != null) {
 					ApplicationStatus appStatusDb=null;
 					appStatusDb = applicationStatusService
 							.findById(ApplicationStatusEnum.REMAING_DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId());
-					
-//					monika code start for adding new status for negative amount 2-september-2024
-//					
-//					if(save.getPayAmt().compareTo(BigDecimal.ZERO) >= 0) {
-//					 appStatusDb = applicationStatusService
-//							.findById(ApplicationStatusEnum.REMAING_DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId());
-//					}else {
-//						 appStatusDb = applicationStatusService
-//									.findById(ApplicationStatusEnum.NEGATIVE_REVISE_AMOUNT_REFUND_TO_APPLICANT.getId());
-//					}
-//					
-//					monika code end for adding new status for negative amount 2-september-2024 
 					findConsumerApplicationDetailByApplicationNo.setApplicationStatus(appStatusDb);
 					findConsumerApplicationDetailByApplicationNo.setErpVersion("V2");
 					findConsumerApplicationDetailByApplicationNo.setRevisedErpNumber(erpNo);

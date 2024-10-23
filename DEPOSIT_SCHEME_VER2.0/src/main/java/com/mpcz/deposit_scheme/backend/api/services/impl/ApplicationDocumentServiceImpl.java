@@ -72,7 +72,7 @@ public class ApplicationDocumentServiceImpl implements ApplicationDocumentServic
 			logger.error(
 					"applicationDocumentRepository.findByConsumerApplicationDetailId is returning Null when findByConsumerApplicationDetailId call");
 			response.setCode(HttpCode.NULL_OBJECT);
-			response.setMessage(ResponseMessage.SUB_STATION_RECORD_FETCH_ALL_BY_DC_ID_FAILED_MESSAGE);
+			response.setMessage("Document not found for this application id");
 			throw new ApplicationDocumentException(response);
 		} else {
 			logger.info("Response is returning successfully");

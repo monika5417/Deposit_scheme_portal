@@ -232,7 +232,7 @@ public class CircleServiceImpl implements CircleService {
 			throw new CircleException(response);
 		} else {
 			logger.info("Response is returning successfully");
-			return circles;
+			return returnModel;
 		}
 	}
 

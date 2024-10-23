@@ -2794,5 +2794,7 @@ public class ConsumerApplicationDetailController {
 		return ResponseEntity.ok(response);
 
 	}
+	
+	
 
 }

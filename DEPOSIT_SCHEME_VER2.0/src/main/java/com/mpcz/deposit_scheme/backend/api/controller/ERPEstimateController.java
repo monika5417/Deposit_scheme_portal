@@ -286,8 +286,7 @@ public class ERPEstimateController {
 		RestTemplate restTemplate = new RestTemplate();
 		ErpEstimateResponse response = new ErpEstimateResponse();
 
-//		String url = "https://rooftop-uat.mpcz.in:8443/urjas/XXPA_PROJECTS_V/" + erpNumber;
-//		String url = "https://rooftop-uat.mpcz.in:8443/urjas/XXPA_PROJECTS_DSP_V/" + erpNumber;
+
 		String url = "https://dsp.mpcz.in:8888/urjas/XXPA_PROJECTS_DSP_V/" + erpNumber;
 
 //		new wala code chalana hai
@@ -295,9 +294,6 @@ public class ERPEstimateController {
 
 		URI uri = new URI(url);
 
-		// Map<String, String> map = new HashMap<>();
-		//
-		// map.put("id", tempId);
 
 		HttpHeaders headers = new HttpHeaders();
 
@@ -314,7 +310,6 @@ public class ERPEstimateController {
 		ConsumerApplicationDetail consumerapplication = consumerApplicationDetailService
 				.findByConsumerApplicationId(consumerAppId);
 
-		System.out.println("consumerapplication--->" + consumerapplication);
 		consumerapplication.setErpWorkFlowNumber(erpNumber);
 
 		consumerApplicationDetailService.saveConsumerApplication(consumerapplication);
@@ -335,7 +330,6 @@ public class ERPEstimateController {
 
 		SchemeType schemeObject = schemeTypeService
 				.findBySchemeTypeId(consumerapplication.getSchemeType().getSchemeTypeId());
-		System.out.println("schemeObject--->" + schemeObject);
 
 		BigDecimal sgst = null;
 		BigDecimal cgst = null;

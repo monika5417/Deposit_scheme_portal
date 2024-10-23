@@ -31,6 +31,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.IndividualOrGroup;
 import com.mpcz.deposit_scheme.backend.api.domain.SchemeType;
 import com.mpcz.deposit_scheme.backend.api.domain.Upload;
 import com.mpcz.deposit_scheme.backend.api.enums.ApplicationStatusEnum;
+import com.mpcz.deposit_scheme.backend.api.exception.DocumentTypeException;
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.exception.InvalidAuthenticationException;
 import com.mpcz.deposit_scheme.backend.api.exception.UserException;
@@ -44,6 +45,7 @@ import com.mpcz.deposit_scheme.backend.api.repository.NatureOfWorkRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.SchemeTypeRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.ApplicationDocumentService;
+import com.mpcz.deposit_scheme.backend.api.services.ConsumerApplicationDetailService;
 import com.mpcz.deposit_scheme.backend.api.services.UploadService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -80,6 +82,9 @@ public class AdminChangableController {
 
 	@Autowired
 	private AppUpdationRemarkRepository appUpdationRemarkRepository;
+	
+	@Autowired
+	private ConsumerApplicationDetailService consumerApplicationDetailService;
 
 	@GetMapping("/getConsumerByLoginId/{loginId}")
 	public ResponseEntity<Response<?>> getConsumerByLoginId(@PathVariable String loginId,
@@ -458,6 +463,23 @@ public class AdminChangableController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
 		}
 
+	}
+	
+	
+//	14- Oct-2024 MKMY Document Update
+
+	@PutMapping("/updateMKMYDocument")
+	public ResponseEntity<?> updateMKMYDocument(
+	        @RequestPart("docSamagraFile") Optional<MultipartFile> docSamagraFileOptional,
+	        @RequestPart("docKhasraKhatoni") Optional<MultipartFile> docKhasraKhatoniOptional,
+	        @RequestPart("consumerApplicationNo") String consumerApplicationNo) throws DocumentTypeException {
+
+	    MultipartFile samagraFile = docSamagraFileOptional.orElse(null);
+	    MultipartFile khasraFile = docKhasraKhatoniOptional.orElse(null);
+	    
+	    Response updateResponse = consumerApplicationDetailService.updateMKMYDocument(samagraFile, khasraFile, consumerApplicationNo);
+
+	    return ResponseEntity.ok(updateResponse);
 	}
 	
 }

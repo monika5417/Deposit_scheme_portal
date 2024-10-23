@@ -192,6 +192,21 @@ public class ErpRev extends Auditable<Long> {
     @Column(name="NEW_MINUS_COST")
     private BigDecimal newMinusCost;
     
+//    17-October-2024
+    @Column(name="CON_REFUNDABLE_AMNT")
+    private BigDecimal consumerRefundableAmnt;
+    
+    
+    
+    
+	public BigDecimal getConsumerRefundableAmnt() {
+		return consumerRefundableAmnt;
+	}
+
+	public void setConsumerRefundableAmnt(BigDecimal consumerRefundableAmnt) {
+		this.consumerRefundableAmnt = consumerRefundableAmnt;
+	}
+
 	public BigDecimal getNewMinusCost() {
 		return newMinusCost;
 	}

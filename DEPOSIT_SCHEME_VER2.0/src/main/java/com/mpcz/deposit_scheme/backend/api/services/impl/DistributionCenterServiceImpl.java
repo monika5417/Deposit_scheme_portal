@@ -244,7 +244,7 @@ public class DistributionCenterServiceImpl implements DistributionCenterService 
 			throw new DistributionCenterException(response);
 		} else {
 			logger.info("Response is returning successfully");
-			return distributionCenters;
+			return returnModel;
 		}
 	}
 

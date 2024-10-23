@@ -266,11 +266,7 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 					// Nature of work id 1,6 and 7 k liye
 					else {
-//						BigDecimal jeReturnAmt = round111(consumerapplication.getJeReturnAmount(), 0);
-						BigDecimal jeReturnAmt = null;
-						if (consumerapplication.getJeReturnAmount() != null) {
-							jeReturnAmt = round111(consumerapplication.getJeReturnAmount(), 0);
-						}
+						BigDecimal jeReturnAmt = round111(consumerapplication.getJeReturnAmount(), 0);
 						if (jeReturnAmt != null) {
 							totalSupervisionAmount = supervisionBalanceRemaining.add(cgst).add(sgst)
 									.add(consumerapplication.getJeReturnAmount());

@@ -96,7 +96,7 @@ public @Data class User extends Auditable<Long> {
 	@Column(name = "is_first_login")
 	private Boolean isFirstLogin;
 
-	@ManyToMany(fetch = FetchType.EAGER, cascade = {
+	@ManyToMany(fetch = FetchType.LAZY, cascade = {
 //            CascadeType.MERGE,
 			CascadeType.REFRESH })
 	@JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "ad_user_id", referencedColumnName = "ad_user_id"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id", updatable = false))

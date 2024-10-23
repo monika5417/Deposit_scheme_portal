@@ -136,6 +136,8 @@ public interface ConsumerApplicationDetailService {
 			 MultipartFile docIndividualOrGroup,
 			MultipartFile docAdministrative, Long id, MultipartFile docGst, MultipartFile docEnergyBill, MultipartFile docSamagraFile) throws ConsumerApplicationDetailException, DocumentTypeException, ApplicationDocumentException, NatureOfWorkException;
 
+	public Response updateMKMYDocument(MultipartFile samagraFile, MultipartFile khasraFile, String consumerApplicationNo) throws DocumentTypeException;
+
 
 	
 
