@@ -1,5 +1,0 @@
-package com.mpcz.deposit_scheme_webhook.backend.api.domain;
-
-public class PoseMachineSendResponse {
-
-}
