@@ -2934,7 +2934,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		if (consumerApplicationDetailForm.getOytTepOrParma() != null
 				&& !consumerApplicationDetailForm.getOytTepOrParma().equals("")) {
 			consumerAppdetail.setOytTepOrParma(consumerApplicationDetailForm.getOytTepOrParma().trim());
-			consumerAppdetail.setOytTempApplicationNo(consumerAppdetail.getConsumerApplicationNo()+"_1");
+			consumerAppdetail.setOytTempApplicationNo(consumerAppdetail.getConsumerApplicationNo()+"T");
 		}
 		
 		consumerAppdetail.setIsRejected(Boolean.FALSE);
