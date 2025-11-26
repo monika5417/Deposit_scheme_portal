@@ -232,6 +232,17 @@
 
 
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>jaspersoft</id>
+			<url>
+				https://jaspersoft.jfrog.io/jaspersoft/third-party-ce-artifacts/</url>
+		</repository>
+		<repository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+	</repositories>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
