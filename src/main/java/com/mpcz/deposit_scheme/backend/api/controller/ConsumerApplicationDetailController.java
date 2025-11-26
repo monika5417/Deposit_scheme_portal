@@ -3799,7 +3799,7 @@ public class ConsumerApplicationDetailController {
 		ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
 				.findByConsumerApplicationNumber(applicationNumber);
 		consumerApplicationDetail.setOytTepOrParma(OytTepOrParma);
-		consumerApplicationDetail.setOytTempApplicationNo(applicationNumber+"_1");
+		consumerApplicationDetail.setOytTempApplicationNo(applicationNumber+"T");
 		consumerApplicationDetailRepository.save(consumerApplicationDetail)	;
 		response.setCode("200");
 		response.setMessage("data update successfully update");

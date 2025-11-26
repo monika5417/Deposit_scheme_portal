@@ -881,7 +881,7 @@ public class NgbDataController {
 				dto.setPurposeOfInstallation("Flat Rate Temporary");
 				dto.setPurposeOfInstallationId(141L);
 				dto.setSanctionedLoad(Double.parseDouble(findByConsumerApplicationNumber.getLoadRequested()));
-				dto.setSanctionedLoadUnit(findByConsumerApplicationNumber.getJeLoadUnitKwYaKva());
+				dto.setSanctionedLoadUnit(findByConsumerApplicationNumber.getLoadRequestedId().getLoadRequestedName());
 				dto.setSubCategoryCode(517L);
 				dto.setTariffCategory("LV5");
 				dto.setTarrifCode("LV5.1BT.UM");
@@ -923,8 +923,10 @@ public class NgbDataController {
 							String tranId = bill.getTranId();
 							int startIndex = Math.max(0, tranId.length() - 10);
 							String lastTenChars = tranId.substring(startIndex);
+							dto.setRegistrationFeeAmount(BigDecimal.ZERO);
 							dto.setRegistrationFeeAmountMrNo(lastTenChars);
 							dto.setSecurityDepositAmount(new BigDecimal(bill.getOytTempAmount()));
+							dto.setSecurityDepositAmountMrNo(lastTenChars);
 						});
 
 				response.setCode(ResponseCode.OK);
