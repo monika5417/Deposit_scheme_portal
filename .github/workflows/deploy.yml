@@ -28,7 +28,7 @@ jobs:
         ls -lh target/*.war
     
     - name: Upload WAR Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: deposit-scheme-war
         path: target/deposit_scheme.war
