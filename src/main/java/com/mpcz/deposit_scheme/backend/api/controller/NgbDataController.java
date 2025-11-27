@@ -741,12 +741,18 @@ public class NgbDataController {
 	@PutMapping("/putConsumerNoFromSSP")
 	public ResponseEntity<?> putConsumerNoFromSSP(@RequestBody NgbDtoForConusmerNo dto) {
 		Response response = new Response();
-		ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+		ConsumerApplicationDetail findByConsumerApplicationNumber = null;
+
+		findByConsumerApplicationNumber = consumerApplictionDetailRepository
 				.findByConsumerApplicationNumber(dto.getApplicationNo());
 		if (findByConsumerApplicationNumber == null) {
-			response.setCode(HttpCode.NULL_OBJECT);
-			response.setMessage("Consumer Application not found");
-			return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+			findByConsumerApplicationNumber = consumerApplictionDetailRepository
+					.findByConsumerApplicationNumberTemporary(dto.getApplicationNo());
+			if (findByConsumerApplicationNumber == null) {
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Consumer Application not found");
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+			}
 		}
 		NgbStagingData findByApplicationNumber = ngbStagingDataRepository
 				.findByApplicationNumber(dto.getApplicationNo());
@@ -766,7 +772,11 @@ public class NgbDataController {
 				findByConsumerApplicationNumber.setApplicationStatus(applicationStatusRepository
 						.findById(ApplicationStatusEnum.CONNECTION_GRANTED_SUCCESSFULLY.getId()).get());
 			}
-			findByConsumerApplicationNumber.setIvrsNo(dto.getNgbConsumerNo());
+			if ("TEMPORARY".equals(save.getConnectionType())) {
+				findByConsumerApplicationNumber.setTempIvrsNo(dto.getNgbConsumerNo());
+			} else {
+				findByConsumerApplicationNumber.setIvrsNo(dto.getNgbConsumerNo());
+			}
 			consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
 //			code end
 			response.setCode(HttpCode.OK);

@@ -505,8 +505,20 @@ public @Data class ConsumerApplicationDetail extends Auditable<Long> {
 	private String temporaryPushedDate;
 	
 	
+	@Column(name="TEMP_IVRS_NO")
+	private String tempIvrsNo;
 	
 	
+	
+	
+	public String getTempIvrsNo() {
+		return tempIvrsNo;
+	}
+
+	public void setTempIvrsNo(String tempIvrsNo) {
+		this.tempIvrsNo = tempIvrsNo;
+	}
+
 	public String getOytTempApplicationNo() {
 		return oytTempApplicationNo;
 	}

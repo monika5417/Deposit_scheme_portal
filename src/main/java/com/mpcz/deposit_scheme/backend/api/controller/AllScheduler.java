@@ -1052,13 +1052,13 @@
 //
 //	}
 //
-////	@Scheduled(cron = "0 0 * * * *")    // every Hour
-////	public void createInvoiceProcedure() {
-////		try {
-////			consumerApplictionDetailRepository.createInvoice();
-////		} catch (Exception e) {
-////			e.printStackTrace();
-////		}
-////	}
+//	@Scheduled(cron = "0 0 * * * *")    // every Hour
+//	public void createInvoiceProcedure() {
+//		try {
+//			consumerApplictionDetailRepository.createInvoice();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 //
 //}

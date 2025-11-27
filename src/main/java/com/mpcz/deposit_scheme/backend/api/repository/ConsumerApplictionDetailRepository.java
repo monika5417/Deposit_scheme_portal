@@ -769,7 +769,7 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 			+ "        (:divisionId = 0 OR div_id = :divisionId) AND\r\n"
 			+ "        (:subDivisionId = 0 OR SUBDIV_ID = :subDivisionId) AND\r\n"
 			+ "        (:dcId = 0 OR dc_id = :dcId) AND\r\n"
-			+ "        APPLICATION_STATUS IN (6,7,9,12,20,21,22,23,24,25,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46)\r\n"
+			+ "        APPLICATION_STATUS IN (6,7,9,12,20,21,22,23,24,25,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,2)\r\n"
 			+ "    UNION ALL\r\n" + "    SELECT '41,42' statusId, '11' Sno, SUM(appl_count) count\r\n"
 			+ "    FROM application_details_summary\r\n" + "    WHERE \r\n"
 			+ "        (:discomId = 0 OR discom_id = :discomId) AND\r\n"
