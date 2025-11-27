@@ -37,12 +37,23 @@ public class SSPDto {
 //	19-11-2025
 	private String meteringStatus;
 	private String connectionCategory;
+	private String caste;
+	
+	
 	
 	
 	
 
 	
 	
+
+	public String getCaste() {
+		return caste;
+	}
+
+	public void setCaste(String caste) {
+		this.caste = caste;
+	}
 
 	public String getPremiseAreaType() {
 		return premiseAreaType;

@@ -473,7 +473,7 @@ public class SSPServiceImpl implements SSPService {
 
 		cad.setConnectionCategory(sspDto.getConnectionCategory());
 		cad.setMeteringStatus(sspDto.getMeteringStatus());
-
+		cad.setCastCategory(sspDto.getCaste());
 		return consumerApplictionDetailRepository.save(cad);
 
 	}
@@ -600,7 +600,7 @@ public class SSPServiceImpl implements SSPService {
 
 			if (sspDto.getNatureOfWork() == 2L || sspDto.getNatureOfWork() == 5L) {
 
-				System.err.println("aaaaaaaaaaaaaaaaa :" + sspDto.getTotalAmount());
+		
 				if (sspDto.getTotalAmount() == null
 						|| BigDecimal.valueOf(sspDto.getTotalAmount()).compareTo(BigDecimal.ZERO) <= 0) {
 					response.setCode(HttpCode.NULL_OBJECT);
@@ -609,8 +609,10 @@ public class SSPServiceImpl implements SSPService {
 				}
 
 //				check added on 11-11-2025 because in case of OYT there is only 5 as TotalAmount()
-				if (sspDto.getSecurityDeposit() == null
-						|| BigDecimal.valueOf(sspDto.getSecurityDeposit()).compareTo(BigDecimal.ZERO) <= 0) {
+				if ((sspDto.getSecurityDeposit() == null
+						|| BigDecimal.valueOf(sspDto.getSecurityDeposit()).compareTo(BigDecimal.ZERO) <= 0)
+//						&& (!"SC".equals(sspDto.getCaste()) && !"ST".equals(sspDto.getCaste()))
+						) {
 					response.setCode(HttpCode.NULL_OBJECT);
 					response.setMessage(
 							"Security Deposit Amount should not be null or negative in case of new NSC and OYT. Please edit your application.");
