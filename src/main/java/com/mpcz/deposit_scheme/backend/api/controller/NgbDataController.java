@@ -420,7 +420,8 @@ public class NgbDataController {
 				dto.setDateOfReg(formattedDate);
 				dto.setLocationCode(
 						Long.parseLong(findByConsumerApplicationNumber.getDistributionCenter().getNgbDcCd()));
-				dto.setPlotSize(5.0);
+//				dto.setPlotSize(5.0);
+				dto.setPlotSize(findByConsumerApplicationNumber.getArea());
 				dto.setPlotSizeUnit("HCT");
 				dto.setPortalName("DSP");
 				dto.setApplicationNumber(consumerAppNo);
@@ -430,16 +431,36 @@ public class NgbDataController {
 				dto.setPurposeOfInstallationId(101L);
 				dto.setSanctionedLoad(Double.parseDouble(findByConsumerApplicationNumber.getJeLoad()));
 				dto.setSanctionedLoadUnit(findByConsumerApplicationNumber.getJeLoadUnitKwYaKva());
-				dto.setSubCategoryCode(512L);
+				if ("SC".equals(findByConsumerApplicationNumber.getCastCategory())
+						|| "ST".equals(findByConsumerApplicationNumber.getCastCategory())) {
+					dto.setSubCategoryCode(510L);
+				} else {
+					dto.setSubCategoryCode(512L);
+				}
 				dto.setTariffCategory("LV5");
 				dto.setTarrifCode("LV5.4");
-				dto.setPremiseType("RURAL");
-				dto.setMeteringStatus("UNMETERED");
+				if (findByConsumerApplicationNumber.getPremiseAreaType() != null
+						|| !findByConsumerApplicationNumber.getPremiseAreaType().isEmpty()) {
+					dto.setPremiseType(findByConsumerApplicationNumber.getPremiseAreaType());
+				} else {
+					dto.setPremiseType("RURAL");
+
+				}
+
+				dto.setMeteringStatus((findByConsumerApplicationNumber.getMeteringStatus() != null
+						&& !findByConsumerApplicationNumber.getMeteringStatus().isEmpty())
+								? findByConsumerApplicationNumber.getMeteringStatus()
+								: "UNMETERED");
+
 				dto.setConsumerNameH("");
 				dto.setPropertyName("khasra_no");
 				dto.setPropertyValue(findByConsumerApplicationNumber.getKhasra());
 				dto.setAreaStatus("AUTHORISED");
-				dto.setPhase("THREE");
+				dto.setPhase(findByConsumerApplicationNumber.getPhase() != null
+						&& !findByConsumerApplicationNumber.getPhase().isEmpty()
+								? findByConsumerApplicationNumber.getPhase()
+								: "THREE");
+
 				dto.setIsBpl("false");
 				dto.setIsEmployee("false");
 				dto.setIsSeasonal("false");
@@ -693,7 +714,8 @@ public class NgbDataController {
 		data.setGroupNo(dto.getGroupNo());
 		data.setIsAffiliatedConsumer("false");
 		data.setIsBeneficiary("false");
-		data.setIsBpl("false");
+//		data.setIsBpl("false");
+		data.setIsBpl(dto.getIsBpl());
 		data.setIsCapacitorSurcharge("false");
 		data.setIsDemandside("false");
 		data.setIsEmployee("false");
@@ -705,14 +727,16 @@ public class NgbDataController {
 		data.setLocationCode(dto.getLocationCode());
 		data.setMeteringStatus("UNMETERED");
 		data.setPhase("THREE");
-		data.setPlotSize(5.0);
+//		data.setPlotSize(5.0);
+		data.setPlotSize(dto.getPlotSize());
 		data.setPlotSizeUnit("HCT");
 		data.setPoleDistance(dto.getPoleDistance());
 		data.setPoleLatitude(dto.getPoleLatitude());
 		data.setPoleLongitude(dto.getPoleLongitude());
 		data.setPoleNo(dto.getPoleNo());
 		data.setPortalName("DSP");
-		data.setPremiseType("RURAL");
+//		data.setPremiseType("RURAL");
+		data.setPremiseType(dto.getPremiseType());
 		data.setPrimaryMobileNo(dto.getPrimaryMobileNo());
 		data.setPropertyName(dto.getPropertyName());
 		data.setPropertyValue(dto.getPropertyValue());
@@ -882,7 +906,8 @@ public class NgbDataController {
 				dto.setDateOfReg(formattedDate);
 				dto.setLocationCode(
 						Long.parseLong(findByConsumerApplicationNumber.getDistributionCenter().getNgbDcCd()));
-				dto.setPlotSize(5.0);
+
+				dto.setPlotSize(findByConsumerApplicationNumber.getArea());
 				dto.setPlotSizeUnit("HCT");
 				dto.setPortalName("DSP");
 				dto.setApplicationNumber(consumerAppNo);
@@ -901,7 +926,11 @@ public class NgbDataController {
 				dto.setPropertyName("khasra_no");
 				dto.setPropertyValue(findByConsumerApplicationNumber.getKhasra());
 				dto.setAreaStatus("AUTHORISED");
-				dto.setPhase("THREE");
+				if (findByConsumerApplicationNumber.getPhase() != null) {
+					dto.setPhase(findByConsumerApplicationNumber.getPhase());
+				} else {
+					dto.setPhase("THREE");
+				}
 				dto.setIsBpl("false");
 				dto.setIsEmployee("false");
 				dto.setIsSeasonal("false");

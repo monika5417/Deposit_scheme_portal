@@ -101,6 +101,7 @@ public interface VendorAddMaterialRepository extends JpaRepository<VendorAddMate
 
 	List<VendorAddMaterial> findByShufflingFlag(Long l);
 
-	
+	@Query(value = "SELECT DISTINCT * FROM VENDOR_ADD_MATERIAL where CONSUMER_APPLICATION_NUMBER =:consAppNo and (VENDOR_MATERIAL_SPECIFICATION like '%25%' or VENDOR_MATERIAL_SPECIFICATION like '%63%')", nativeQuery = true)
+	List<VendorAddMaterial> findByConsumerApplicationNumber2(String consAppNo);
 	
 }

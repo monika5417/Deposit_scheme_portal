@@ -208,6 +208,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/ErpRev/getConsumerApplication/{consumerApp}",
 			"/api/consumer/consumer-application/rejectContractorApplicationByDgmHtc",
 			"/api/dgm_stc_remark/saveDgmStcRemark", "/vendor_add_materials/getAllVendorMaterial/{consAppNo}",
+			"/vendor_add_materials/getAllVendorMaterial1/{consAppNo}",
+			"/Proposed-Format-Non-Oyt/save",
 			"/api/dgm_stc_remark/dgmStcRemark", "/api/contractor_remark/addContractorRemark",
 			"/api/dgm_stc_remark/saveDgmStcRemark", "/vendor_add_materials/getAllVendorMaterial/{consAppNo}",
 			"/api/dgm_stc_remark/dgmStcRemark", "/api/contractor_remark/addContractorRemark",

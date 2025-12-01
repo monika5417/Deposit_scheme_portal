@@ -611,7 +611,7 @@ public class SSPServiceImpl implements SSPService {
 //				check added on 11-11-2025 because in case of OYT there is only 5 as TotalAmount()
 				if ((sspDto.getSecurityDeposit() == null
 						|| BigDecimal.valueOf(sspDto.getSecurityDeposit()).compareTo(BigDecimal.ZERO) <= 0)
-//						&& (!"SC".equals(sspDto.getCaste()) && !"ST".equals(sspDto.getCaste()))
+						&& (!"SC".equals(sspDto.getCaste()) && !"ST".equals(sspDto.getCaste()))
 						) {
 					response.setCode(HttpCode.NULL_OBJECT);
 					response.setMessage(

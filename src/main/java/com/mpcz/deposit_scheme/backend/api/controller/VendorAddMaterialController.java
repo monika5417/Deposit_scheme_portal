@@ -248,4 +248,22 @@ public class VendorAddMaterialController {
 //		}
 	}
 
+	@GetMapping("/getAllVendorMaterial1/{consAppNo}")
+	public ResponseEntity<?> getAllVendorMaterial1(@PathVariable("consAppNo") String consAppNo) {
+		Response response = new Response();
+		List<VendorAddMaterial> listOfVendorMaterial = vendorAddMaterialRepository
+				.findByConsumerApplicationNumber2(consAppNo);
+		if (listOfVendorMaterial.isEmpty()) {
+			response.setCode("400");
+			response.setMessage("DTR Not Found This Application Number");
+			return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+		}
+		response.setCode(HttpCode.OK);
+		response.setMessage("Data Retrive Successfully !!!!!!!");
+		response.setList(Arrays.asList(listOfVendorMaterial));
+		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+
+	}
+	
+	
 }

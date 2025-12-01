@@ -27,8 +27,7 @@ public interface OytCalculationTempOrParmaRepository1 extends JpaRepository<OytC
 		            "WHERE LOAD = ( " +
 		            "    CASE  " +
 		            "        WHEN :inputLoad BETWEEN 0 AND 3 THEN 3 " +
-		            "        WHEN :inputLoad BETWEEN 4 AND 7 THEN 7 " +
-		            "        WHEN :inputLoad BETWEEN 8 AND 10 THEN 10 " +
+		            "        WHEN :inputLoad BETWEEN 4 AND 10 THEN 10 " +
 		            "        WHEN :inputLoad BETWEEN 11 AND 1000 THEN 1000 " +
 		            "    END " +
 		            ") " +
