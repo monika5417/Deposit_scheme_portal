@@ -36,6 +36,19 @@ public class ProposedFormatNonOyt {
 	
 	@Column(name="APPLICATION_NUMBER")
 	private String applicationNumbe;
+	
+	@Column(name="DTR_CODE")
+	private String dtrcode;
+	
+	
+
+	public String getDtrcode() {
+		return dtrcode;
+	}
+
+	public void setDtrcode(String dtrcode) {
+		this.dtrcode = dtrcode;
+	}
 
 	public int getId() {
 		return id;

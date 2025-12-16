@@ -438,7 +438,7 @@ public @Data class ConsumerApplicationDetail extends Auditable<Long> {
 
 	@Column(name = "RESAMPLING_FLAG")
 	private Long reSamplingFlag = 0L;
-	
+
 //	09-09-2025
 
 	@Column(name = "SSP_REG_CHARGE", updatable = false)
@@ -455,62 +455,97 @@ public @Data class ConsumerApplicationDetail extends Auditable<Long> {
 
 	@Column(name = "SSPTOTALAMOUNT", updatable = false)
 	private BigDecimal sspTotalAmount;
-	
+
 	@Column(name = "PURPOSE_OF_INSTALLATION")
 	private String purposeOfInstallation;
-	
+
 	@Column(name = "PHASE")
 	private String phase;
 
-	@Column(name = "REJECTION_REMARK_JE" )
+	@Column(name = "REJECTION_REMARK_JE")
 	private String rejectionRemarkByJE;
-	
-	
+
 //	=============OYT wal part
-	
-	@Column(name = "OYT_TEMP_OR_PARMA" )
+
+	@Column(name = "OYT_TEMP_OR_PARMA")
 	private String oytTepOrParma;
-	
-	@Column(name = "PREMISE_AREA_TYPE" )
+
+	@Column(name = "PREMISE_AREA_TYPE")
 	private String premiseAreaType;
-	
-	@Column(name="OYT_TEMP_APPLICATION_NO")
+
+	@Column(name = "OYT_TEMP_APPLICATION_NO")
 	private String oytTempApplicationNo;
-	
-	
-	
-	
-	
+
 //	=========BIGILANCE WALA PART====================
-	
-	
-	@Column(name = "PUNCH_NAMA_REFERENCE_NO" )
+
+	@Column(name = "PUNCH_NAMA_REFERENCE_NO")
 	private String punchNamaReferenceNo;
-	
-	@Column(name = "PUNCH_NAMA_CREATE_DATE" )
+
+	@Column(name = "PUNCH_NAMA_CREATE_DATE")
 	private String punchNamaCreatedDate;
-	
+
 // 19-11-2025
 	@Column(name = "METERING_STATUS")
 	private String meteringStatus;
-	
-	@Column(name="CONNECTION_CATEGORY")
+
+	@Column(name = "CONNECTION_CATEGORY")
 	private String connectionCategory;
-	
-	
-	@Column(name="TEMPORARY_PUSHED")
+
+	@Column(name = "TEMPORARY_PUSHED")
 	private String temporaryPushed;
-	
-	@Column(name="TEMPORARY_PUSHED_DATE")
+
+	@Column(name = "TEMPORARY_PUSHED_DATE")
 	private String temporaryPushedDate;
-	
-	
-	@Column(name="TEMP_IVRS_NO")
+
+	@Column(name = "TEMP_IVRS_NO")
 	private String tempIvrsNo;
+
+	@Column(name = "GM_DEMAND_APPROVED")
+	private String gmDemandApproved;
+
+	@Column(name = "GM_DEMAND_APPOVED_DATE")
+	private String gmDemandAppDate;
+
+	@Column(name = "GM_DEMAND_REMARK")
+	private String gmDemandRemark;
+
+	@Column(name = "GM_DEMAND_USER_ID")
+	private String gmDemandUserId;
+
+	public String getGmDemandApproved() {
+		return gmDemandApproved;
+	}
+
+	public void setGmDemandApproved(String gmDemandApproved) {
+		this.gmDemandApproved = gmDemandApproved;
+	}
+
+	public String getGmDemandAppDate() {
+		return gmDemandAppDate;
+	}
+
+	public void setGmDemandAppDate(String gmDemandAppDate) {
+		this.gmDemandAppDate = gmDemandAppDate;
+	}
+
+	public String getGmDemandRemark() {
+		return gmDemandRemark;
+	}
+
+	public void setGmDemandRemark(String gmDemandRemark) {
+		this.gmDemandRemark = gmDemandRemark;
+	}
+
 	
-	
-	
-	
+
+	public String getGmDemandUserId() {
+		return gmDemandUserId;
+	}
+
+	public void setGmDemandUserId(String gmDemandUserId) {
+		this.gmDemandUserId = gmDemandUserId;
+	}
+
 	public String getTempIvrsNo() {
 		return tempIvrsNo;
 	}

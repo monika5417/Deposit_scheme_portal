@@ -171,54 +171,52 @@ public class DryUtility {
 //				.body(new Response(HttpCode.OK, "You can enroll ERP no. now", null));
 //	}
 
-	
-	
-	public ResponseEntity<Response> checkErpExistOrNot2(String erpNumber, String consumerAppNo) throws ErpEstimateAmountException {
+	public ResponseEntity<Response> checkErpExistOrNot2(String erpNumber, String consumerAppNo)
+			throws ErpEstimateAmountException {
 
-	    Set<String> applicationNumbers = new HashSet<>();
+		Set<String> applicationNumbers = new HashSet<>();
 
-	    // 1. ERP Demand Table check
-	    ErpEstimateAmountData erpDemandDB = erpEstimateAmountService.findByEstimateNumber(erpNumber);
-	    if (erpDemandDB != null) {
-	        consumerApplictionDetailRepository.findByerpWorkFlowNumber(erpNumber).forEach(erp -> {
-	            applicationNumbers.add(erp.getConsumerApplicationNo());
-	        });
-	    }
+		// 1. ERP Demand Table check
+		ErpEstimateAmountData erpDemandDB = erpEstimateAmountService.findByEstimateNumber(erpNumber);
+		if (erpDemandDB != null) {
+			consumerApplictionDetailRepository.findByerpWorkFlowNumber(erpNumber).forEach(erp -> {
+				applicationNumbers.add(erp.getConsumerApplicationNo());
+			});
+		}
 
-	    // 2. MMKY Table check
-	    Optional<MmkyPayAmount> mmkyPayAmountERPDB = mmkyPayAmountRespository.findByErpNumber(erpNumber);
-	    if (mmkyPayAmountERPDB.isPresent() && mmkyPayAmountERPDB.get().getConsumerApplicationNumber() != null) {
-	        applicationNumbers.add(mmkyPayAmountERPDB.get().getConsumerApplicationNumber());
-	    }
+		// 2. MMKY Table check
+		Optional<MmkyPayAmount> mmkyPayAmountERPDB = mmkyPayAmountRespository.findByErpNumber(erpNumber);
+		if (mmkyPayAmountERPDB.isPresent() && mmkyPayAmountERPDB.get().getConsumerApplicationNumber() != null) {
+			applicationNumbers.add(mmkyPayAmountERPDB.get().getConsumerApplicationNumber());
+		}
 
-	    // 3. Revised ERP Table check
-	    ErpRev RevErpNoDB = erpRevRepository.findByNewErpNo(erpNumber);
-	    if (RevErpNoDB != null && RevErpNoDB.getConsAppNo() != null) {
-	        applicationNumbers.add(RevErpNoDB.getConsAppNo());
-	    }
+		// 3. Revised ERP Table check
+		ErpRev RevErpNoDB = erpRevRepository.findByNewErpNo(erpNumber);
+		if (RevErpNoDB != null && RevErpNoDB.getConsAppNo() != null) {
+			applicationNumbers.add(RevErpNoDB.getConsAppNo());
+		}
 
-	    // 4. Consumer Application Detail Table check
-	    List<ConsumerApplicationDetail> findByErpNo =
-	            consumerApplictionDetailRepository.findByerpWorkFlowNumberOrRevisedErpNumber(erpNumber, erpNumber);
+		// 4. Consumer Application Detail Table check
+		List<ConsumerApplicationDetail> findByErpNo = consumerApplictionDetailRepository
+				.findByerpWorkFlowNumberOrRevisedErpNumber(erpNumber, erpNumber);
 
-	    if (findByErpNo != null && !findByErpNo.isEmpty()) {
-	        applicationNumbers.addAll(findByErpNo.stream()
-	                .map(ConsumerApplicationDetail::getConsumerApplicationNo)
-	                .collect(Collectors.toSet())); // set already unique
-	    }
+		if (findByErpNo != null && !findByErpNo.isEmpty()) {
+			applicationNumbers.addAll(findByErpNo.stream().map(ConsumerApplicationDetail::getConsumerApplicationNo)
+					.collect(Collectors.toSet())); // set already unique
+		}
 
-	    // ⚡ Ignore current application from the check
-	    applicationNumbers.remove(consumerAppNo);
+		// ⚡ Ignore current application from the check
+		applicationNumbers.remove(consumerAppNo);
 
-	    if (!applicationNumbers.isEmpty()) {
-	        return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON)
-	                .body(new Response(HttpCode.NOT_ACCEPTABLE,
-	                        "This ERP Number Is Already Associated With Another Application Number.",
-	                        new ArrayList<>(applicationNumbers)));
-	    }
+		if (!applicationNumbers.isEmpty()) {
+			return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON)
+					.body(new Response(HttpCode.NOT_ACCEPTABLE,
+							"This ERP Number Is Already Associated With Another Application Number.",
+							new ArrayList<>(applicationNumbers)));
+		}
 
-	    return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON)
-	            .body(new Response(HttpCode.OK, "You can enroll ERP no. now", null));
+		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON)
+				.body(new Response(HttpCode.OK, "You can enroll ERP no. now", null));
 	}
 
 //	=======================================
@@ -352,7 +350,13 @@ public class DryUtility {
 						new Response(HttpCode.NULL_OBJECT, "Consumer Application No. Not Found For : "
 								+ consumerApplicationDetail.getConsumerApplicationNo())));
 
-		return consumerApplictionDetailRepository.save(consumerApplicationDetail);
+		ConsumerApplicationDetail save = consumerApplictionDetailRepository.save(consumerApplicationDetail);
+		if (Objects.nonNull(save)) {
+			return save;
+		} else {
+			throw new ConsumerApplicationDetailException(
+					new Response(HttpCode.NULL_OBJECT, "Consumer Application Data not saved"));
+		}
 	}
 
 }

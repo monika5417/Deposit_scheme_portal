@@ -1,5 +1,6 @@
 package com.mpcz.deposit_scheme.backend.api.controller;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -7,7 +8,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.jfree.util.Log;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +27,12 @@ import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.constant.RestApiUrl;
 import com.mpcz.deposit_scheme.backend.api.domain.CheckBoxDtr;
-import com.mpcz.deposit_scheme.backend.api.domain.Feeder;
+import com.mpcz.deposit_scheme.backend.api.domain.Kva25Dtr;
 import com.mpcz.deposit_scheme.backend.api.dto.CheckBoxDtrDTO;
 import com.mpcz.deposit_scheme.backend.api.exception.FeederException;
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.exception.InvalidAuthenticationException;
+import com.mpcz.deposit_scheme.backend.api.repository.Kva25DtrRepository;
 import com.mpcz.deposit_scheme.backend.api.request.ErrorDetails;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.DtrService;
@@ -48,6 +49,9 @@ public class DtrController {
 	
 	@Autowired
 	private DtrService dtrService;
+	
+	@Autowired
+	private Kva25DtrRepository kva25DtrRepository;
 	
 	Logger LOG = LoggerFactory.getLogger(DtrController.class);
 	
@@ -130,5 +134,45 @@ public class DtrController {
 			response.setList(Arrays.asList(dtrdb));
 			return  ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 		
+	}
+	
+	
+	@GetMapping("/25kvadtr/{dtrQuentity}")
+	public ArrayList<Kva25Dtr> getdata(@PathVariable int dtrQuentity) {
+		
+		ArrayList<Kva25Dtr> l = new ArrayList<Kva25Dtr>();
+		
+	List<Kva25Dtr> findAll = kva25DtrRepository.findAll();
+	findAll.stream().forEach(list->{
+		
+		Kva25Dtr d = new Kva25Dtr();
+		
+		
+		
+		int qty = list.getQty() *  dtrQuentity ;
+		d.setQty(qty);
+		
+		BigDecimal rate = list.getRATE().multiply(new BigDecimal(dtrQuentity));
+		d.setRATE(rate);
+		
+		BigDecimal amt = list.getAmount().multiply(new BigDecimal(dtrQuentity));
+		d.setAmount(amt);
+		
+		BigDecimal erectionRate = list.getErectionRate().multiply(new BigDecimal(dtrQuentity));
+		d.setErectionRate(erectionRate);
+		
+		BigDecimal cost = list.getCost().multiply(new BigDecimal(dtrQuentity));
+		d.setCost(cost);
+		
+		d.setId(list.getId());
+		d.setItemcode(list.getItemcode());
+		d.setItemName( list.getItemName());
+		
+		l.add(d);
+	});
+	
+	
+	
+	return l;
 	}
 }

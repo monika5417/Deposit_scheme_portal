@@ -13,9 +13,9 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity(name = "ErpEstimateAmountData")
-@Table(name = "ERP_BUDGET_WORKFLOW_AMOUNT")
-public class ErpEstimateAmountData extends Auditable<Long> {
+@Entity(name = "ErpEstimateAmountDataGet")
+@Table(name = "ERP_BUD_WORK_AMOUNT_GET")
+public class ErpEstimateAmountDataGet extends Auditable<Long> {
 
 	/**
 	 * 

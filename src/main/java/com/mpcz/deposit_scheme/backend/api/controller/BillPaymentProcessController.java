@@ -144,6 +144,9 @@ public class BillPaymentProcessController {
 
 //	Bill desk payment configuration with properties file
 
+	@Value("${spring.profiles.active}")
+	private String envVariable;
+
 	@Value("${client.id}")
 	private String clientId;
 
@@ -240,8 +243,6 @@ public class BillPaymentProcessController {
 				return response;
 
 			}
-			
-			
 
 			String localDateTime = LocalDateTime.now().toString();
 			int indexOf = LocalDateTime.now().toString().indexOf(".");
@@ -280,8 +281,12 @@ public class BillPaymentProcessController {
 //					"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6", "mpmkdspv2");
 
 			SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
-//			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
-//			clientHttpReq.setProxy(proxy);
+			if ("local".equals(envVariable) || "prod".equals(envVariable)) {
+				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
+				clientHttpReq.setProxy(proxy);
+				System.err.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaa : " +proxy);
+			}
+
 
 			RestTemplate restTemplate = new RestTemplate(clientHttpReq);
 			HttpHeaders headers = new HttpHeaders();
@@ -312,7 +317,7 @@ public class BillPaymentProcessController {
 
 			System.err.println("postForEntity-->" + postForEntity);
 			String forObject = postForEntity.getBody();
-			System.out.println("forObject-------------" + forObject); 
+			System.out.println("forObject-------------" + forObject);
 			if (forObject == null && forObject.length() <= 0) {
 				response.setMessage("response body is null");
 				response.setCode("200");
@@ -423,6 +428,7 @@ public class BillPaymentProcessController {
 			}
 			payres = new BillDeskPaymentResponse();
 			String string = tree_map.get("transaction_response");
+//			String string = "eyJhbGciOiJIUzI1NiIsImNsaWVudGlkIjoidW1wbWt2dnYyIiwia2lkIjoiSE1BQyJ9.eyJtZXJjaWQiOiJVTVBNS1ZWVjIiLCJ0cmFuc2FjdGlvbl9kYXRlIjoiMjAyNS0xMi0wMlQxNjoxOToyNCswNTozMCIsInN1cmNoYXJnZSI6IjAuMDAiLCJwYXltZW50X21ldGhvZF90eXBlIjoiY2FyZCIsImFtb3VudCI6IjExODAuMDAiLCJydSI6Imh0dHBzOi8vdWF0ZHNwLm1wY3ouaW4vZGVwb3NpdF9zY2hlbWUvYXBpL2NvbnN1bWVyL2JpbGwtZGVzay9zYXZlX3BheW1lbnRfcmVzcG9uc2UiLCJvcmRlcmlkIjoiRFMyMDI1MTIwMjE2MTg0NiIsInRyYW5zYWN0aW9uX2Vycm9yX3R5cGUiOiJzdWNjZXNzIiwiZGlzY291bnQiOiIwLjAwIiwicGF5bWVudF9jYXRlZ29yeSI6IjAyIiwiYmFua19yZWZfbm8iOiJDTU5UQU9OWTNDIiwidHJhbnNhY3Rpb25pZCI6IlVITVBJTzkwMDIzM0JHIiwidHhuX3Byb2Nlc3NfdHlwZSI6IjNkcyIsImF1dGhjb2RlIjoiOTY3MTgyIiwiYmFua2lkIjoiSE1QIiwiYWRkaXRpb25hbF9pbmZvIjp7ImFkZGl0aW9uYWxfaW5mbzciOiJSZWdpc3RyYXRpb25fRmVlcyIsImFkZGl0aW9uYWxfaW5mbzEiOiJQUk9EIiwiYWRkaXRpb25hbF9pbmZvMyI6IlNWMTc0MjMwNDEyMTY2NSIsImFkZGl0aW9uYWxfaW5mbzIiOiI5ODA2MjA0NzM3In0sIml0ZW1jb2RlIjoiTUNESVJFQ1QiLCJ0cmFuc2FjdGlvbl9lcnJvcl9jb2RlIjoiVFJTMDAwMCIsImN1cnJlbmN5IjoiMzU2IiwiYXV0aF9zdGF0dXMiOiIwMzAwIiwidHJhbnNhY3Rpb25fZXJyb3JfZGVzYyI6IlRyYW5zYWN0aW9uIFN1Y2Nlc3NmdWwiLCJvYmplY3RpZCI6InRyYW5zYWN0aW9uIiwiY2hhcmdlX2Ftb3VudCI6IjExODAuMDAifQ.WcYGXjMqi4qoMpqc4zZpSxz4SceH_aSU3aXS2rEPNUA";
 			System.out.println(string);
 
 //			payres.setMercid(tree_map.get("mercid"));
@@ -430,9 +436,12 @@ public class BillPaymentProcessController {
 			System.out.println(tree_map);
 //			String verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(string,
 //					"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6");
-
-			String verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(string, hashKey);
-
+			String verifyAndDecryptJWSWithHMAC = null;
+			try {
+				verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(string, hashKey);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			System.out.println(verifyAndDecryptJWSWithHMAC);
 
 			JSONObject jobObject = new JSONObject(verifyAndDecryptJWSWithHMAC);
@@ -502,7 +511,11 @@ public class BillPaymentProcessController {
 
 			if (jobObject.getString("auth_status").equals("0300")) {
 				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().equals(5L)) {
-					payres.setOytTempAmount(jobObject.getJSONObject("additional_info").getString("additional_info"));
+					if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
+						payres.setOytTempAmount(
+								jobObject.getJSONObject("additional_info").getString("additional_info5"));
+					}
+
 					appStatusDb = applicationStatusService
 							.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
 				} else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId()
@@ -637,6 +650,7 @@ public class BillPaymentProcessController {
 						requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
 						requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
 						requestBody.put("is_bid_submitted", "false");
+						requestBody.put("nature_of_work_name", findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
 						if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
 								&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
 							requestBody.put("sspTotalAmount",
@@ -922,8 +936,8 @@ public class BillPaymentProcessController {
 					clientKey);
 
 			SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
-//			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
-//			clientHttpReq.setProxy(proxy);
+			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
+			clientHttpReq.setProxy(proxy);
 
 			RestTemplate restTemplate = new RestTemplate(clientHttpReq);
 
@@ -956,7 +970,7 @@ public class BillPaymentProcessController {
 				return response;
 			}
 
-//			uat  code
+//			uat And Production code properties file se  
 			String verifyAndDecryptJWSWithHMAC = verifyAndDecryptJWSWithHMAC(forObject, hashKey);
 
 //			production code
@@ -1274,7 +1288,7 @@ public class BillPaymentProcessController {
 
 						JSONObject createObjectForbillDesk = new JSONObject();
 
-//			uat code 
+//			uat and production  code by properties file 
 						createObjectForbillDesk.put("mercid", clientId);
 						createObjectForbillDesk.put("orderid", bill.getOrderId());
 						String convertObjectInString = encryptAndSignJWSWithHMAC(createObjectForbillDesk.toString(),
@@ -1287,8 +1301,8 @@ public class BillPaymentProcessController {
 //								"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6", "mpmkdspv2");
 
 						SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
-//						Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
-//						clientHttpReq.setProxy(proxy);
+						Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
+						clientHttpReq.setProxy(proxy);
 
 						RestTemplate restTemplate = new RestTemplate(clientHttpReq);
 
@@ -1837,9 +1851,9 @@ public class BillPaymentProcessController {
 
 			// Configure proxy for HTTP request
 			SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
-//			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
-//			clientHttpReq.setProxy(proxy);
-//			logger.info("Proxy configured: {}", proxy.toString());
+			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
+			clientHttpReq.setProxy(proxy);
+			logger.info("Proxy configured: {}", proxy.toString());
 
 			// Set up RestTemplate and make the API call
 			RestTemplate restTemplate = new RestTemplate(clientHttpReq);
@@ -2095,8 +2109,8 @@ public class BillPaymentProcessController {
 					"IJLmg3QiLBnDwb3IoeK13eXcYcvHVdP6", "mpmkdspv2");
 
 			SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
-//			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
-//			clientHttpReq.setProxy(proxy);
+			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
+			clientHttpReq.setProxy(proxy);
 
 			RestTemplate restTemplate = new RestTemplate(clientHttpReq);
 

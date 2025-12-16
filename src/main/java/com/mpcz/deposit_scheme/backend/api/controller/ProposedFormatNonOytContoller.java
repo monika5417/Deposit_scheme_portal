@@ -97,18 +97,34 @@ public class ProposedFormatNonOytContoller {
 			if (proposedFormatNonOyt.getManufacturingSerialNo().equals(null)
 					|| proposedFormatNonOyt.getManufacturingSerialNo().isEmpty()
 					) {
+//				LocalTime now = LocalTime.now();
+//				DateTimeFormatter ofPattern = DateTimeFormatter.ofPattern("ssss");
+//
+//				String format = ofPattern.format(now);
+//
+//				proposedFormatNonOyt.setManufacturingSerialNo(format);
+				
+				
 				LocalTime now = LocalTime.now();
-				DateTimeFormatter ofPattern = DateTimeFormatter.ofPattern("ssssss");
+				String serial = String.format("%06d", now.toSecondOfDay() % 100000);
 
-				String format = ofPattern.format(now);
-
-				proposedFormatNonOyt.setManufacturingSerialNo(format);
+				proposedFormatNonOyt.setManufacturingSerialNo(serial);
 
 			}
 			if (proposedFormatNonOyt.getManufacturingSerialNo().length() < 4) {
 				proposedFormatNonOyt.setManufacturingSerialNo("0" + proposedFormatNonOyt.getManufacturingSerialNo());
 			}
-
+			proposedFormatNonOyt.setDtrcode(
+					
+					proposedFormatNonOyt.getYearOfManufacturing() + 
+					proposedFormatNonOyt.getMonthOfManufacturing() +
+					proposedFormatNonOyt.getApplicationSchemeCode() +
+					proposedFormatNonOyt.getCentralZone() +
+					proposedFormatNonOyt.getManufacturingSerialNo()
+					
+					);
+			
+			
 			save = proposedFormatNonOytRepository.save(proposedFormatNonOyt);
 
 		}

@@ -420,12 +420,20 @@ public class ContractorDetailForBidController {
 
 					}
 				}
+
+				if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
+					
+					List<ContractorParticipateAndNotPartiDto> listOfParticipantedAndNotParticipated = participantAndNotParticipantDto.getListOfParticipantedAndNotParticipated();
+					List<ContractorParticipateAndNotPartiDto> collect = listOfParticipantedAndNotParticipated.stream().filter(a->!a.getContractorCategory().equalsIgnoreCase("B")).collect(Collectors.toList()) ;
+					participantAndNotParticipantDto.setListOfParticipantedAndNotParticipated(collect);
+				}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 
 		}
+
 		response.setList(Arrays.asList(participantAndNotParticipantDto));
 		response.setCode(HttpCode.OK);
 		response.setMessage("Record Retrieve Successfully");
@@ -1027,6 +1035,7 @@ public class ContractorDetailForBidController {
 		requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
 		requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
 		requestBody.put("is_bid_submitted", "false");
+		requestBody.put("nature_of_work_name", findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
 		if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
 				&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
 			requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
@@ -1096,6 +1105,7 @@ public class ContractorDetailForBidController {
 		requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
 		requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
 		requestBody.put("is_bid_submitted", "false");
+		requestBody.put("nature_of_work_name", findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
 		if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
 				&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
 			requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
@@ -1421,7 +1431,7 @@ public class ContractorDetailForBidController {
 				Arrays.asList(findByDgmSelectedPreference)));
 
 	}
-	
+
 	@Autowired
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -1429,8 +1439,8 @@ public class ContractorDetailForBidController {
 	private DynamicQueryRepository dynamicQueryRepository;
 
 	@GetMapping("/getListOfActualWorkCompletionApplicationForQC")
-	public ResponseEntity<?> getListOfActualWorkCompletionApplicationForQC(){
-		
+	public ResponseEntity<?> getListOfActualWorkCompletionApplicationForQC() {
+
 		DynamicQuery byQueryName = dynamicQueryRepository.findByQueryName("CONTRACTOR_WORK_COMPLETION_DATE_QUERY");
 		if (Objects.isNull(byQueryName)) {
 			throw new IllegalArgumentException("No dynamic query found for: CONTRACTOR_WORK_COMPLETION_DATE_QUERY");
@@ -1446,8 +1456,7 @@ public class ContractorDetailForBidController {
 		return ResponseEntity
 				.ok(Objects.isNull(resultList) ? new Response<>(HttpCode.NULL_OBJECT, "No data found for refund mis")
 						: new Response<>(HttpCode.OK, "Data Retrieved Successfully", resultList));
-	
+
 	}
-	
-	
+
 }

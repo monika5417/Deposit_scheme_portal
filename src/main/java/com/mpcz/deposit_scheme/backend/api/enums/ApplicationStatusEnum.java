@@ -49,7 +49,9 @@ public enum ApplicationStatusEnum {
 	PENDING_AT_AO_END_FOR_PAYMENT_VERIFICATION(47L, "Pending At AO End For Payment Verification"),
 	PENDING_FOR_INSPECTION_OF_WORK_BY_AE_STC(48L,"Pending for Inspection of Work by AE STC"),
 	PENDING_AT_ERP_END_FOR_INVOICE_CREATION(49L,
-			"Pending at ERP end for Invoice Creation");
+			"Pending at ERP end for Invoice Creation"),
+	PENDING_AT_GM_END_FOR_DEMAND_NOTE_VERIFICATION(50L,
+			"Pending at GM end for Demand Note Verification");
 
 	private Long id;
 	private String value;

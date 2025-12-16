@@ -8,7 +8,7 @@ package com.mpcz.deposit_scheme.backend.api.constant;
  * Interface to Manage Rest API Request URL's. It content all swagger REST API Documentation tags and URL.
  */
 public interface RestApiUrl {
-
+	
 	/*
 	 * User Base URL for REST API's If User Logged..
 	 */

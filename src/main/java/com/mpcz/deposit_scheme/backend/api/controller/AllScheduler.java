@@ -679,6 +679,8 @@
 //					JSONObject record = recordsArray.getJSONObject(i);
 //					pvNumber = record.getString("pv_number");
 //					System.err.println("pvNumber : " + pvNumber);
+//					utrNumber = record.getString("utr");
+//					System.err.println("UTR : " + utrNumber);
 //				}
 //				HttpHeaders headers1 = createHeaders();
 //
@@ -1052,7 +1054,7 @@
 //
 //	}
 //
-//	@Scheduled(cron = "0 0 * * * *")    // every Hour
+//	@Scheduled(cron = "0 0 * * * *") // every Hour
 //	public void createInvoiceProcedure() {
 //		try {
 //			consumerApplictionDetailRepository.createInvoice();

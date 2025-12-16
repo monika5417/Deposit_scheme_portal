@@ -466,7 +466,8 @@ public class ReSamplinController {
 					smsRequest.setMobileNo(user.getMobileNo());
 					
 					try {
-						smsDirectService.sendMessage(smsRequest);
+						String sendMessage = smsDirectService.sendMessage(smsRequest);
+						System.err.println("sendMessage" + sendMessage);
 					} catch (Exception e) {
 					
 						e.printStackTrace();
@@ -514,27 +515,28 @@ public class ReSamplinController {
 			}
 
 		}
-		User user = userRepository.findByUserId(userID).get();
-		final SMSRequest smsRequest = new SMSRequest();
-
-
-		String message = "";
-
-		
-		message = MessageFormat.format(messageProperties.getSendMsgReSamplingForAe(),
-				new Object[] { "SV989898", "03-11-2025"});
-
-		smsRequest.setTemplateId(messageProperties.getSendMsgReSamplingForAeTamplateId());
-		smsRequest.setText(message);
-		smsRequest.setHinglish(1l);
-		smsRequest.setMobileNo("9340302532");
-		
-		try {
-			smsDirectService.sendMessage(smsRequest);
-		} catch (Exception e) {
-		
-			e.printStackTrace();
-		}
+//		User user = userRepository.findByUserId(userID).get();
+//		final SMSRequest smsRequest = new SMSRequest();
+//
+//
+//		String message = "";
+//
+//		
+//		message = MessageFormat.format(messageProperties.getSendMsgReSamplingForAe(),
+//				new Object[] { "SV989898", "03-11-2025"});
+//
+//		smsRequest.setTemplateId(messageProperties.getSendMsgReSamplingForAeTamplateId());
+//		smsRequest.setText(message);
+//		smsRequest.setHinglish(1l);
+//		smsRequest.setMobileNo("9340302532");
+//		
+//		try {
+//			String sendMessage = smsDirectService.sendMessage(smsRequest);
+//			System.err.println("sendMessage" + sendMessage);
+//		} catch (Exception e) {
+//		
+//			e.printStackTrace();
+//		}
 	
 		res.setCode("200");
 		res.setMessage("data update");

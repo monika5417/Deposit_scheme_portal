@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -56,6 +57,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.ContractorForBid;
 import com.mpcz.deposit_scheme.backend.api.domain.ContractorForBidWorkStatus;
 import com.mpcz.deposit_scheme.backend.api.domain.DistributionCenter;
 import com.mpcz.deposit_scheme.backend.api.domain.District;
+import com.mpcz.deposit_scheme.backend.api.domain.DynamicQuery;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountData;
 import com.mpcz.deposit_scheme.backend.api.domain.IndividualOrGroup;
 import com.mpcz.deposit_scheme.backend.api.domain.LandAreaUnit;
@@ -68,6 +70,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.SchemeType;
 import com.mpcz.deposit_scheme.backend.api.domain.Upload;
 import com.mpcz.deposit_scheme.backend.api.domain.User;
 import com.mpcz.deposit_scheme.backend.api.domain.UserRole;
+import com.mpcz.deposit_scheme.backend.api.dto.ApprovalDto;
 import com.mpcz.deposit_scheme.backend.api.dto.ConsumerApplicationDetailsFilterDTO;
 import com.mpcz.deposit_scheme.backend.api.dto.ConsumerApplicationSearch;
 import com.mpcz.deposit_scheme.backend.api.dto.ConsumerApplicationUpdateDto;
@@ -94,6 +97,7 @@ import com.mpcz.deposit_scheme.backend.api.repository.ContractorForBidRepository
 import com.mpcz.deposit_scheme.backend.api.repository.ContractorForBidWorkStatusRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.DistributionCenterRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.DistrictRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.DynamicQueryRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.IndividualOrGroupRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.LandAreaUnitRepository;
@@ -130,9 +134,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @Api(value = "ConsumerApplicationDetailController", description = "Rest api for Consumer Application Detail.")
@@ -237,6 +238,11 @@ public class ConsumerApplicationDetailController {
 
 	@Autowired
 	private EstimateAmountRepository estimateAmountRepository;
+	
+	@Autowired
+	private DynamicQueryRepository dynamicQueryRepository;
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 //	private Response findConsumerApplicationDetailsByCityCricleAndBhopal;
 
@@ -3008,16 +3014,46 @@ public class ConsumerApplicationDetailController {
 	@Autowired
 	UserRepository userRepository;
 
+//	@GetMapping("/getDSPApplicationPendencyOnDiscomUser/{userId}")
+//	public ResponseEntity<?> getDSPApplicationPendencyOnDiscomUser(@PathVariable String userId)
+//			throws ConsumerApplicationDetailException {
+//
+//		List<Map<String, ?>> dspApplicationPendencyOnDiscomUser = null;
+//		User userDB = userRepository.findByUserId(userId).orElseThrow(() -> new ConsumerApplicationDetailException(
+//				new Response(HttpCode.NULL_OBJECT, "User Id not found in database : " + userId)));
+//		if (!Objects.isNull(userDB)) {
+//			dspApplicationPendencyOnDiscomUser = consumerApplicationDetailRepository
+//					.getDSPApplicationPendencyOnDiscomUser(userId);
+//
+//		}
+//		return ResponseEntity.ok(dspApplicationPendencyOnDiscomUser.isEmpty()
+//				? new Response(HttpCode.NULL_OBJECT, "Data not found for this userId")
+//				: new Response(HttpCode.OK, "Data Retrieved successfully",
+//						Arrays.asList(dspApplicationPendencyOnDiscomUser)));
+//	}
+//	08-12-2025 commented code bcoz used the dynamic query in below api
+	
+	
+	
 	@GetMapping("/getDSPApplicationPendencyOnDiscomUser/{userId}")
 	public ResponseEntity<?> getDSPApplicationPendencyOnDiscomUser(@PathVariable String userId)
 			throws ConsumerApplicationDetailException {
 
-		List<Map<String, ?>> dspApplicationPendencyOnDiscomUser = null;
+		List<Map<String, Object>> dspApplicationPendencyOnDiscomUser = null;
 		User userDB = userRepository.findByUserId(userId).orElseThrow(() -> new ConsumerApplicationDetailException(
 				new Response(HttpCode.NULL_OBJECT, "User Id not found in database : " + userId)));
 		if (!Objects.isNull(userDB)) {
-			dspApplicationPendencyOnDiscomUser = consumerApplicationDetailRepository
-					.getDSPApplicationPendencyOnDiscomUser(userId);
+			DynamicQuery financeGstApplicationList = dynamicQueryRepository
+					.findByQueryName("ANIMESH_WFM_QUERY");
+
+			if (Objects.isNull(financeGstApplicationList)) {
+				throw new IllegalArgumentException("No dynamic query found for: ANIMESH_WFM_QUERY");
+			}
+			HashMap<String, String> hashMap = new HashMap<>();
+			hashMap.put("userId", userId);
+			
+			dspApplicationPendencyOnDiscomUser = namedParameterJdbcTemplate
+					.queryForList(financeGstApplicationList.getQueryText(), hashMap);
 
 		}
 		return ResponseEntity.ok(dspApplicationPendencyOnDiscomUser.isEmpty()
@@ -3789,22 +3825,58 @@ public class ConsumerApplicationDetailController {
 		return response;
 	}
 
-	
-	
 	@PostMapping("/changCalulationForOyt/{applicationNumber}/{OytTepOrParma}")
-	public Response changCalulationForOyt(@PathVariable String applicationNumber,@PathVariable String OytTepOrParma) {
-	
+	public Response changCalulationForOyt(@PathVariable String applicationNumber, @PathVariable String OytTepOrParma) {
+
 		Response<ConsumerApplicationDetail> response = new Response<ConsumerApplicationDetail>();
-		
+
 		ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
 				.findByConsumerApplicationNumber(applicationNumber);
 		consumerApplicationDetail.setOytTepOrParma(OytTepOrParma);
-		consumerApplicationDetail.setOytTempApplicationNo(applicationNumber+"T");
-		consumerApplicationDetailRepository.save(consumerApplicationDetail)	;
+		consumerApplicationDetail.setOytTempApplicationNo(applicationNumber + "T");
+		consumerApplicationDetailRepository.save(consumerApplicationDetail);
 		response.setCode("200");
 		response.setMessage("data update successfully update");
 
 		return response;
-		
+
 	}
+
+	@PostMapping("/demandNoteApprovalByGM")
+	public ResponseEntity<?> demandNoteApprovalByGM(@RequestBody ApprovalDto dto, BindingResult bindingResult)
+			throws FormValidationException, ConsumerApplicationDetailException {
+		if (bindingResult.hasErrors()) {
+			List<ErrorDetails> errorList = new ArrayList<ErrorDetails>();
+
+			bindingResult.getFieldErrors().stream().forEach(f -> {
+				LOG.error(ResponseMessage.FORM_VALIDATION_ERROR + f.getField() + ": " + f.getDefaultMessage());
+				ErrorDetails error = new ErrorDetails(new Date(), f.getDefaultMessage(),
+						f.getField() + ":" + f.getDefaultMessage());
+				errorList.add(error);
+			});
+			Response response = new Response<>();
+			response.setMessage(ResponseMessage.FORM_VALIDATION_ERROR);
+			response.setCode(ResponseCode.FORM_VALIDATION_ERROR);
+			response.setError(errorList);
+			throw new FormValidationException(response);
+		}
+		ConsumerApplicationDetail validateConsumerApplication = dryUtility
+				.validateConsumerApplication(dto.getConsumerApplicationNO());
+
+		System.err.println("validateConsumerApplication : " + validateConsumerApplication);
+		validateConsumerApplication.setApplicationStatus(applicationStatusRepository
+				.findById(dto.getApprovedOrNo() ? ApplicationStatusEnum.DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId()
+						: ApplicationStatusEnum.PENDING_FOR_DEMAND_NOTE_APPROVAL_AT_DGM.getId())
+				.get());
+		validateConsumerApplication.setGmDemandAppDate(LocalDateTime.now().toString());
+		validateConsumerApplication.setGmDemandApproved(dto.getApprovedOrNo().toString());
+		validateConsumerApplication.setGmDemandUserId(dto.getUserId());
+		validateConsumerApplication.setGmDemandRemark(dto.getUserRemark());
+		ConsumerApplicationDetail saveConsumerApplicationDetail = dryUtility
+				.saveConsumerApplicationDetail(validateConsumerApplication);
+		return ResponseEntity.ok(new Response<>(HttpCode.UPDATED, "Data Updated Successfully",
+				Arrays.asList(saveConsumerApplicationDetail)));
+	}
+
+
 }

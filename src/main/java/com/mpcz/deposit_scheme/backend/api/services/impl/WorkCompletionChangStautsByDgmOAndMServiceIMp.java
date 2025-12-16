@@ -293,7 +293,6 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 				map.put("tranasactionNumber", transactionId);
 			}
 		}
-
 		
 //		Added this code for sending the data of SSP application for which payment is taken in DSP Portal 11-09-2025 end
 		try {

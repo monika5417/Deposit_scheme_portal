@@ -761,7 +761,7 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 			+ "        (:subDivisionId = 0 OR SUBDIV_ID = :subDivisionId) AND\r\n"
 			+ "        (:dcId = 0 OR dc_id = :dcId) AND\r\n" + "        APPLICATION_STATUS IN (28, 33)\r\n"
 			+ "    UNION ALL\r\n"
-			+ "    SELECT '6,7,9,12,20,21,22,23,24,25,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46' statusId, '10' Sno, SUM(appl_count) count\r\n"
+			+ "    SELECT '6,7,9,12,20,21,22,23,24,25,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,2' statusId, '10' Sno, SUM(appl_count) count\r\n"
 			+ "    FROM application_details_summary\r\n" + "    WHERE \r\n"
 			+ "        (:discomId = 0 OR discom_id = :discomId) AND\r\n"
 			+ "        (:regionId = 0 OR region_id = :regionId) AND\r\n"
@@ -1099,7 +1099,7 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 			+ "    ON vwo.CONSUMER_APPLICATION_NO = cad.CONSUMER_APPLICATION_NUMBER\r\n"
 			+ "LEFT JOIN NATURE_OF_WORK now_tbl \r\n" + "    ON now_tbl.NATURE_OF_WORK_ID = cad.NATURE_OF_WORK_ID\r\n"
 			+ "WHERE cad.NATURE_OF_WORK_ID IN (2)\r\n" + "  AND cad.APPLICATION_STATUS IN (27, 25, 28, 32, 33)\r\n"
-			+ "  AND cad.RESAMPLING_FLAG IN (0, 1) and cfb.CONTRACTOR_AUTHANTICATION_ID is not null"
+			+ "  AND cad.RESAMPLING_FLAG IN (0, 1) and cfb.CONTRACTOR_AUTHANTICATION_ID is not null and  cad.CREATED >= TO_DATE('01-01-2025', 'DD-MM-YYYY')"
 			+ "", nativeQuery = true)
 	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetails(ArrayList<Long> flagNo);
 

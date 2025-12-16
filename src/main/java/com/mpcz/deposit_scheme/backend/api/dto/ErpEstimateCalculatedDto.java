@@ -64,24 +64,37 @@ public @Data class ErpEstimateCalculatedDto implements Serializable {
 	private BigDecimal avedanShulkFiveRupee;
 
 	private BigDecimal securityDeposit;
-	
-	
-	private BigDecimal  oytMaterialtotalcostwithCgstAndSgst;
-	
-	private BigDecimal  oytMaterialcostwithCgst;
-	
-	private BigDecimal  oytMaterialcostwithSgst;
-	
+
+	private BigDecimal oytMaterialtotalcostwithCgstAndSgst;
+
+	private BigDecimal oytMaterialcostwithCgst;
+
+	private BigDecimal oytMaterialcostwithSgst;
 
 	private BigDecimal sspRegistrationCharge;
 
-	
 	private BigDecimal sspMeterCost;
 
-	
 	private BigDecimal sspTotalAmount;
+
+	private BigDecimal registrationCharges;
 	
 	
+	@Column(name = "U_SEC_194C_TDS2")
+	private BigDecimal u_sec_194C_tds2;
+
+	@Column(name = "U_194C_TDS2_F_SUP_DEP") // this key will contain supervision and deposit sums 2% tds charge
+	private BigDecimal u_194C_tds2_fSupDep;
+	
+	
+
+	public BigDecimal getRegistrationCharges() {
+		return registrationCharges;
+	}
+
+	public void setRegistrationCharges(BigDecimal registrationCharges) {
+		this.registrationCharges = registrationCharges;
+	}
 
 	public BigDecimal getSspRegistrationCharge() {
 		return sspRegistrationCharge;
@@ -98,8 +111,6 @@ public @Data class ErpEstimateCalculatedDto implements Serializable {
 	public void setSspMeterCost(BigDecimal sspMeterCost) {
 		this.sspMeterCost = sspMeterCost;
 	}
-
-
 
 	public BigDecimal getSspTotalAmount() {
 		return sspTotalAmount;

@@ -326,21 +326,18 @@ public class ErpRevServiceIMP implements ErpRevService {
 											.getNatureOfWorkTypeId().equals(5L)) {
 								if (erpEstimateAmountData.getSspTotalAmount() != null) {
 
-									
 									erpRev.setOldSspMeterCost(erpEstimateAmountData.getSspMeterCost());
 									erpRev.setOldSspRegCharge(erpEstimateAmountData.getSspRegistrationCharge());
 									erpRev.setOldSspTotalAmount(erpEstimateAmountData.getSspTotalAmount());
-									
+
 									erpRev.setNewSspMeterCost(erpEstimateAmountData.getSspMeterCost());
 									erpRev.setNewSspRegCharge(erpEstimateAmountData.getSspRegistrationCharge());
 									erpRev.setNewSspTotalAmount(erpEstimateAmountData.getSspTotalAmount());
-									
-						
-									
+
 									erpRev.setRemSspRegCharge(BigDecimal.ZERO);
 									erpRev.setRemSspRegCharge(BigDecimal.ZERO);
 									erpRev.setRemSspTotalAmount(BigDecimal.ZERO);
-									
+
 								}
 							}
 
@@ -386,6 +383,15 @@ public class ErpRevServiceIMP implements ErpRevService {
 //							changes needed in given line
 							erpRev.setPayAmt(roundAmountCgstAndSgst(
 									newEstimateAmnt.add(oAndMReturnAmount).subtract(oldTotalBalanceDepositAmount)));
+
+//							added by Monika Rajpoot 10-12-2025
+							if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+									.getNatureOfWorkTypeId().equals(12L)) {
+								erpRev.setPayAmt(roundAmountCgstAndSgst(
+										newEstimateAmnt.add(oAndMReturnAmount).subtract(oldTotalBalanceDepositAmount.subtract(erpEstimateAmountData.getRegistrationCharges()))
+												));
+							}
+// end 10-12-2025
 
 							// Deposit Nature of work 3 Legal case
 							if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
@@ -574,7 +580,9 @@ public class ErpRevServiceIMP implements ErpRevService {
 								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
 										.getNatureOfWorkTypeId() == 6l
 								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
-										.getNatureOfWorkTypeId() == 7l) {
+										.getNatureOfWorkTypeId() == 7l 
+										|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId() == 12l) {
 
 							if (newSuperVisionAmt.compareTo(old_SupervisionAmount) < 0) {
 

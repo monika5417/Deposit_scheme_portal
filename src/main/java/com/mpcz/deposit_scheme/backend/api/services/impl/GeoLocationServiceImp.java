@@ -74,10 +74,9 @@ public class GeoLocationServiceImp implements GeoLocationService {
 
 	@Autowired
 	private ApplicationDocumentRepository applicationDocumentRepository;
-	
-	
+
 	@Autowired
-	private ContractorDetailForBidController contractorDetailForBidController ;
+	private ContractorDetailForBidController contractorDetailForBidController;
 
 	@Override
 	public GeoLocation savelocation(GeoLocation geoLocation)
@@ -157,24 +156,37 @@ public class GeoLocationServiceImp implements GeoLocationService {
 			response.setMessage("Eror in uploading image");
 			throw new GeoLocationException(response);
 		}
-		
-		
+
 //		= new ContractorDetailForBidController();
-		if(consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
+		if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
 			contractorDetailForBidController.postDataProd(geoLocation.getConsumerApplicationNo().trim());
 
 		}
-		
+
 		geoLocation.setStartDoc(startDoc);
 		geoLocation.setEndDoc(endDoc);
 		ApplicationStatus appStatusDb = null;
-		if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 8l) {
+		if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 8l
+				|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 12l) {
 
 			appStatusDb = applicationStatusService
 					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
 		} else if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 5l) {
 			appStatusDb = applicationStatusService
 					.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
+		} else if ("Government".equals(applicationDetail.getAvedakKaPrakar())
+				&& (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 1l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 2l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 3l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 4l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 6l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 7l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 9l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 10l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 11l
+						|| applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 12l)) { // 12-12-2025 added this for Government type
+			appStatusDb = applicationStatusService
+					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
 		} else {
 			if (applicationDetail.getSchemeType().getSchemeTypeId() == 1l
 					|| applicationDetail.getSchemeType().getSchemeTypeId() == 2l) {

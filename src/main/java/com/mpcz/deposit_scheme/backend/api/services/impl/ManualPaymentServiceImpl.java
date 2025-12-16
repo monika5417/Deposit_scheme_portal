@@ -129,6 +129,7 @@ public class ManualPaymentServiceImpl implements ManualPaymentService {
 			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
 			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
 			requestBody.put("is_bid_submitted", "false");
+			requestBody.put("nature_of_work_name", findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
 			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
 					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
 				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());

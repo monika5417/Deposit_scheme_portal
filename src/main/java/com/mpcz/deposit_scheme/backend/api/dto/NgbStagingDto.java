@@ -540,5 +540,67 @@ public class NgbStagingDto {
 	public void setApplicationType(String applicationType) {
 		this.applicationType = applicationType;
 	}
+	@Override
+	public String toString() {
+		return "NgbStagingDto [locationCode=" + locationCode + ", applicationNumber=" + applicationNumber
+				+ ", connectionDate=" + connectionDate + ", consumerName=" + consumerName + ", consumerNameH="
+				+ consumerNameH + ", relativeName=" + relativeName + ", relation=" + relation + ", isBpl=" + isBpl
+				+ ", category=" + category + ", isEmployee=" + isEmployee + ", address1=" + address1 + ", address2="
+				+ address2 + ", address3=" + address3 + ", primaryMobileNo=" + primaryMobileNo + ", tariffCategory="
+				+ tariffCategory + ", connectionType=" + connectionType + ", meteringStatus=" + meteringStatus
+				+ ", premiseType=" + premiseType + ", sanctionedLoad=" + sanctionedLoad + ", sanctionedLoadUnit="
+				+ sanctionedLoadUnit + ", contractDemand=" + contractDemand + ", contractDemandUnit="
+				+ contractDemandUnit + ", isSeasonal=" + isSeasonal + ", purposeOfInstallationId="
+				+ purposeOfInstallationId + ", purposeOfInstallation=" + purposeOfInstallation + ", tarrifCode="
+				+ tarrifCode + ", subCategoryCode=" + subCategoryCode + ", phase=" + phase + ", dateOfReg=" + dateOfReg
+				+ ", dtrName=" + dtrName + ", feederName=" + feederName + ", groupNo=" + groupNo + ", isGovernment="
+				+ isGovernment + ", plotSize=" + plotSize + ", plotSizeUnit=" + plotSizeUnit + ", isXray=" + isXray
+				+ ", poleNo=" + poleNo + ", poleLatitude=" + poleLatitude + ", poleLongitude=" + poleLongitude
+				+ ", poleDistance=" + poleDistance + ", areaStatus=" + areaStatus + ", readingDiaryNo=" + readingDiaryNo
+				+ ", registrationFeeAmount=" + registrationFeeAmount + ", registrationFeeAmountMrNo="
+				+ registrationFeeAmountMrNo + ", securityDepositAmount=" + securityDepositAmount
+				+ ", securityDepositAmountMrNo=" + securityDepositAmountMrNo + ", isBeneficiary=" + isBeneficiary
+				+ ", isDemandside=" + isDemandside + ", aadhaarNo=" + aadhaarNo + ", isCapacitorSurcharge="
+				+ isCapacitorSurcharge + ", isWeldingTransformerSurcharge=" + isWeldingTransformerSurcharge
+				+ ", isiMotorType=" + isiMotorType + ", affiliatedConsumerNo=" + affiliatedConsumerNo
+				+ ", isAffiliatedConsumer=" + isAffiliatedConsumer + ", portalName=" + portalName + ", propertyName="
+				+ propertyName + ", propertyValue=" + propertyValue + ", tcStartDate=" + tcStartDate + ", tcEndDate="
+				+ tcEndDate + ", sspApplicationNo=" + sspApplicationNo + ", applicationType=" + applicationType
+				+ ", oytTempApplicationNo=" + oytTempApplicationNo + ", getOytTempApplicationNo()="
+				+ getOytTempApplicationNo() + ", getLocationCode()=" + getLocationCode() + ", getApplicationNumber()="
+				+ getApplicationNumber() + ", getConnectionDate()=" + getConnectionDate() + ", getConsumerName()="
+				+ getConsumerName() + ", getConsumerNameH()=" + getConsumerNameH() + ", getRelativeName()="
+				+ getRelativeName() + ", getRelation()=" + getRelation() + ", getIsBpl()=" + getIsBpl()
+				+ ", getCategory()=" + getCategory() + ", getIsEmployee()=" + getIsEmployee() + ", getAddress1()="
+				+ getAddress1() + ", getAddress2()=" + getAddress2() + ", getAddress3()=" + getAddress3()
+				+ ", getPrimaryMobileNo()=" + getPrimaryMobileNo() + ", getTariffCategory()=" + getTariffCategory()
+				+ ", getConnectionType()=" + getConnectionType() + ", getMeteringStatus()=" + getMeteringStatus()
+				+ ", getPremiseType()=" + getPremiseType() + ", getSanctionedLoad()=" + getSanctionedLoad()
+				+ ", getSanctionedLoadUnit()=" + getSanctionedLoadUnit() + ", getContractDemand()="
+				+ getContractDemand() + ", getContractDemandUnit()=" + getContractDemandUnit() + ", getIsSeasonal()="
+				+ getIsSeasonal() + ", getPurposeOfInstallationId()=" + getPurposeOfInstallationId()
+				+ ", getPurposeOfInstallation()=" + getPurposeOfInstallation() + ", getTarrifCode()=" + getTarrifCode()
+				+ ", getSubCategoryCode()=" + getSubCategoryCode() + ", getPhase()=" + getPhase() + ", getDateOfReg()="
+				+ getDateOfReg() + ", getDtrName()=" + getDtrName() + ", getFeederName()=" + getFeederName()
+				+ ", getGroupNo()=" + getGroupNo() + ", getIsGovernment()=" + getIsGovernment() + ", getPlotSize()="
+				+ getPlotSize() + ", getPlotSizeUnit()=" + getPlotSizeUnit() + ", getIsXray()=" + getIsXray()
+				+ ", getPoleNo()=" + getPoleNo() + ", getPoleLatitude()=" + getPoleLatitude() + ", getPoleLongitude()="
+				+ getPoleLongitude() + ", getPoleDistance()=" + getPoleDistance() + ", getAreaStatus()="
+				+ getAreaStatus() + ", getReadingDiaryNo()=" + getReadingDiaryNo() + ", getRegistrationFeeAmount()="
+				+ getRegistrationFeeAmount() + ", getRegistrationFeeAmountMrNo()=" + getRegistrationFeeAmountMrNo()
+				+ ", getSecurityDepositAmount()=" + getSecurityDepositAmount() + ", getSecurityDepositAmountMrNo()="
+				+ getSecurityDepositAmountMrNo() + ", getIsBeneficiary()=" + getIsBeneficiary() + ", getAadhaarNo()="
+				+ getAadhaarNo() + ", getIsCapacitorSurcharge()=" + getIsCapacitorSurcharge() + ", getIsDemandside()="
+				+ getIsDemandside() + ", getIsWeldingTransformerSurcharge()=" + getIsWeldingTransformerSurcharge()
+				+ ", getIsiMotorType()=" + getIsiMotorType() + ", getAffiliatedConsumerNo()="
+				+ getAffiliatedConsumerNo() + ", getIsAffiliatedConsumer()=" + getIsAffiliatedConsumer()
+				+ ", getPortalName()=" + getPortalName() + ", getPropertyName()=" + getPropertyName()
+				+ ", getPropertyValue()=" + getPropertyValue() + ", getTcStartDate()=" + getTcStartDate()
+				+ ", getTcEndDate()=" + getTcEndDate() + ", getSspApplicationNo()=" + getSspApplicationNo()
+				+ ", getApplicationType()=" + getApplicationType() + ", getClass()=" + getClass() + ", hashCode()="
+				+ hashCode() + ", toString()=" + super.toString() + "]";
+	}
 
+	
+	
 }

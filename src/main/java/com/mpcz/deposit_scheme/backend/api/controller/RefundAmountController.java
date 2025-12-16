@@ -498,7 +498,14 @@ public class RefundAmountController {
 			throw new ConsumerApplicationDetailException(
 					new Response<>(HttpCode.NULL_OBJECT, "Application no. not found in refundAmount"));
 		if (byConsumerApplicationNoIsActive.getFinanceRevertToDiscom() != null) {
-			byConsumerApplicationNoIsActive.setDgmApproval("true");
+			if ("DGM (STC)".equals(byConsumerApplicationNoIsActive.getFinanceRevertToDiscom())) {
+				byConsumerApplicationNoIsActive.setDgmStcApproval("true");
+			} else if ("DGM (O&M)".equals(byConsumerApplicationNoIsActive.getFinanceRevertToDiscom())) {
+				byConsumerApplicationNoIsActive.setDgmApproval("true");
+			} else {
+				byConsumerApplicationNoIsActive.setGmApproval("true");
+			}
+
 			refundAmountRepository.save(byConsumerApplicationNoIsActive);
 			consumerApplicationData.setApplicationStatus(applicationStatusRepository
 					.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_FINANCE_AO_FOR_REFUND.getId()).get());

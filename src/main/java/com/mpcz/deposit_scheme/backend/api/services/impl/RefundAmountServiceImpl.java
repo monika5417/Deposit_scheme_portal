@@ -1452,10 +1452,12 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 						consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
 								.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_DGM_FOR_REFUND.getId()).get());
 					} else if (Objects.equals(retrunDiscomName, "DGM (STC)")) {
+						refundAmount.setDgmStcApproval(null);
 						consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
 								.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_DGM_STC_FOR_REFUND.getId())
 								.get());
 					} else if (Objects.equals(retrunDiscomName, "GM (O&M)")) {
+						refundAmount.setGmApproval(null);
 						consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
 								.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_GM_FOR_REFUND.getId()).get());
 					} else {

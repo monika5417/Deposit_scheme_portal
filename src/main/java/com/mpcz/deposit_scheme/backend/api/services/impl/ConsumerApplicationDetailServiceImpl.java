@@ -2291,7 +2291,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		} else {
 
 //			start this code for JE level 22-January-2025
-			if (role.trim().equals("JE_IT")) {
+			if (role.trim().equals("JE_IT") || role.trim().equals("AE(O&M)")) {
 				RejectProposalApplicationStatusHis rejectProposalApplicationStatusHis = new RejectProposalApplicationStatusHis();
 				rejectProposalApplicationStatusHis.setConsumerApplicationNumber(consumerApplicationNumber);
 				rejectProposalApplicationStatusHis.setApplicationStatusId(Integer.parseInt(

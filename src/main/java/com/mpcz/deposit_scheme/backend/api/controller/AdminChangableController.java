@@ -296,8 +296,8 @@ public class AdminChangableController {
 						.ok(new Response(HttpCode.NULL_OBJECT, "Consumer Application No Not Found In Database", null));
 			} else {
 				if ((findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() > 12
-						|| findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() < 5)
-						|| (applicationStatusNo > 12l || applicationStatusNo < 5l)) {
+						|| findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId() < 4)
+						|| (applicationStatusNo > 12l || applicationStatusNo < 4l)) {
 					return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE,
 							"Application Status can not be change Because applicaiton status is : "
 									+ findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId()
@@ -335,6 +335,11 @@ public class AdminChangableController {
 							deleSurvey(findByConsumerApplicationNumber.getConsumerApplicationId());
 							findByConsumerApplicationNumber.setApplicationStatus(applicationStatusRepository
 									.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId())
+									.orElseThrow(() -> new RuntimeException("Application status not found")));
+						} else if (applicationStatusNo == 5l) {
+							deleSurvey(findByConsumerApplicationNumber.getConsumerApplicationId());
+							findByConsumerApplicationNumber.setApplicationStatus(applicationStatusRepository
+									.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId())
 									.orElseThrow(() -> new RuntimeException("Application status not found")));
 						}
 						findByConsumerApplicationNumber.setErpWorkFlowNumber(null);
@@ -593,23 +598,25 @@ public class AdminChangableController {
 	@PutMapping("/updataAddUserTable")
 	public ResponseEntity<?> updataAddUserTable(@RequestBody UpdateUser updarUser) {
 		Response<?> response = new Response<>();
-		if(updarUser.getListdistributionCenter().size()>0) {
-			List<ListDistributionCenter> findByuserId = listDistributionCenterRepository.findByuserId(updarUser.getListdistributionCenter().get(0).getUserId());
-		if(findByuserId.size()>0) {
-			findByuserId.stream().forEach(l->{
-				listDistributionCenterRepository.deleteById(l.getId());
-				});		
+		if (updarUser.getListdistributionCenter().size() > 0) {
+			List<ListDistributionCenter> findByuserId = listDistributionCenterRepository
+					.findByuserId(updarUser.getListdistributionCenter().get(0).getUserId());
+			if (findByuserId.size() > 0) {
+				findByuserId.stream().forEach(l -> {
+					listDistributionCenterRepository.deleteById(l.getId());
+				});
+			}
 		}
+		if (updarUser.getListDivision().size() > 0) {
+			List<ListDivision> findByuserId = listDivisionRepository
+					.findByuserId(updarUser.getListDivision().get(0).getUserId());
+			if (findByuserId.size() > 0) {
+				findByuserId.stream().forEach(l -> {
+					listDivisionRepository.deleteById(l.getId());
+				});
+			}
 		}
-		if(updarUser.getListDivision().size()>0) {
-			 List<ListDivision> findByuserId = listDivisionRepository.findByuserId(updarUser.getListDivision().get(0).getUserId());
-			if(findByuserId.size()>0) {
-			 findByuserId.stream().forEach(l->{
-				 listDivisionRepository.deleteById(l.getId());
-				});		
-		}
-		}
-		
+
 		try {
 			if (updarUser.getListdistributionCenter().size() > 0) {
 				updarUser.getListdistributionCenter().stream().forEach(dis -> {
@@ -807,22 +814,21 @@ public class AdminChangableController {
 				map.put("division", findByuserId2);
 			}
 
-			if(map.size()>0) {
+			if (map.size() > 0) {
 				response.setCode("200");
 				response.setMessage("successsfull..");
 				response.setMap1(map);
-			}else {
+			} else {
 				response.setCode("404");
 				response.setMessage("data not found...");
 				response.setMap1(map);
 			}
-			
 
 			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
-		
+
 	}
 }

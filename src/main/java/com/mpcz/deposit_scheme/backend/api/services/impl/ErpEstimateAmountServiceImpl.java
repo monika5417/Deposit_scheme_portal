@@ -288,21 +288,20 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 						}
 
 //                  NSC 
-					} 
-					else if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 2) {
-						
+					} else if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 2) {
+
 						Function<BigDecimal, BigDecimal> safeRound = val -> roundAmountCgstAndSgst(
 								Objects.isNull(val) ? BigDecimal.ZERO : val);
 
 						if (Objects.isNull(consumerapplication.getSspTotalAmount())) {
 							totalSupervisionAmount = supervisionBalanceRemaining.add(cgst).add(sgst);
 							BigDecimal round = roundAmountCgstAndSgst(totalSupervisionAmount);
-						erpEstimateAmount.setTotalBalanceSupervisionAmount(round11(round, 2).add(minusCost));
-						estimateAmountDto.setTotalamountOfSupervision(round11(round, 2).add(minusCost));
-							
+							erpEstimateAmount.setTotalBalanceSupervisionAmount(round11(round, 2).add(minusCost));
+							estimateAmountDto.setTotalamountOfSupervision(round11(round, 2).add(minusCost));
+
 							erpEstimateAmount.setJeReturnAmount(minusCost);
 							estimateAmountDto.setJeReturnAmount(minusCost);
-						}  else {
+						} else {
 							// added this code for taking the amount charges of SSP portal in DSP for NOW 2
 							// 11-09-2025 start
 							BigDecimal sspTotalAmount = safeRound.apply(consumerapplication.getSspTotalAmount());
@@ -411,8 +410,7 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 					if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(1l)
 							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(6l)
 							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(7l)
-							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(11l)
-							) {
+							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(11l)) {
 //						BigDecimal jeReturnAmt = round111(consumerapplication.getJeReturnAmount(), 0);
 						BigDecimal jeReturnAmt = null;
 						if (consumerapplication.getJeReturnAmount() != null) {
@@ -469,18 +467,49 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 						}
 					}
+// code start 02-12-2025 Monika Rajpoot
+					if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 12L) {
 
+						BigDecimal jeReturnAmt = consumerapplication.getJeReturnAmount() != null
+								? round111(consumerapplication.getJeReturnAmount(), 0)
+								: BigDecimal.ZERO;
+
+						totalSupervisionAmount = supervisionBalanceRemaining.add(cgst).add(sgst)
+								.add(consumerapplication.getJeReturnAmount()).add(new BigDecimal(1180));
+
+						estimateAmountDto.setJeReturnAmount(jeReturnAmt);
+						erpEstimateAmount.setJeReturnAmount(jeReturnAmt);
+
+						estimateAmountDto.setTotalamountOfSupervision(roundAmountCgstAndSgst(totalSupervisionAmount));
+						erpEstimateAmount
+								.setTotalBalanceSupervisionAmount(roundAmountCgstAndSgst(totalSupervisionAmount));
+
+						erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+						estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+					}
+
+					// code end 02-12-2025
 				}
 			}
 			erpEstimateAmount.setU_sec_194J_tds2(null);
 			erpEstimateAmount.setU_sec_194C_tds2(null);
 			erpEstimateAmount.setU_194C_tds2_fSupDep(null);
+			if ("Yes".equals(consumerapplication.getIsAvedakGovernmentErp())) {
+				estimateAmountDto.setTotalamountOfSupervision(
+						roundAmountCgstAndSgst(totalSupervisionAmount).add(new BigDecimal(1180)));
+				erpEstimateAmount.setTotalBalanceSupervisionAmount(
+						roundAmountCgstAndSgst(totalSupervisionAmount).add(new BigDecimal(1180)));
+				erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+				estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+
+			}
 			estimateAmountRepository.save(erpEstimateAmount);
 			return estimateAmountDto;
 
-		}else if(schemeObject.getSchemeTypeName().equals("Deposit")&&erpEstimateAmountDataOptional.get().getSchemeCode().equalsIgnoreCase("DEPOSITE"))
+		} else if (schemeObject.getSchemeTypeName().equals("Deposit")
+				&& erpEstimateAmountDataOptional.get().getSchemeCode().equalsIgnoreCase("DEPOSITE"))
 
-	{
+		{
 
 			BigDecimal supervisionAmountDouble = roundAmountCgstAndSgst(erpEstimateAmount.getSupervisionAmount());
 
@@ -503,8 +532,7 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 6
 					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 7
 					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 2
-					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 11
-					) {
+					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 11) {
 
 				// added this code for taking the amount charges of SSP portal in DSP for NOW 2
 				// 11-09-2025 start
@@ -814,180 +842,215 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 				}
 
 			}
+			// code start 02-12-2025 Monika Rajpoot
+			if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 12L) {
+				if (consumerapplication.getGoodMaterialOrnot().equals(0)) {
+					BigDecimal totalPayabelDepositAmount = roundAmountCgstAndSgst(totalEstimateAmount.add(minusCost));
+					erpEstimateAmount.setTotalBalanceDepositAmount(totalPayabelDepositAmount.add(new BigDecimal(1180)));
+					estimateAmountDto.setTotaldepositAmount(totalPayabelDepositAmount.add(new BigDecimal(1180)));
+					estimateAmountDto.setMinusCost(minusCost);
+					estimateAmountDto.setJeReturnAmount(minusCost);
+					erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+					estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+				} else {
+					BigDecimal totalPayabelDepositAmount = roundAmountCgstAndSgst(totalEstimateAmount);
+					erpEstimateAmount.setTotalBalanceDepositAmount(totalPayabelDepositAmount.add(new BigDecimal(1180)));
+					estimateAmountDto.setTotaldepositAmount(totalPayabelDepositAmount.add(new BigDecimal(1180)));
+					estimateAmountDto.setMinusCost(null);
+					estimateAmountDto.setJeReturnAmount(null);
+					erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+					estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+
+				}
+			}
+//			end
+			erpEstimateAmount.setU_sec_194J_tds2(null);
+			erpEstimateAmount.setU_sec_194C_tds2(null);
+			erpEstimateAmount.setU_194C_tds2_fSupDep(null);
+			if ("Yes".equals(consumerapplication.getIsAvedakGovernmentErp())) {
+				erpEstimateAmount.setTotalBalanceDepositAmount(
+						erpEstimateAmount.getTotalBalanceDepositAmount().add(new BigDecimal(1180)));
+				estimateAmountDto.setTotaldepositAmount(
+						estimateAmountDto.getTotaldepositAmount().add(new BigDecimal(1180)));
+				erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+				estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+
+			}
+			estimateAmountRepository.save(erpEstimateAmount);
+			return estimateAmountDto;
+
+		} else if (schemeObject.getSchemeTypeName().equals("Departmental (MPMKVVCL)")) {
+
+			BigDecimal oytAmount = estimateAmountDouble.add(cgst).add(sgst);
+			BigDecimal parikshan = oytAmount.multiply(new BigDecimal(.03));
+			BigDecimal parikshanCgst = parikshan.multiply(new BigDecimal(.09));
+			BigDecimal parikshanMpgst = parikshan.multiply(new BigDecimal(.09));
+			BigDecimal finalOyt = parikshan.add(parikshanMpgst).add(parikshanMpgst);
+			BigDecimal finalOytDouble = finalOyt;
+			BigDecimal finalparikshanCgst = parikshanCgst;
+			BigDecimal parikshanAmount = parikshan;
+
+			erpEstimateAmount.setTotalOytAmount(finalOyt);
+			erpEstimateAmount.setCgst(parikshanCgst);
+			erpEstimateAmount.setSgst(parikshanMpgst);
+			erpEstimateAmount.setPrayakshanShulk(parikshan);
+			estimateAmountDto.setParikshanCgst(finalparikshanCgst);
+			estimateAmountDto.setPrayakshanShulk(parikshanAmount);
+			estimateAmountDto.setFinalOyt(finalOytDouble);
 			erpEstimateAmount.setU_sec_194J_tds2(null);
 			erpEstimateAmount.setU_sec_194C_tds2(null);
 			erpEstimateAmount.setU_194C_tds2_fSupDep(null);
 			estimateAmountRepository.save(erpEstimateAmount);
 			return estimateAmountDto;
+		} else if (schemeObject.getSchemeTypeName().equals("Supervision")
+				&& erpEstimateAmountDataOptional.get().getSchemeCode().contains("OYT")) {
 
-		}else if(schemeObject.getSchemeTypeName().equals("Departmental (MPMKVVCL)"))
-	{
+			BigDecimal jeLoadAmount = BigDecimal.ZERO;
+			// oyt ke case me je load 1.1 hone pr bhi 2 hona chaiye
+			// ye 22-01-2025 ko bola gya hai
+			// isme 3 field badai hai = 2495 rs , + 5 Rs , + jeload*600 RS
 
-		BigDecimal oytAmount = estimateAmountDouble.add(cgst).add(sgst);
-		BigDecimal parikshan = oytAmount.multiply(new BigDecimal(.03));
-		BigDecimal parikshanCgst = parikshan.multiply(new BigDecimal(.09));
-		BigDecimal parikshanMpgst = parikshan.multiply(new BigDecimal(.09));
-		BigDecimal finalOyt = parikshan.add(parikshanMpgst).add(parikshanMpgst);
-		BigDecimal finalOytDouble = finalOyt;
-		BigDecimal finalparikshanCgst = parikshanCgst;
-		BigDecimal parikshanAmount = parikshan;
+			if (erpEstimateAmountDataOptional != null) {
 
-		erpEstimateAmount.setTotalOytAmount(finalOyt);
-		erpEstimateAmount.setCgst(parikshanCgst);
-		erpEstimateAmount.setSgst(parikshanMpgst);
-		erpEstimateAmount.setPrayakshanShulk(parikshan);
-		estimateAmountDto.setParikshanCgst(finalparikshanCgst);
-		estimateAmountDto.setPrayakshanShulk(parikshanAmount);
-		estimateAmountDto.setFinalOyt(finalOytDouble);
-		erpEstimateAmount.setU_sec_194J_tds2(null);
-		erpEstimateAmount.setU_sec_194C_tds2(null);
-		erpEstimateAmount.setU_194C_tds2_fSupDep(null);
-		estimateAmountRepository.save(erpEstimateAmount);
-		return estimateAmountDto;
-	}else if(schemeObject.getSchemeTypeName().equals("Supervision")&&erpEstimateAmountDataOptional.get().getSchemeCode().contains("OYT"))
-	{
+				estimateAmountDto = new ErpEstimateCalculatedDto();
 
-		BigDecimal jeLoadAmount = BigDecimal.ZERO;
-		// oyt ke case me je load 1.1 hone pr bhi 2 hona chaiye
-		// ye 22-01-2025 ko bola gya hai
-		// isme 3 field badai hai = 2495 rs , + 5 Rs , + jeload*600 RS
+				if (erpEstimateAmount.getSchema() != null
+						&& erpEstimateAmount.getSchema().toUpperCase().contains("OYT")) {
 
-		if (erpEstimateAmountDataOptional != null) {
-
-			estimateAmountDto = new ErpEstimateCalculatedDto();
-
-			if (erpEstimateAmount.getSchema() != null && erpEstimateAmount.getSchema().toUpperCase().contains("OYT")) {
-
-				if (Objects.isNull(consumerapplication.getSspTotalAmount())
-						|| (consumerapplication.getSspTotalAmount()).compareTo(BigDecimal.ZERO) <= 0) {
+					if (Objects.isNull(consumerapplication.getSspTotalAmount())
+							|| (consumerapplication.getSspTotalAmount()).compareTo(BigDecimal.ZERO) <= 0) {
 //			code start		7 - April -2025 if je load is less than or equal to 10 than 200 per hp and above 10 so 400 pr hp 
-					if (consumerapplication.getJeLoad() == null) {
-						consumerapplication.setJeLoad(String.valueOf(BigDecimal.ZERO));
-					}
-					double jeLoad = Double.parseDouble(consumerapplication.getJeLoad());
-					if (jeLoad <= 10) {
-						jeLoadAmount = new BigDecimal(
-								upperRound(Double.parseDouble(consumerapplication.getJeLoad()), 0))
-								.multiply(new BigDecimal(200));
-					} else {
-						jeLoadAmount = new BigDecimal(
-								upperRound(Double.parseDouble(consumerapplication.getJeLoad()), 0))
-								.multiply(new BigDecimal(400));
-					}
+						if (consumerapplication.getJeLoad() == null) {
+							consumerapplication.setJeLoad(String.valueOf(BigDecimal.ZERO));
+						}
+						double jeLoad = Double.parseDouble(consumerapplication.getJeLoad());
+						if (jeLoad <= 10) {
+							jeLoadAmount = new BigDecimal(
+									upperRound(Double.parseDouble(consumerapplication.getJeLoad()), 0))
+									.multiply(new BigDecimal(200));
+						} else {
+							jeLoadAmount = new BigDecimal(
+									upperRound(Double.parseDouble(consumerapplication.getJeLoad()), 0))
+									.multiply(new BigDecimal(400));
+						}
 
-					System.err.println("aaaaaaaaaa : " + jeLoadAmount);
+						System.err.println("aaaaaaaaaa : " + jeLoadAmount);
 //					code end 07-04-2025
-					estimateAmountDto.setSgst(sgst);
-					estimateAmountDto.setCgst(cgst);
+						estimateAmountDto.setSgst(sgst);
+						estimateAmountDto.setCgst(cgst);
 
-					erpEstimateAmount.setCgst(cgst);
-					erpEstimateAmount.setSgst(sgst);
-					BigDecimal round = superVisionDouble.add(cgst).add(sgst);
+						erpEstimateAmount.setCgst(cgst);
+						erpEstimateAmount.setSgst(sgst);
+						BigDecimal round = superVisionDouble.add(cgst).add(sgst);
 
-					estimateAmountDto.setSuperVisionAmount(supervisionAmount);
+						estimateAmountDto.setSuperVisionAmount(supervisionAmount);
 
 //					estimateAmountDto.setAvedanShulk(new BigDecimal(2495));
-					estimateAmountDto.setAvedanShulkFiveRupee(new BigDecimal(5));
-					estimateAmountDto.setSecurityDeposit(roundAmountCgstAndSgst(jeLoadAmount));
+						estimateAmountDto.setAvedanShulkFiveRupee(new BigDecimal(5));
+						estimateAmountDto.setSecurityDeposit(roundAmountCgstAndSgst(jeLoadAmount));
 
-					erpEstimateAmount.setU_sec_194J_tds2(null);
-					erpEstimateAmount.setU_sec_194C_tds2(null);
-					erpEstimateAmount.setU_194C_tds2_fSupDep(null);
+						erpEstimateAmount.setU_sec_194J_tds2(null);
+						erpEstimateAmount.setU_sec_194C_tds2(null);
+						erpEstimateAmount.setU_194C_tds2_fSupDep(null);
 //					erpEstimateAmount.setAvedanShulk(new BigDecimal(2495));
-					erpEstimateAmount.setAvedanShulkFiveRupee(new BigDecimal(5));
-					erpEstimateAmount.setSecurityDeposit(roundAmountCgstAndSgst(jeLoadAmount));
+						erpEstimateAmount.setAvedanShulkFiveRupee(new BigDecimal(5));
+						erpEstimateAmount.setSecurityDeposit(roundAmountCgstAndSgst(jeLoadAmount));
 
-					BigDecimal total_amount = new BigDecimal(0.0);
-					Map<String, BigDecimal> getoytMaterialforGetAmount = getoytMaterialforGetAmount(
-							consumerapplication.getConsumerApplicationNo());
+						BigDecimal total_amount = new BigDecimal(0.0);
+						Map<String, BigDecimal> getoytMaterialforGetAmount = getoytMaterialforGetAmount(
+								consumerapplication.getConsumerApplicationNo());
 
-					if ((getoytMaterialforGetAmount.get("total_amount").compareTo(new BigDecimal(0))) <= 0) {
-						total_amount = new BigDecimal(0.0);
+						if ((getoytMaterialforGetAmount.get("total_amount").compareTo(new BigDecimal(0))) <= 0) {
+							total_amount = new BigDecimal(0.0);
+						} else {
+							total_amount = getoytMaterialforGetAmount.get("total_amount");
+						}
+
+						erpEstimateAmount.setOytMaterialTotalCostWithCsgstAndSgst(total_amount);
+						estimateAmountDto.setOytMaterialtotalcostwithCgstAndSgst(total_amount);
+
+						erpEstimateAmount.setTotalBalanceSupervisionAmount(
+								round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount));
+						estimateAmountDto.setTotalamountOfSupervision(
+								round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount));
+
+						estimateAmountRepository.save(erpEstimateAmount);
+						return estimateAmountDto;
 					} else {
-						total_amount = getoytMaterialforGetAmount.get("total_amount");
-					}
-
-					erpEstimateAmount.setOytMaterialTotalCostWithCsgstAndSgst(total_amount);
-					estimateAmountDto.setOytMaterialtotalcostwithCgstAndSgst(total_amount);
-
-					erpEstimateAmount.setTotalBalanceSupervisionAmount(
-							round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount));
-					estimateAmountDto.setTotalamountOfSupervision(
-							round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount));
-
-					estimateAmountRepository.save(erpEstimateAmount);
-					return estimateAmountDto;
-				} else {
 // Condition for those new OYT application whose total amount is coming from SSP Portal as sspTotalAmount so now we will take supervision+cgst+sgst+sspTotalAmount
 // 25-09-2025 code written by Monika Rajpoot  
-					estimateAmountDto.setSgst(sgst);
-					estimateAmountDto.setCgst(cgst);
+						estimateAmountDto.setSgst(sgst);
+						estimateAmountDto.setCgst(cgst);
 
-					erpEstimateAmount.setCgst(cgst);
-					erpEstimateAmount.setSgst(sgst);
-					BigDecimal round = superVisionDouble.add(cgst).add(sgst);
+						erpEstimateAmount.setCgst(cgst);
+						erpEstimateAmount.setSgst(sgst);
+						BigDecimal round = superVisionDouble.add(cgst).add(sgst);
 
-					estimateAmountDto.setSuperVisionAmount(supervisionAmount);
+						estimateAmountDto.setSuperVisionAmount(supervisionAmount);
 
-					estimateAmountDto.setSspMeterCost(roundAmountCgstAndSgst(consumerapplication.getSspMeterCost()));
-					estimateAmountDto.setKvaLoadAmount(
-							roundAmountCgstAndSgst(consumerapplication.getSspSupplyAffordingCharges()));
-					estimateAmountDto.setSspRegistrationCharge(
-							roundAmountCgstAndSgst(consumerapplication.getSspRegistrationCharge()));
+						estimateAmountDto
+								.setSspMeterCost(roundAmountCgstAndSgst(consumerapplication.getSspMeterCost()));
+						estimateAmountDto.setKvaLoadAmount(
+								roundAmountCgstAndSgst(consumerapplication.getSspSupplyAffordingCharges()));
+						estimateAmountDto.setSspRegistrationCharge(
+								roundAmountCgstAndSgst(consumerapplication.getSspRegistrationCharge()));
 //						estimateAmountDto.setAvedanShulkFiveRupee(
 //								roundAmountCgstAndSgst(consumerapplication.getSspRegistrationCharge()));
-					estimateAmountDto
-							.setSecurityDeposit(roundAmountCgstAndSgst(consumerapplication.getSspSecurityDeposit()));
-					estimateAmountDto
-							.setSspTotalAmount(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()));
+						estimateAmountDto.setSecurityDeposit(
+								roundAmountCgstAndSgst(consumerapplication.getSspSecurityDeposit()));
+						estimateAmountDto
+								.setSspTotalAmount(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()));
 
-					erpEstimateAmount.setU_sec_194J_tds2(null);
-					erpEstimateAmount.setU_sec_194C_tds2(null);
-					erpEstimateAmount.setU_194C_tds2_fSupDep(null);
+						erpEstimateAmount.setU_sec_194J_tds2(null);
+						erpEstimateAmount.setU_sec_194C_tds2(null);
+						erpEstimateAmount.setU_194C_tds2_fSupDep(null);
 
-					erpEstimateAmount.setSspMeterCost(roundAmountCgstAndSgst(consumerapplication.getSspMeterCost()));
-					erpEstimateAmount
-							.setKvaLoad(roundAmountCgstAndSgst(consumerapplication.getSspSupplyAffordingCharges()));
-					erpEstimateAmount.setSspRegistrationCharge(
-							roundAmountCgstAndSgst(consumerapplication.getSspRegistrationCharge()));
+						erpEstimateAmount
+								.setSspMeterCost(roundAmountCgstAndSgst(consumerapplication.getSspMeterCost()));
+						erpEstimateAmount
+								.setKvaLoad(roundAmountCgstAndSgst(consumerapplication.getSspSupplyAffordingCharges()));
+						erpEstimateAmount.setSspRegistrationCharge(
+								roundAmountCgstAndSgst(consumerapplication.getSspRegistrationCharge()));
 //						erpEstimateAmount.setAvedanShulkFiveRupee(
 //								roundAmountCgstAndSgst(consumerapplication.getSspRegistrationCharge()));
-					erpEstimateAmount
-							.setSecurityDeposit(roundAmountCgstAndSgst(consumerapplication.getSspSecurityDeposit()));
-					erpEstimateAmount
-							.setSspTotalAmount(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()));
+						erpEstimateAmount.setSecurityDeposit(
+								roundAmountCgstAndSgst(consumerapplication.getSspSecurityDeposit()));
+						erpEstimateAmount
+								.setSspTotalAmount(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()));
 
-					BigDecimal total_amount = new BigDecimal(0.0);
-					Map<String, BigDecimal> getoytMaterialforGetAmount = getoytMaterialforGetAmount(
-							consumerapplication.getConsumerApplicationNo());
+						BigDecimal total_amount = new BigDecimal(0.0);
+						Map<String, BigDecimal> getoytMaterialforGetAmount = getoytMaterialforGetAmount(
+								consumerapplication.getConsumerApplicationNo());
 
-					if ((getoytMaterialforGetAmount.get("total_amount").compareTo(new BigDecimal(0))) <= 0) {
-						total_amount = new BigDecimal(0.0);
-					} else {
-						total_amount = getoytMaterialforGetAmount.get("total_amount");
+						if ((getoytMaterialforGetAmount.get("total_amount").compareTo(new BigDecimal(0))) <= 0) {
+							total_amount = new BigDecimal(0.0);
+						} else {
+							total_amount = getoytMaterialforGetAmount.get("total_amount");
+						}
+
+						erpEstimateAmount.setOytMaterialTotalCostWithCsgstAndSgst(total_amount);
+						estimateAmountDto.setOytMaterialtotalcostwithCgstAndSgst(total_amount);
+
+						erpEstimateAmount.setTotalBalanceSupervisionAmount(
+								round11(round, 2).add(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()))
+										.add(total_amount));
+						estimateAmountDto.setTotalamountOfSupervision(
+								round11(round, 2).add(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()))
+										.add(total_amount));
+
+						estimateAmountRepository.save(erpEstimateAmount);
+						return estimateAmountDto;
 					}
-
-					erpEstimateAmount.setOytMaterialTotalCostWithCsgstAndSgst(total_amount);
-					estimateAmountDto.setOytMaterialtotalcostwithCgstAndSgst(total_amount);
-
-					erpEstimateAmount.setTotalBalanceSupervisionAmount(round11(round, 2)
-							.add(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount())).add(total_amount));
-					estimateAmountDto.setTotalamountOfSupervision(round11(round, 2)
-							.add(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount())).add(total_amount));
-
-					estimateAmountRepository.save(erpEstimateAmount);
-					return estimateAmountDto;
-				}
 // 25-09-2025 code written by Monika Rajpoot  end
-			} else {
+				} else {
 //		throw new Exception("Estimate Scheme not Matched");
 
+				}
+
 			}
-
 		}
-	}
 
-	return null;
+		return null;
 
 	}
 
@@ -1259,11 +1322,9 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 //						estimateAmountDto.setJeReturnAmount(minusCost);
 //
 //					}
-						
-
 
 					else if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 2) {
-				Function<BigDecimal, BigDecimal> safeRound = val -> roundAmountCgstAndSgst(
+						Function<BigDecimal, BigDecimal> safeRound = val -> roundAmountCgstAndSgst(
 								Objects.isNull(val) ? BigDecimal.ZERO : val);
 
 						if (Objects.isNull(consumerapplication.getSspTotalAmount())) {
@@ -1435,6 +1496,30 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 						}
 					}
+					// code start 02-12-2025 Monika Rajpoot
+					if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 12L) {
+
+						BigDecimal jeReturnAmt = consumerapplication.getJeReturnAmount() != null
+								? round111(consumerapplication.getJeReturnAmount(), 0)
+								: BigDecimal.ZERO;
+
+						totalSupervisionAmount = supervisionBalanceRemaining.add(cgst).add(sgst)
+								.add(consumerapplication.getJeReturnAmount()).add(new BigDecimal(1180));
+
+						System.err.println("totalSupervisionAmount  : " + totalSupervisionAmount);
+						estimateAmountDto.setJeReturnAmount(jeReturnAmt);
+						erpEstimateAmount.setJeReturnAmount(jeReturnAmt);
+
+						estimateAmountDto.setTotalamountOfSupervision(roundAmountCgstAndSgst(totalSupervisionAmount));
+						erpEstimateAmount
+								.setTotalBalanceSupervisionAmount(roundAmountCgstAndSgst(totalSupervisionAmount));
+
+						erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+						estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+					}
+
+					// code end 02-12-2025
+
 					erpEstimateAmount.setU_sec_194J_tds2(null);
 					erpEstimateAmount.setU_sec_194C_tds2(null);
 					erpEstimateAmount.setU_194C_tds2_fSupDep(null);
@@ -1507,10 +1592,8 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 //				end
 
-				
 				// added this code for taking the amount charges of SSP portal in DSP for NOW 2
 				// 11-09-2025 start
-
 
 				if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 2
 						&& Objects.nonNull(consumerapplication.getSspTotalAmount())) {
@@ -1555,7 +1638,7 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 					estimateAmountDto.setJeReturnAmount(null);
 
 				}
-			
+
 			}
 //			commented given code because there is change in NOW 2 calculation 15-09-2025
 //			if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 1
@@ -1836,7 +1919,28 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 				}
 
+			} // code start 02-12-2025 Monika Rajpoot
+			if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 12L) {
+				if (consumerapplication.getGoodMaterialOrnot().equals(0)) {
+					BigDecimal totalPayabelDepositAmount = roundAmountCgstAndSgst(totalEstimateAmount.add(minusCost));
+					erpEstimateAmount.setTotalBalanceDepositAmount(totalPayabelDepositAmount.add(new BigDecimal(1180)));
+					estimateAmountDto.setTotaldepositAmount(totalPayabelDepositAmount);
+					estimateAmountDto.setMinusCost(minusCost);
+					estimateAmountDto.setJeReturnAmount(minusCost);
+					erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+					estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+				} else {
+					BigDecimal totalPayabelDepositAmount = roundAmountCgstAndSgst(totalEstimateAmount);
+					erpEstimateAmount.setTotalBalanceDepositAmount(totalPayabelDepositAmount.add(new BigDecimal(1180)));
+					estimateAmountDto.setTotaldepositAmount(totalPayabelDepositAmount);
+					estimateAmountDto.setMinusCost(null);
+					estimateAmountDto.setJeReturnAmount(null);
+					erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
+					estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+
+				}
 			}
+//			end
 			erpEstimateAmount.setU_sec_194J_tds2(null);
 			erpEstimateAmount.setU_sec_194C_tds2(null);
 			erpEstimateAmount.setU_194C_tds2_fSupDep(null);

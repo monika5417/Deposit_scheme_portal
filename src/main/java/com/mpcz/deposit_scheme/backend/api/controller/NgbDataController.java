@@ -431,16 +431,17 @@ public class NgbDataController {
 				dto.setPurposeOfInstallationId(101L);
 				dto.setSanctionedLoad(Double.parseDouble(findByConsumerApplicationNumber.getJeLoad()));
 				dto.setSanctionedLoadUnit(findByConsumerApplicationNumber.getJeLoadUnitKwYaKva());
-				if ("SC".equals(findByConsumerApplicationNumber.getCastCategory())
-						|| "ST".equals(findByConsumerApplicationNumber.getCastCategory())) {
-					dto.setSubCategoryCode(510L);
-				} else {
-					dto.setSubCategoryCode(512L);
-				}
+
+//				if ("SC".equals(findByConsumerApplicationNumber.getCastCategory())
+//						|| "ST".equals(findByConsumerApplicationNumber.getCastCategory())) {
+//					dto.setSubCategoryCode(510L);
+//				} else {
+//					dto.setSubCategoryCode(512L);
+//				}
 				dto.setTariffCategory("LV5");
 				dto.setTarrifCode("LV5.4");
 				if (findByConsumerApplicationNumber.getPremiseAreaType() != null
-						|| !findByConsumerApplicationNumber.getPremiseAreaType().isEmpty()) {
+						&& !findByConsumerApplicationNumber.getPremiseAreaType().isEmpty()) {
 					dto.setPremiseType(findByConsumerApplicationNumber.getPremiseAreaType());
 				} else {
 					dto.setPremiseType("RURAL");
@@ -460,7 +461,24 @@ public class NgbDataController {
 						&& !findByConsumerApplicationNumber.getPhase().isEmpty()
 								? findByConsumerApplicationNumber.getPhase()
 								: "THREE");
-
+//				code start 01-12-2025
+				if ("SINGLE".equals(dto.getPhase())
+						&& "URBAN".equals(dto.getPremiseType())) {
+					dto.setSubCategoryCode(509L);
+				}
+				if ("SINGLE".equals(dto.getPhase())
+						&& "RURAL".equals(dto.getPremiseType())) {
+					dto.setSubCategoryCode(510L);
+				}
+				if ("THREE".equals(dto.getPhase())
+						&& "URBAN".equals(dto.getPremiseType())) {
+					dto.setSubCategoryCode(511L);
+				}
+				if ("THREE".equals(dto.getPhase())
+						&& "RURAL".equals(dto.getPremiseType())) {
+					dto.setSubCategoryCode(512L);
+				}
+//				end 01-12-2025
 				dto.setIsBpl("false");
 				dto.setIsEmployee("false");
 				dto.setIsSeasonal("false");
@@ -602,6 +620,7 @@ public class NgbDataController {
 		String url = postNscSsp;
 		System.err.println("url : " + url);
 		try {
+			System.err.println(dto);
 
 			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
 					|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8l)) {
@@ -917,7 +936,24 @@ public class NgbDataController {
 				dto.setPurposeOfInstallationId(141L);
 				dto.setSanctionedLoad(Double.parseDouble(findByConsumerApplicationNumber.getLoadRequested()));
 				dto.setSanctionedLoadUnit(findByConsumerApplicationNumber.getLoadRequestedId().getLoadRequestedName());
-				dto.setSubCategoryCode(517L);
+
+				if (findByConsumerApplicationNumber.getPhase().equals("THREE")
+						&& findByConsumerApplicationNumber.getPremiseAreaType().equals("URBAN")) {
+					dto.setSubCategoryCode(517L);
+				}
+				if (findByConsumerApplicationNumber.getPhase().equals("THREE")
+						&& findByConsumerApplicationNumber.getPremiseAreaType().equals("RURAL")) {
+					dto.setSubCategoryCode(518L);
+				}
+				if (findByConsumerApplicationNumber.getPhase().equals("SINGLE")
+						&& findByConsumerApplicationNumber.getPremiseAreaType().equals("URBAN")) {
+					dto.setSubCategoryCode(519L);
+				}
+				if (findByConsumerApplicationNumber.getPhase().equals("SINGLE")
+						&& findByConsumerApplicationNumber.getPremiseAreaType().equals("RURAL")) {
+					dto.setSubCategoryCode(520L);
+				}
+
 				dto.setTariffCategory("LV5");
 				dto.setTarrifCode("LV5.1BT.UM");
 				dto.setPremiseType("RURAL");

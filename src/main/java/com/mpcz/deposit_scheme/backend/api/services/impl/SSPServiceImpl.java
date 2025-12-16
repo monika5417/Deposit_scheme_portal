@@ -604,7 +604,7 @@ public class SSPServiceImpl implements SSPService {
 				if (sspDto.getTotalAmount() == null
 						|| BigDecimal.valueOf(sspDto.getTotalAmount()).compareTo(BigDecimal.ZERO) <= 0) {
 					response.setCode(HttpCode.NULL_OBJECT);
-					response.setMessage("Total Amount should not be null or negative in case of new NSC");
+					response.setMessage("Total Amount should not be  null, 0 or negative in case of new NSC");
 					throw new ConsumerException(response);
 				}
 
@@ -615,7 +615,7 @@ public class SSPServiceImpl implements SSPService {
 						) {
 					response.setCode(HttpCode.NULL_OBJECT);
 					response.setMessage(
-							"Security Deposit Amount should not be null or negative in case of new NSC and OYT. Please edit your application.");
+							"Security Deposit Amount should not be null, 0 or negative in case of new NSC and OYT. Please edit your application.");
 					throw new ConsumerException(response);
 				}
 			}
@@ -657,16 +657,6 @@ public class SSPServiceImpl implements SSPService {
 	}
 
 	public static SSPDto checkNatureOfWork(SSPDto sspDto) {
-//		if (sspDto.getNatureOfWork().equals(5L) && sspDto.getMeterCost() <= 0) {
-//			sspDto.setNatureOfWork(5l);
-//		} else if (sspDto.getNatureOfWork().equals(5L) && sspDto.getMeterCost() > 0) {
-//			sspDto.setNatureOfWork(2l);
-//		} else if (sspDto.getNatureOfWork().equals(7L)) {
-//			sspDto.setNatureOfWork(7l);
-//		} else {
-//			sspDto.setNatureOfWork(2l);
-//		}
-
 		if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 1l && sspDto.getMeterCost() <= 0) {
 			sspDto.setNatureOfWork(5l);
 			sspDto.setConnectionCategory("LV5");

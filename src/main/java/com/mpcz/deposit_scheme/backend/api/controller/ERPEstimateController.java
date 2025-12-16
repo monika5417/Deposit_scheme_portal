@@ -55,6 +55,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.BillDeskPaymentResponse;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationSurvey;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountData;
+import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountDataGet;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateDomain;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpRev;
 import com.mpcz.deposit_scheme.backend.api.domain.ManualPayment;
@@ -81,6 +82,7 @@ import com.mpcz.deposit_scheme.backend.api.repository.ApplicationDocumentReposit
 import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplicationSurveyRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.ErpEstimateAmountDataGetRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ErpRevRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ManualPaymentRepository;
@@ -103,6 +105,7 @@ import com.mpcz.deposit_scheme.backend.api.services.impl.ErpRevServiceIMP;
 import com.mpcz.deposit_scheme.dryprincipalutility.DryUtility;
 import com.mpcz.deposit_scheme.feignClient.OytMaterialChargesClient;
 import com.mpcz.deposit_scheme.feignClient.OytMaterialChargesClient1;
+import com.mpcz.deposit_scheme.projection.ConsummerAppDetails;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -169,6 +172,9 @@ public class ERPEstimateController {
 
 	@Autowired
 	ErpRevServiceIMP erpRevServiceIMP;
+
+	@Autowired
+	ErpEstimateAmountDataGetRepository erpEstimateAmountDataGetRepository;
 
 	public Long getNextVal() {
 		return jdbcTemplate.queryForObject("SELECT deposite_schema.DSP_REF_NO_SEQ.nextval FROM dual", Long.class);
@@ -814,8 +820,12 @@ public class ERPEstimateController {
 					.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 
 		} else {
+// 04-12-2025 ADDED consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(12l) CHECK MONIKA RAJPOOT
 			applicationStatus = applicationStatusService
-					.findById(ApplicationStatusEnum.DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId());
+					.findById(consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(12l)
+							? ApplicationStatusEnum.PENDING_FOR_DEMAND_NOTE_APPROVAL_AT_GM.getId()
+							: ApplicationStatusEnum.DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId());
+
 		}
 
 		consumerapplication.setApplicationStatus(applicationStatus);
@@ -857,7 +867,7 @@ public class ERPEstimateController {
 					.findByConsumerApplicationId(consumerAppId)
 					.orElseThrow(() -> new DataNotFoundException(new Response<String>(ResponseCode.DATA_NOT_FOUND,
 							ResponseMessage.CONSUMER_APPLICATION_NOT_FOUND)));
-			if (!consumerApplicationDetail.getApplicationStatus().getApplicationStatusId().equals(12l)) {
+			if (!consumerApplicationDetail.getApplicationStatus().getApplicationStatusId().equals(12l) && !consumerApplicationDetail.getApplicationStatus().getApplicationStatusId().equals(9l)) {
 				response = new Response<>();
 
 				response.setCode(HttpCode.NOT_ACCEPTABLE);
@@ -976,10 +986,10 @@ public class ERPEstimateController {
 //	return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 
 	@GetMapping("/getamount/{consumerApplicationid}")
-	public ErpEstimateCalculatedDto getAmount(@PathVariable("consumerApplicationid") long consumerApplicationid)
+	public Response<ErpEstimateCalculatedDto> getAmount(@PathVariable("consumerApplicationid") long consumerApplicationid)
 			throws ConsumerApplicationDetailException, SchemeTypeException, Exception {
 
-		Response<ErpEstimateAmountData> response = new Response<ErpEstimateAmountData>();
+		Response<ErpEstimateCalculatedDto> response = new Response<ErpEstimateCalculatedDto>();
 
 		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
 				.findByConsumerApplicationId(consumerApplicationid)
@@ -999,13 +1009,17 @@ public class ERPEstimateController {
 		ErpEstimateCalculatedDto findByEstimateNumber = erpEstimateAmountService
 				.calculateEstimateAmount1(consumerApplicationid);
 		if (findByEstimateNumber == null) {
-//			response.setCode("404");
-//			response.setMessage("Erp Scheme code not matched");
-//		
-//			return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);	
+			response.setCode("404");
+			response.setMessage("Erp Scheme code not matched");
+		
+			return response;	
 
 		}
-		return findByEstimateNumber;
+		response.setCode("200");
+		response.setMessage("data successfully return");
+		response.setList(Arrays.asList(findByEstimateNumber));
+	
+		return response;
 	}
 
 //	posemachin
@@ -1033,10 +1047,10 @@ public class ERPEstimateController {
 			sanchayPortalDto.setPayableAmount(new BigDecimal(1180));
 			sanchayPortalDto.setPaymentType("Registration_Fees");
 			sanchayPortalDto
-			.setNgbDcCode(findConsumerApplicationDetailByApplicationNo.getDistributionCenter().getNgbDcCd());
+					.setNgbDcCode(findConsumerApplicationDetailByApplicationNo.getDistributionCenter().getNgbDcCd());
 			sanchayPortalDto.setConsumerName(findConsumerApplicationDetailByApplicationNo.getConsumerName());
 			sanchayPortalDto
-			.setMobileNumber(findConsumerApplicationDetailByApplicationNo.getConsumers().getConsumerMobileNo());
+					.setMobileNumber(findConsumerApplicationDetailByApplicationNo.getConsumers().getConsumerMobileNo());
 
 			response.setCode("200");
 			response.setMessage("application is Pending for payment");
@@ -1093,7 +1107,11 @@ public class ERPEstimateController {
 						.setSecurityDepositAmnt(findByEstimateNumber.getSecurityDeposit() == null ? BigDecimal.ZERO
 								: findByEstimateNumber.getSecurityDeposit());
 //				end
-
+//				added this key for NOW=12 04-12-2025
+				if (findByEstimateNumber.getRegistrationCharges() != null) {
+					sanchayPortalDto.setRegistrationFees(findByEstimateNumber.getRegistrationCharges());
+				}
+//				end by Monika Rajpoot
 				sanchayPortalDto.setCgst(findByEstimateNumber.getCgst());
 				sanchayPortalDto.setSgst(findByEstimateNumber.getSgst());
 
@@ -2143,4 +2161,27 @@ public class ERPEstimateController {
 		response.setList(oytProjectDetails);
 		return ResponseEntity.ok(response);
 	}
+
+	@GetMapping("/erpEstimateAmountDataGetByerp/{consumerApplicationNo}")
+	public ResponseEntity<Response> erpEstimateAmountDataGetBYERP(@PathVariable String consumerApplicationNo)
+			throws ConsumerApplicationDetailException {
+		Response<ErpEstimateAmountDataGet> response = new Response<ErpEstimateAmountDataGet>();
+		List<ConsumerApplicationDetail> findListByConsumerApplicatonNumber = consumerApplictionDetailRepository
+				.findListByConsumerApplicatonNumber(consumerApplicationNo);
+		if (findListByConsumerApplicatonNumber.isEmpty()) {
+			response.setCode("404");
+			response.setMessage("data not ound");
+			return ResponseEntity.ok(response);
+		}
+		ErpEstimateAmountDataGet findByErpNo = erpEstimateAmountDataGetRepository
+				.findByErpNo(findListByConsumerApplicatonNumber.get(0).getErpWorkFlowNumber());
+		
+
+		response.setCode("200");
+		response.setMessage("data successfull retrive");
+		response.setList(Arrays.asList(findByErpNo));
+		return ResponseEntity.ok(response);
+	}
+
+//	erpEstimateAmountDataGetRepository
 }
