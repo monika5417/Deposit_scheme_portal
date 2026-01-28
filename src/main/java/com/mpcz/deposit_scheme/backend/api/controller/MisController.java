@@ -1,16 +1,25 @@
 package com.mpcz.deposit_scheme.backend.api.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import javax.sound.midi.SysexMessage;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.domain.DynamicQuery;
+import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.DynamicQueryRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
@@ -46,6 +58,9 @@ public class MisController {
 
 	@Autowired
 	private DynamicQueryRepository dynamicQueryRepository;
+
+	@Autowired
+	private RateLimiterController rateLimiterController;
 
 	@GetMapping("/mis")
 	Response getMisDetailsByDcCode(@RequestParam(value = "dcCode", required = false) String dcCode,
@@ -211,6 +226,91 @@ public class MisController {
 				? new Response(HttpCode.NULL_OBJECT, "No data found for Finance GST List")
 				: new Response(HttpCode.OK, "Data Retrieved Successfully", financeGstList);
 
+	}
+
+	@PostMapping("/execute-query")
+	public ResponseEntity<?> executeDynamicQuery(@RequestParam String queryName,
+			@RequestBody(required = false) Map<String, Object> params) {
+
+		DynamicQuery dq = dynamicQueryRepository.findByQueryName(queryName);
+
+		if (dq == null) {
+			return ResponseEntity.ok(new Response<>(HttpCode.NULL_OBJECT, "Query not found or inactive"));
+		}
+
+		// ---------- PARAM VALIDATION ----------
+		if (dq.getParamKeys() != null && !dq.getParamKeys().isEmpty()) {
+
+			Set<String> requiredParams = Arrays.stream(dq.getParamKeys().split(",")).map(String::trim)
+					.collect(Collectors.toSet());
+
+			if (params == null || !params.keySet().containsAll(requiredParams)) {
+				return ResponseEntity.badRequest()
+						.body(new Response<>(HttpCode.NOT_ACCEPTABLE, "Required params: " + requiredParams));
+			}
+		}
+
+		// ---------- EXECUTION ----------
+		List<Map<String, Object>> data = namedParameterJdbcTemplate.queryForList(dq.getQueryText(),
+				params == null ? Collections.emptyMap() : params);
+
+		if (data.isEmpty()) {
+			return ResponseEntity.ok(new Response<>(HttpCode.NULL_OBJECT, "No data found"));
+		}
+
+		return ResponseEntity.ok(new Response<>(HttpCode.OK, "Success", data));
+	}
+
+	@GetMapping("/getPaymentDetailsExcel")
+	public void generateExcel(@RequestParam String fromDate, @RequestParam String toDate, HttpServletResponse response,
+			HttpServletRequest request) throws IOException, ConsumerApplicationDetailException {
+
+		rateLimiterController.getData(request);
+
+		DynamicQuery byQueryName = dynamicQueryRepository.findByQueryName("PAYMENT_DATA_FETCH_PIYUSH");
+		if (byQueryName == null) {
+			throw new ConsumerApplicationDetailException(
+					new Response<>(HttpCode.NULL_OBJECT, "Query not found or inactive"));
+		}
+		String queryText = byQueryName.getQueryText();
+		Map<String, Object> params = new HashMap<>();
+		params.put("fromDate", fromDate);
+		params.put("toDate", toDate);
+
+		List<Map<String, Object>> data = namedParameterJdbcTemplate.queryForList(queryText, params);
+
+		Workbook workbook = new XSSFWorkbook();
+		Sheet sheet = workbook.createSheet("DSP Report");
+
+		if (!data.isEmpty()) {
+
+// HEADER ROW
+			Row headerRow = sheet.createRow(0);
+			int col = 0;
+			for (String key : data.get(0).keySet()) {
+				headerRow.createCell(col++).setCellValue(key);
+			}
+
+// DATA ROWS
+			int rowNum = 1;
+			for (Map<String, Object> rowMap : data) {
+				Row row = sheet.createRow(rowNum++);
+				col = 0;
+				for (Object value : rowMap.values()) {
+					Cell cell = row.createCell(col++);
+					if (value != null) {
+						cell.setCellValue(value.toString());
+					}
+				}
+			}
+		}
+
+// RESPONSE SETTINGS
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setHeader("Content-Disposition", "attachment; filename=DSP_Report.xlsx");
+
+		workbook.write(response.getOutputStream());
+		workbook.close();
 	}
 
 }

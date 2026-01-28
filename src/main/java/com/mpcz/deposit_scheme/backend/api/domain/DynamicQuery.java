@@ -22,6 +22,20 @@ public class DynamicQuery {
 
     @Column(name = "IS_ACTIVE")
     private Integer isActive;
+    
+    @Column(name = "PARAM_KEYS")
+    private String paramKeys;
+
+    
+    
+    
+	public String getParamKeys() {
+		return paramKeys;
+	}
+
+	public void setParamKeys(String paramKeys) {
+		this.paramKeys = paramKeys;
+	}
 
 	public Long getId() {
 		return id;

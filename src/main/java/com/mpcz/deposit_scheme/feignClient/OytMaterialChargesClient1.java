@@ -10,7 +10,7 @@ import com.mpcz.deposit_scheme.backend.api.dto.ApiResponseOYT;
 @FeignClient(name="oyt-api-1", url = "https://dsp.mpcz.in:8888")
 public interface OytMaterialChargesClient1 {
 	
-	@RequestMapping(method = RequestMethod.GET, value = "/newerp/XXPA_PROJECT_DETAILS_HT_V//{erpNo}")
+	@RequestMapping(method = RequestMethod.GET, value = "/newerp/XXPA_PROJECT_DETAILS_HT_V/{erpNo}")
 	ApiResponseOYT oytMaterialCharges1(@PathVariable("erpNo") String erpNo);
 
 }

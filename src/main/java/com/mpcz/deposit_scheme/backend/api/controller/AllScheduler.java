@@ -1,4 +1,6 @@
+//
 //package com.mpcz.deposit_scheme.backend.api.controller;
+//
 //
 //import java.math.BigDecimal;
 //import java.net.InetAddress;
@@ -12,7 +14,6 @@
 //import java.time.LocalDateTime;
 //import java.time.YearMonth;
 //import java.time.format.DateTimeFormatter;
-//import java.util.ArrayList;
 //import java.util.Date;
 //import java.util.HashMap;
 //import java.util.LinkedList;
@@ -26,6 +27,7 @@
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.context.annotation.Profile;
 //import org.springframework.http.HttpEntity;
 //import org.springframework.http.HttpHeaders;
 //import org.springframework.http.ResponseEntity;
@@ -63,6 +65,7 @@
 //
 //@RequestMapping("/scheduler")
 //@RestController
+//@Profile("prod")
 //public class AllScheduler {
 //
 //	@Autowired

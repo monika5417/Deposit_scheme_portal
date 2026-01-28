@@ -361,7 +361,7 @@ public class ContractorDetailForBidController {
 				System.out.println(valueOf + " valueOf");
 				participantAndNotParticipantDto.setListOfParticipantedAndNotParticipated(mergeList);
 				if (!findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
-					if (valueOf == 3 || valueOf == 10) {
+//					if (valueOf == 3 || valueOf == 10) {
 
 						ErpEstimateAmountData findByErpNo = estimateAmountRepository
 								.findByErpNo(findByConsumerApplicationNumber.getErpWorkFlowNumber());
@@ -378,10 +378,12 @@ public class ContractorDetailForBidController {
 											findByErpNo.getSortContratoreListByKvLine(), payableAmount);
 								}
 								if (findByErpNo.getSortContratoreListByKvLine() == 2l
-										|| findByErpNo.getSortContratoreListByKvLine() == 3l) {
+										|| findByErpNo.getSortContratoreListByKvLine() == 3l
+										|| findByErpNo.getSortContratoreListByKvLine() == 4l) {
 									findByDgmSelectedPreference = contractorCategoryDataRepository
 											.findByDgmSelectedPreference(findByErpNo.getSortContratoreListByKvLine());
 								}
+								
 								System.out.println(findByDgmSelectedPreference + " findByDgmSelectedPreference");
 
 								// पहले सिर्फ non-null categories collect करो
@@ -406,7 +408,10 @@ public class ContractorDetailForBidController {
 										&& !findByDgmSelectedPreference.getCategoryA5().trim().isEmpty()) {
 									categories.add(findByDgmSelectedPreference.getCategoryA5());
 								}
-
+								if (findByDgmSelectedPreference.getCategoryB() != null
+										&& !findByDgmSelectedPreference.getCategoryB().trim().isEmpty()) {
+									categories.add(findByDgmSelectedPreference.getCategoryB());
+								}
 								// अब सिर्फ वही filter होगा जो exact match है
 								List<ContractorParticipateAndNotPartiDto> filteredList = mergeList.stream()
 										.filter(m -> categories.contains(m.getContractorCategory()))
@@ -418,10 +423,10 @@ public class ContractorDetailForBidController {
 							}
 						}
 
-					}
+//					}
 				}
 
-				if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
+				if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l)) {
 					
 					List<ContractorParticipateAndNotPartiDto> listOfParticipantedAndNotParticipated = participantAndNotParticipantDto.getListOfParticipantedAndNotParticipated();
 					List<ContractorParticipateAndNotPartiDto> collect = listOfParticipantedAndNotParticipated.stream().filter(a->!a.getContractorCategory().equalsIgnoreCase("B")).collect(Collectors.toList()) ;
@@ -433,7 +438,8 @@ public class ContractorDetailForBidController {
 			e.printStackTrace();
 
 		}
-
+		participantAndNotParticipantDto.setListOfParticipatedContractors(null);
+		participantAndNotParticipantDto.setListOfNotParticipatedContractors(null);
 		response.setList(Arrays.asList(participantAndNotParticipantDto));
 		response.setCode(HttpCode.OK);
 		response.setMessage("Record Retrieve Successfully");

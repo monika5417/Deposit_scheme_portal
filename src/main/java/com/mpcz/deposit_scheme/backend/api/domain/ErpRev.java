@@ -128,6 +128,9 @@ public class ErpRev extends Auditable<Long> {
 	@Column(name = "REM_RETURN_AMT")
 	private BigDecimal remReturnAmt;
 
+	@Column(name = "DISMENTALLING_COST")
+	private BigDecimal dismentalingCost;
+
 	@Transient
 	private BigDecimal oAndMReturnAmt;
 
@@ -186,13 +189,52 @@ public class ErpRev extends Auditable<Long> {
 	@Transient
 	private BigDecimal reviseRefundAmnt;
 
-//    added this minus cost on 27- august - 2024
+	@Column(name = "ERP_VERSION")
+	private String erpVersion;
+
+	
+	@Column(name = "VERSION_NUMBER")
+	private Long versionNumber;
+	
+	
+	
+	
+	
+
+	public Long getVersionNumber() {
+		return versionNumber;
+	}
+
+	public void setVersionNumber(Long versionNumber) {
+		this.versionNumber = versionNumber;
+	}
+
+	public String getErpVersion() {
+		return erpVersion;
+	}
+
+	public void setErpVersion(String erpVersion) {
+		this.erpVersion = erpVersion;
+	}
+
+	// added this minus cost on 27- august - 2024
 	@Column(name = "NEW_MINUS_COST")
 	private BigDecimal newMinusCost;
 
 //    17-October-2024
 	@Column(name = "CON_REFUNDABLE_AMNT")
 	private BigDecimal consumerRefundableAmnt;
+
+	@Transient
+	private BigDecimal registrationCharges;
+
+	public BigDecimal getRegistrationCharges() {
+		return registrationCharges;
+	}
+
+	public void setRegistrationCharges(BigDecimal registrationCharges) {
+		this.registrationCharges = registrationCharges;
+	}
 
 	public BigDecimal getConsumerRefundableAmnt() {
 		return consumerRefundableAmnt;
@@ -704,24 +746,21 @@ public class ErpRev extends Auditable<Long> {
 	@Transient
 	private BigDecimal oldSspTotalAmount;
 
-	
 	@Column(name = "REM_SSP_REG_CHARGE")
 	private BigDecimal remSspRegCharge;
-	
+
 	@Column(name = "REM_SSP_METER_COST")
 	private BigDecimal remSspMeterCost;
-	
+
 	@Column(name = "REM_SSP_TOTAL_AMOUNT")
 	private BigDecimal remSspTotalAmount;
 
-	
-	
 	@Column(name = "NEW_SSP_REG_CHARGE")
 	private BigDecimal newSspRegCharge;
-	
+
 	@Column(name = "NEW_SSP_METER_COST")
 	private BigDecimal newSspMeterCost;
-	
+
 	@Column(name = "NEW_SSP_TOTAL_AMOUNT")
 	private BigDecimal newSspTotalAmount;
 
@@ -741,8 +780,6 @@ public class ErpRev extends Auditable<Long> {
 		this.oldSspMeterCost = oldSspMeterCost;
 	}
 
-	
-
 	public BigDecimal getRemSspRegCharge() {
 		return remSspRegCharge;
 	}
@@ -758,8 +795,6 @@ public class ErpRev extends Auditable<Long> {
 	public void setRemSspMeterCost(BigDecimal remSspMeterCost) {
 		this.remSspMeterCost = remSspMeterCost;
 	}
-
-	
 
 	public BigDecimal getNewSspRegCharge() {
 		return newSspRegCharge;
@@ -785,8 +820,6 @@ public class ErpRev extends Auditable<Long> {
 		this.newSspTotalAmount = newSspTotalAmount;
 	}
 
-	
-
 	public BigDecimal getOldSspTotalAmount() {
 		return oldSspTotalAmount;
 	}
@@ -803,6 +836,12 @@ public class ErpRev extends Auditable<Long> {
 		this.remSspTotalAmount = remSspTotalAmount;
 	}
 
-	
+	public BigDecimal getDismentalingCost() {
+		return dismentalingCost;
+	}
+
+	public void setDismentalingCost(BigDecimal dismentalingCost) {
+		this.dismentalingCost = dismentalingCost;
+	}
 
 }

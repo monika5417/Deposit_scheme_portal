@@ -31,4 +31,21 @@ public interface ReSamplingRepository extends JpaRepository<ReSampling, Long> {
 	
 	public List<ReSampling> findByChildApplicationNo(String chaildApplicationNo);
 	
+	
+	@Query(value="select * from re_sampling where con_app_no=:consumerApplicationNo", nativeQuery=true)
+	public List<ReSampling> findByConAppNo_1(String consumerApplicationNo);
+	
+	
+	public List<ReSampling> findByAuticationIdAndShufflingFlagAndCircleId(String auticationId,Long flag,Long circleId);
+	
+	public List<ReSampling> findByAuticationIdAndShufflingFlagAndDivisionId(String auticationId,Long flag,Long circleId);
+
+	public List<ReSampling> findByShufflingFlagAndCircleId(Long flagNo, Long circleId);
+
+	public List<ReSampling> findByShufflingFlagAndDivisionId(Long flagNo, Long divisionId);
+
+	public List<ReSampling> findByShufflingFlagAndRegionId(Long flagNo, Long regionId);
+
+	
+//	public Optional<ReSampling> findByConAppNoAndId(String consumerApplicationNo,Long id);
 }

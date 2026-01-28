@@ -10,4 +10,5 @@ public interface ErpRevService {
 
 	ResponseEntity<?> getConsumerApplication(String consumerApp);
 
+	public ErpRev Dynamic(String erpNo, String applicationNo, Long value);
 }

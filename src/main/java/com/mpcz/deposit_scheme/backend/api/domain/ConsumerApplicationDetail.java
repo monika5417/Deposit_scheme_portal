@@ -22,7 +22,7 @@ import lombok.Data;
 
 @Entity(name = "ConsumerApplicationDetail")
 @Table(name = "CONSUMER_APPLICATION_DETAIL")
-public @Data class ConsumerApplicationDetail extends Auditable<Long> {
+public class ConsumerApplicationDetail extends Auditable<Long> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -275,7 +275,7 @@ public @Data class ConsumerApplicationDetail extends Auditable<Long> {
 	private String colonyLegalSelectionType; // Multi and Individual
 
 	@Column(name = "COLONY_TYPE")
-	private String colonyIllegalSelectionType; // Declared and Undeclared
+	private String colonyIllegalSelectionType; // 1=Declared and 2= Undeclared
 
 	@Column(name = "JE_LOAD")
 	private String jeLoad;
@@ -429,7 +429,7 @@ public @Data class ConsumerApplicationDetail extends Auditable<Long> {
 	private String isAvedakGovernmentRevise;
 
 //	monika code end
-
+// 0 matlb cscrap material (bekar material)
 	@Column(name = "GOOD_MATERAIL_OR_NOT")
 	private Integer goodMaterialOrnot = 0;
 
@@ -511,6 +511,23 @@ public @Data class ConsumerApplicationDetail extends Auditable<Long> {
 
 	@Column(name = "GM_DEMAND_USER_ID")
 	private String gmDemandUserId;
+	
+	@Column(name = "ADMIN_STATUS_CHANGED_TO")
+	private Long adminStatusChangedTo;
+	
+	
+	@Column(name = "ERP_VER_IN_API")
+	private Long erpVersionInApi;
+	
+	
+
+	public Long getAdminStatusChangedTo() {
+		return adminStatusChangedTo;
+	}
+
+	public void setAdminStatusChangedTo(Long adminStatusChangedTo) {
+		this.adminStatusChangedTo = adminStatusChangedTo;
+	}
 
 	public String getGmDemandApproved() {
 		return gmDemandApproved;
@@ -1679,5 +1696,17 @@ public @Data class ConsumerApplicationDetail extends Auditable<Long> {
 				+ sspSupplyAffordingCharges + ", sspTotalAmount=" + sspTotalAmount + ", purposeOfInstallation="
 				+ purposeOfInstallation + ", phase=" + phase + "]";
 	}
+
+	public Long getErpVersionInApi() {
+		return erpVersionInApi;
+	}
+
+	public void setErpVersionInApi(Long erpVersionInApi) {
+		this.erpVersionInApi = erpVersionInApi;
+	}
+
+
+	
+	
 
 }

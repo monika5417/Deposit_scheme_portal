@@ -15,6 +15,9 @@ public class VerifierBy {
 	@Id
 	@SequenceGenerator(name = "VERIFIER_BY_SEQ", sequenceName = "VERIFIER_BY_SEQ", allocationSize = 1)
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VERIFIER_BY_SEQ")
+	@Column(name = "ID")
+	private long id;
+	
 	@Column(name = "VERIFIER_BY_ID")
 	private Long verifierById;
 
@@ -29,6 +32,9 @@ public class VerifierBy {
 	
 	@Column(name = "CONSUEMR_APPLICATION_NUMBER")
 	private String consumerApplicationNumber;
+	
+	@Column(name = "GATE_PASS_TYPE")
+	private String gatePassType;
 	
 	public Long getVerifierById() {
 		return verifierById;
@@ -68,6 +74,22 @@ public class VerifierBy {
 
 	public void setVeriferCode(String veriferCode) {
 		this.veriferCode = veriferCode;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public String getGatePassType() {
+		return gatePassType;
+	}
+
+	public void setGatePassType(String gatePassType) {
+		this.gatePassType = gatePassType;
 	}
 
 	

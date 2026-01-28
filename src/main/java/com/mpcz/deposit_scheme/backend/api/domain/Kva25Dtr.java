@@ -49,8 +49,39 @@ public class Kva25Dtr {
 	@Transient
 	private BigDecimal totalCost;
 	
+	@Column(name = "SCHEDULE_NO")
+    private String scheduleNo;
+
+    @Column(name = "SCHEDULER_NAME")
+    private String schedulerName;
 	
-	
+    
+    
+    
+
+	public BigDecimal getTotalCost() {
+		return totalCost;
+	}
+
+	public void setTotalCost(BigDecimal totalCost) {
+		this.totalCost = totalCost;
+	}
+
+	public String getScheduleNo() {
+		return scheduleNo;
+	}
+
+	public void setScheduleNo(String scheduleNo) {
+		this.scheduleNo = scheduleNo;
+	}
+
+	public String getSchedulerName() {
+		return schedulerName;
+	}
+
+	public void setSchedulerName(String schedulerName) {
+		this.schedulerName = schedulerName;
+	}
 
 	public int getId() {
 		return id;

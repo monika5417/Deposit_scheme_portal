@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.domain.ApplicationStatus;
 import com.mpcz.deposit_scheme.backend.api.domain.ConnectionPraday;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
+import com.mpcz.deposit_scheme.backend.api.domain.SspOutbox;
 import com.mpcz.deposit_scheme.backend.api.dto.SSPDto;
 import com.mpcz.deposit_scheme.backend.api.enums.ApplicationStatusEnum;
 import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
@@ -33,6 +35,7 @@ import com.mpcz.deposit_scheme.backend.api.exception.DocumentTypeException;
 import com.mpcz.deposit_scheme.backend.api.repository.ApplicationStatusRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConnectionPradayRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.SspOutboxRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.response.SignUpResponse;
 import com.mpcz.deposit_scheme.backend.api.services.SSPService;
@@ -54,15 +57,29 @@ public class SSPController {
 	@Autowired
 	private ApplicationStatusRepository applicationStatusRepository;
 
+	@Autowired
+	private SspOutboxRepository sspOutboxRepository;
+
 	@PostMapping("/sspSignUp")
 	public ResponseEntity<?> sspSignUp(@RequestBody SSPDto sspDto, HttpServletRequest request)
 			throws ConsumerException, DocumentTypeException, DistributionCenterException, DistrictException {
 		Response response = new Response<>();
+
 		if (sspDto == null) {
 			response.setCode(HttpCode.NULL_OBJECT);
 			response.setMessage("Object having null value");
 			return ResponseEntity.ok(response);
 		} else {
+			SspOutbox s = new SspOutbox();
+			if (sspDto.getNatureOfWork() == 13l || sspDto.getNatureOfWork() == 14l) {
+
+			} else {
+				s.setApplicationNo(sspDto.getNscApplicationNo());
+			}
+
+			s.setPayload(new Gson().toJson(sspDto));
+			sspOutboxRepository.save(s);
+
 			SignUpResponse sspSignUp = sSPService.sspSignUp(sspDto, request);
 			if (!sspSignUp.equals(null)) {
 

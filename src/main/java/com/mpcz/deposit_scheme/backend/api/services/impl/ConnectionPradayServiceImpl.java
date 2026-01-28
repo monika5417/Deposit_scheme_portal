@@ -31,8 +31,7 @@ import com.mpcz.deposit_scheme.backend.api.services.ConnectionPradayService;
 
 @Service
 public class ConnectionPradayServiceImpl implements ConnectionPradayService {
-	
-	
+
 	@Value("${post.nsc.oyt.ssp}")
 	private static String postNscOytSSP;
 
@@ -90,7 +89,6 @@ public class ConnectionPradayServiceImpl implements ConnectionPradayService {
 				findByConsumerApplicationNumber.setApplicationStatus(appStatusDb);
 				findByConsumerApplicationNumber.setIvrsNo(save.getIvrs());
 
-				
 				ConsumerApplicationDetail updatedAppDetail = consumerApplictionDetailRepository
 						.save(findByConsumerApplicationNumber);
 
@@ -108,7 +106,6 @@ public class ConnectionPradayServiceImpl implements ConnectionPradayService {
 //						consumerApplictionDetailRepository.save(updatedAppDetail);
 //					}
 //				}
-
 
 			}
 
@@ -180,44 +177,45 @@ public class ConnectionPradayServiceImpl implements ConnectionPradayService {
 //	}
 
 	@Override
-	public ConnectionPraday saveIvrsConnectionByJE(ConnectionPraday connectionPraday) throws ConnectionPradayException, ConsumerApplicationDetailException {
+	public ConnectionPraday saveIvrsConnectionByJE(ConnectionPraday connectionPraday)
+			throws ConnectionPradayException, ConsumerApplicationDetailException {
 		Response response = new Response();
-		
-			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
-					.findByConsumerApplicationNumber(connectionPraday.getConsumerApplicationNo());
-if(Objects.isNull(findByConsumerApplicationNumber)) {
-	throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT, "Application No. not found in database."));
-}
-			
-			if (connectionPraday.getIvrs() == null) {
-				throw new ConnectionPradayException(new Response(HttpCode.NULL_OBJECT, "IVRS No. should not be null."));
-			}
 
-			if (connectionPraday.getConnectionDate() == null) {
+		ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+				.findByConsumerApplicationNumber(connectionPraday.getConsumerApplicationNo());
+		if (Objects.isNull(findByConsumerApplicationNumber)) {
+			throw new ConsumerApplicationDetailException(
+					new Response(HttpCode.NULL_OBJECT, "Application No. not found in database."));
+		}
 
-				throw new ConnectionPradayException(
-						new Response(HttpCode.NULL_OBJECT, "Connection Date should not be null."));
+		if (connectionPraday.getIvrs() == null) {
+			throw new ConnectionPradayException(new Response(HttpCode.NULL_OBJECT, "IVRS No. should not be null."));
+		}
 
-			}
+		if (connectionPraday.getConnectionDate() == null) {
 
-			if (connectionPraday.getCreatedOn() == null) {
-				throw new ConnectionPradayException(
-						new Response(HttpCode.NULL_OBJECT, "Created On should not be null."));
+			throw new ConnectionPradayException(
+					new Response(HttpCode.NULL_OBJECT, "Connection Date should not be null."));
 
-			}
+		}
 
-			ConnectionPraday findByIvrs = connectionPradayRepository.findByIvrs(connectionPraday.getIvrs());
-			if (findByIvrs != null) {
-				throw new ConnectionPradayException(new Response(HttpCode.NOT_ACCEPTABLE, "IVRS No. already exist."));
-			}
-		
-			ConnectionPraday save = connectionPradayRepository.save(connectionPraday);
-			if (save != null) {
-				findByConsumerApplicationNumber.setIvrsNo(save.getIvrs());
-				ConsumerApplicationDetail updatedAppDetail = consumerApplictionDetailRepository
-						.save(findByConsumerApplicationNumber);
-			}
-			return save;
+		if (connectionPraday.getCreatedOn() == null) {
+			throw new ConnectionPradayException(new Response(HttpCode.NULL_OBJECT, "Created On should not be null."));
+
+		}
+
+		ConnectionPraday findByIvrs = connectionPradayRepository.findByIvrs(connectionPraday.getIvrs());
+		if (findByIvrs != null) {
+			throw new ConnectionPradayException(new Response(HttpCode.NOT_ACCEPTABLE, "IVRS No. already exist."));
+		}
+
+		ConnectionPraday save = connectionPradayRepository.save(connectionPraday);
+		if (save != null) {
+			findByConsumerApplicationNumber.setIvrsNo(save.getIvrs());
+			ConsumerApplicationDetail updatedAppDetail = consumerApplictionDetailRepository
+					.save(findByConsumerApplicationNumber);
+		}
+		return save;
 	}
 
 }

@@ -2,6 +2,7 @@ package com.mpcz.deposit_scheme.backend.api.controller;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,6 +28,7 @@ import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.domain.ApplicationDocument;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerAccountDetails;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
+import com.mpcz.deposit_scheme.backend.api.domain.DynamicQuery;
 import com.mpcz.deposit_scheme.backend.api.domain.ProjectItemForZeroOneCase;
 import com.mpcz.deposit_scheme.backend.api.domain.RefundAmount;
 import com.mpcz.deposit_scheme.backend.api.domain.Upload;
@@ -40,6 +42,7 @@ import com.mpcz.deposit_scheme.backend.api.repository.ApplicationDocumentReposit
 import com.mpcz.deposit_scheme.backend.api.repository.ApplicationStatusRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerAccountDetailsRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.DynamicQueryRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ProjectItemForZeroOneCaseRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.RefundAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
@@ -71,6 +74,9 @@ public class RefundAmountController {
 
 	@Autowired
 	private RefundAmountRepository refundAmountRepository;
+
+	@Autowired
+	private DynamicQueryRepository dynamicQueryRepository;
 
 	@PostMapping("/user/saveRefundDetails")
 	public ResponseEntity<?> saveRefundDetails(@RequestBody RefundAmount refund)
@@ -250,22 +256,42 @@ public class RefundAmountController {
 	@Autowired
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+//	@GetMapping("/getSchemeAndNatureByApplicationNo/{consumerApplicationNo}")
+//	public ResponseEntity<?> getSchemeAndNatureByApplicationNo(@PathVariable String consumerApplicationNo) {
+//		Response response = new Response();
+//		System.err.println("aaaaaaaaaaaaaaa :  " + consumerApplicationNo);
+//
+//		List<Map<String, Object>> schemeAndNatureByApplicationNo = consumerApplictionDetailRepository
+//				.getSchemeAndNatureByApplicationNo(consumerApplicationNo);
+//		if (schemeAndNatureByApplicationNo.isEmpty()) {
+//			response.setCode(HttpCode.NULL_OBJECT);
+//			response.setMessage("Data Not Found");
+//		} else {
+//			response.setCode(HttpCode.OK);
+//			response.setMessage("Data Retrived Successfully");
+//			response.setList(schemeAndNatureByApplicationNo);
+//		}
+//		return ResponseEntity.ok(response);
+//
+//	}
+
+//	getSchemeAndNatureByApplicationNo by dynamic query 18-12-2025
 	@GetMapping("/getSchemeAndNatureByApplicationNo/{consumerApplicationNo}")
 	public ResponseEntity<?> getSchemeAndNatureByApplicationNo(@PathVariable String consumerApplicationNo) {
 		Response response = new Response();
-		System.err.println("aaaaaaaaaaaaaaa :  " + consumerApplicationNo);
 
-		List<Map<String, Object>> schemeAndNatureByApplicationNo = consumerApplictionDetailRepository
-				.getSchemeAndNatureByApplicationNo(consumerApplicationNo);
-		if (schemeAndNatureByApplicationNo.isEmpty()) {
-			response.setCode(HttpCode.NULL_OBJECT);
-			response.setMessage("Data Not Found");
-		} else {
-			response.setCode(HttpCode.OK);
-			response.setMessage("Data Retrived Successfully");
-			response.setList(schemeAndNatureByApplicationNo);
+		DynamicQuery query = dynamicQueryRepository.findByQueryName("GET_SCHEME_NOW_FOR_REFUND");
+		if (query == null || query.getQueryText() == null) {
+			return ResponseEntity
+					.ok(new Response<>(HttpCode.NULL_OBJECT, "Query not found for GET_SCHEME_NOW_FOR_REFUND"));
 		}
-		return ResponseEntity.ok(response);
+		String queryText = query.getQueryText();
+		Map<String, Object> param = new HashMap<>();
+		param.put("consumerApplicationNo", consumerApplicationNo);
+		List<Map<String, Object>> queryForList = namedParameterJdbcTemplate.queryForList(queryText, param);
+
+		return ResponseEntity.ok(queryForList.isEmpty() ? new Response<>(HttpCode.NULL_OBJECT, "Data Not Found")
+				: new Response<>(HttpCode.OK, "Data Retrived Successfully", queryForList));
 
 	}
 

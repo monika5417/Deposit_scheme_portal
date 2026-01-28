@@ -1079,29 +1079,29 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 	@Procedure("CREATE_INVOICE_22")
 	public void createInvoice();
 
-	@Query(value = "SELECT DISTINCT\r\n" + "    cad.CONSUMER_APPLICATION_NUMBER,\r\n"
-			+ "    cad.erp_workflow_number,\r\n" + "  \r\n" + "    cfb.CONTRACTOR_NAME,\r\n" + " \r\n"
-			+ "    cfb.CONTRACTOR_AUTHANTICATION_ID,\r\n" + "    now_tbl.NATURE_OF_WORK_NAME,\r\n" + "   \r\n"
-			+ "    cir.circle,\r\n" + "    div.division,\r\n" + "    dc.dc_name,\r\n" + "    cad.CONSUMER_NAME,\r\n"
-			+ "    cad.ADDRESS,\r\n" + "    cad.PHONE_NUMBER,\r\n" + "    cd.CONSUMER_MOBILE_NO,\r\n"
-			+ "    vwo.WORK_ORDER_NO,\r\n" + "    vwo.WORK_ORDER_DATE,\r\n" + "    cad.WORK_COMPLETION_DATE\r\n"
-			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n" + "LEFT JOIN CONTRACTOR_FOR_BID cfb \r\n"
-			+ "    ON cfb.CONSUMER_APPLICATION_NUMBER = cad.CONSUMER_APPLICATION_NUMBER\r\n"
-			+ "LEFT JOIN VENDOR_ADD_MATERIAL vam \r\n"
-			+ "    ON cad.CONSUMER_APPLICATION_NUMBER = vam.CONSUMER_APPLICATION_NUMBER\r\n"
-			+ "LEFT JOIN DISTRIBUTION_CENTER dc \r\n" + "    ON dc.DC_ID = cad.DC_ID\r\n"
-			+ "LEFT JOIN SUB_DIVISION sub_div \r\n" + "    ON sub_div.SUBDIV_ID = dc.SUBDIV_ID\r\n"
-			+ "LEFT JOIN DIVISION div \r\n" + "    ON div.DIV_ID = sub_div.DIVISION_ID\r\n"
-			+ "LEFT JOIN CIRCLE cir \r\n" + "    ON cir.CIRCLE_ID = div.CIRCLE_ID\r\n" + "LEFT JOIN REGION reg \r\n"
-			+ "    ON reg.REGION_ID = cir.REGION_ID\r\n" + "LEFT JOIN DISCOM disc \r\n"
-			+ "    ON disc.DISCOM_ID = reg.DISCOM_ID\r\n" + "LEFT JOIN CONSUMER cd \r\n"
-			+ "    ON cad.CONSUMER_ID = cd.CONSUMER_ID\r\n" + "LEFT JOIN VENDOR_WORK_ORDER vwo \r\n"
-			+ "    ON vwo.CONSUMER_APPLICATION_NO = cad.CONSUMER_APPLICATION_NUMBER\r\n"
-			+ "LEFT JOIN NATURE_OF_WORK now_tbl \r\n" + "    ON now_tbl.NATURE_OF_WORK_ID = cad.NATURE_OF_WORK_ID\r\n"
-			+ "WHERE cad.NATURE_OF_WORK_ID IN (2)\r\n" + "  AND cad.APPLICATION_STATUS IN (27, 25, 28, 32, 33)\r\n"
-			+ "  AND cad.RESAMPLING_FLAG IN (0, 1) and cfb.CONTRACTOR_AUTHANTICATION_ID is not null and  cad.CREATED >= TO_DATE('01-01-2025', 'DD-MM-YYYY')"
-			+ "", nativeQuery = true)
-	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetails(ArrayList<Long> flagNo);
+//	@Query(value = "SELECT DISTINCT\r\n" + "    cad.CONSUMER_APPLICATION_NUMBER,\r\n"
+//			+ "    cad.erp_workflow_number,\r\n" + "  \r\n" + "    cfb.CONTRACTOR_NAME,\r\n" + " \r\n"
+//			+ "    cfb.CONTRACTOR_AUTHANTICATION_ID,\r\n" + "    now_tbl.NATURE_OF_WORK_NAME,\r\n" + "   \r\n"
+//			+ "    cir.circle,\r\n" + "    div.division,\r\n" + "    dc.dc_name,\r\n" + "    cad.CONSUMER_NAME,\r\n"
+//			+ "    cad.ADDRESS,\r\n" + "    cad.PHONE_NUMBER,\r\n" + "    cd.CONSUMER_MOBILE_NO,\r\n"
+//			+ "    vwo.WORK_ORDER_NO,\r\n" + "    vwo.WORK_ORDER_DATE,\r\n" + "    cad.WORK_COMPLETION_DATE\r\n"
+//			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n" + "LEFT JOIN CONTRACTOR_FOR_BID cfb \r\n"
+//			+ "    ON cfb.CONSUMER_APPLICATION_NUMBER = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+//			+ "LEFT JOIN VENDOR_ADD_MATERIAL vam \r\n"
+//			+ "    ON cad.CONSUMER_APPLICATION_NUMBER = vam.CONSUMER_APPLICATION_NUMBER\r\n"
+//			+ "LEFT JOIN DISTRIBUTION_CENTER dc \r\n" + "    ON dc.DC_ID = cad.DC_ID\r\n"
+//			+ "LEFT JOIN SUB_DIVISION sub_div \r\n" + "    ON sub_div.SUBDIV_ID = dc.SUBDIV_ID\r\n"
+//			+ "LEFT JOIN DIVISION div \r\n" + "    ON div.DIV_ID = sub_div.DIVISION_ID\r\n"
+//			+ "LEFT JOIN CIRCLE cir \r\n" + "    ON cir.CIRCLE_ID = div.CIRCLE_ID\r\n" + "LEFT JOIN REGION reg \r\n"
+//			+ "    ON reg.REGION_ID = cir.REGION_ID\r\n" + "LEFT JOIN DISCOM disc \r\n"
+//			+ "    ON disc.DISCOM_ID = reg.DISCOM_ID\r\n" + "LEFT JOIN CONSUMER cd \r\n"
+//			+ "    ON cad.CONSUMER_ID = cd.CONSUMER_ID\r\n" + "LEFT JOIN VENDOR_WORK_ORDER vwo \r\n"
+//			+ "    ON vwo.CONSUMER_APPLICATION_NO = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+//			+ "LEFT JOIN NATURE_OF_WORK now_tbl \r\n" + "    ON now_tbl.NATURE_OF_WORK_ID = cad.NATURE_OF_WORK_ID\r\n"
+//			+ "WHERE cad.NATURE_OF_WORK_ID IN (2)\r\n" + "  AND cad.APPLICATION_STATUS IN (27, 25, 28, 32, 33)\r\n"
+//			+ "  AND cad.RESAMPLING_FLAG IN (0, 1) and cfb.CONTRACTOR_AUTHANTICATION_ID is not null and  cad.CREATED >= TO_DATE('01-01-2025', 'DD-MM-YYYY') and cad.SCHEME_TYPE_ID = 1"
+//			+ " AND cir.CIRCLE_ID = :circleId", nativeQuery = true)
+//	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetails(Long circleId);
 
 //	  AND cfb.CONTRACTOR_AUTHANTICATION_ID IN (\r\n"
 //				+ "        SELECT cfb_inner.CONTRACTOR_AUTHANTICATION_ID\r\n"
@@ -1136,6 +1136,7 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 			+ "     reg.REGION," + " vb.VERIFIER_CODE , "
 
 			+ "     vb.VERIFIED_BY_NAME," + "     vb.VERIFIED_BY_DESIGNATION," + "     vb.CONSUEMR_APPLICATION_NUMBER,"
+			+ "     vb.GATE_PASS_TYPE," + "     vb.VERIFIER_BY_ID," 
 
 			+ "    'Nistha Lab' as nistha_lab \r\n" + "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
 			+ "LEFT JOIN CONTRACTOR_FOR_BID cfb \r\n"
@@ -1369,5 +1370,232 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 	@Query(value = "SELECT * from CONSUMER_APPLICATION_DETAIL where OYT_TEMP_APPLICATION_NO =:consumerApplicationNO and IS_ACTIVE = 1", nativeQuery = true)
 	public ConsumerApplicationDetail findByConsumerApplicationNumberTemporary(String consumerApplicationNO);
 	
+	
+	
+	
+	@Query(value = "SELECT DISTINCT\r\n" + "    cad.CONSUMER_APPLICATION_NUMBER,\r\n"
+			+ "    cad.erp_workflow_number,\r\n" + "  \r\n" + "    cfb.CONTRACTOR_NAME,\r\n" + " \r\n"
+			+ "    cfb.CONTRACTOR_AUTHANTICATION_ID,\r\n" + "    now_tbl.NATURE_OF_WORK_NAME,\r\n" + "   \r\n"
+			+ "    cir.circle,\r\n" + "    div.division,\r\n" + "    dc.dc_name,\r\n" + "    cad.CONSUMER_NAME,\r\n"
+			+ "    cad.ADDRESS,\r\n" + "    cad.PHONE_NUMBER,\r\n" + "    cd.CONSUMER_MOBILE_NO,\r\n"
+			+ "    vwo.WORK_ORDER_NO,\r\n" + "    vwo.WORK_ORDER_DATE,\r\n" + "    cad.WORK_COMPLETION_DATE\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n" + "LEFT JOIN CONTRACTOR_FOR_BID cfb \r\n"
+			+ "    ON cfb.CONSUMER_APPLICATION_NUMBER = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN VENDOR_ADD_MATERIAL vam \r\n"
+			+ "    ON cad.CONSUMER_APPLICATION_NUMBER = vam.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN DISTRIBUTION_CENTER dc \r\n" + "    ON dc.DC_ID = cad.DC_ID\r\n"
+			+ "LEFT JOIN SUB_DIVISION sub_div \r\n" + "    ON sub_div.SUBDIV_ID = dc.SUBDIV_ID\r\n"
+			+ "LEFT JOIN DIVISION div \r\n" + "    ON div.DIV_ID = sub_div.DIVISION_ID\r\n"
+			+ "LEFT JOIN CIRCLE cir \r\n" + "    ON cir.CIRCLE_ID = div.CIRCLE_ID\r\n" + "LEFT JOIN REGION reg \r\n"
+			+ "    ON reg.REGION_ID = cir.REGION_ID\r\n" + "LEFT JOIN DISCOM disc \r\n"
+			+ "    ON disc.DISCOM_ID = reg.DISCOM_ID\r\n" + "LEFT JOIN CONSUMER cd \r\n"
+			+ "    ON cad.CONSUMER_ID = cd.CONSUMER_ID\r\n" + "LEFT JOIN VENDOR_WORK_ORDER vwo \r\n"
+			+ "    ON vwo.CONSUMER_APPLICATION_NO = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN NATURE_OF_WORK now_tbl \r\n" + "    ON now_tbl.NATURE_OF_WORK_ID = cad.NATURE_OF_WORK_ID\r\n"
+			+ "WHERE cad.NATURE_OF_WORK_ID IN (1,3,4,5,6,7,8,9,10,11)\r\n" + "  AND cad.APPLICATION_STATUS IN (27, 25, 28, 32, 33)\r\n"
+			+ "  AND cad.RESAMPLING_FLAG IN (0, 1) and cfb.CONTRACTOR_AUTHANTICATION_ID is not null and  cad.CREATED >= TO_DATE('01-01-2025', 'DD-MM-YYYY')"
+			+ "", nativeQuery = true)
+	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetailsNotNsc(ArrayList<Long> flagNo);
+
+	@Query(value = "SELECT * from CONSUMER_APPLICATION_DETAIL where CONSUMER_APPLICATION_NUMBER =:consumerApplicationNo and IS_ACTIVE = 1", nativeQuery = true)
+	public List<ConsumerApplicationDetail> findByConsumerApplicationNo_1(String consumerApplicationNo);
+
+	
+	
+	@Query(value = "SELECT DISTINCT\r\n" + "    cad.CONSUMER_APPLICATION_NUMBER,\r\n"
+			+ "    cad.erp_workflow_number,\r\n" + "  \r\n" + "    cfb.CONTRACTOR_NAME,\r\n" + " \r\n"
+			+ "    cfb.CONTRACTOR_AUTHANTICATION_ID,\r\n" + "    now_tbl.NATURE_OF_WORK_NAME,\r\n" + "   \r\n"
+			+ "    cir.circle,\r\n" + "    div.division,\r\n" + "    dc.dc_name,\r\n" + "    cad.CONSUMER_NAME,\r\n"
+			+ "    cad.ADDRESS,\r\n" + "    cad.PHONE_NUMBER,\r\n" + "    cd.CONSUMER_MOBILE_NO,\r\n"
+			+ "    vwo.WORK_ORDER_NO,\r\n" + "    vwo.WORK_ORDER_DATE,\r\n" + "    cad.WORK_COMPLETION_DATE\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n" + "LEFT JOIN CONTRACTOR_FOR_BID cfb \r\n"
+			+ "    ON cfb.CONSUMER_APPLICATION_NUMBER = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN VENDOR_ADD_MATERIAL vam \r\n"
+			+ "    ON cad.CONSUMER_APPLICATION_NUMBER = vam.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN DISTRIBUTION_CENTER dc \r\n" + "    ON dc.DC_ID = cad.DC_ID\r\n"
+			+ "LEFT JOIN SUB_DIVISION sub_div \r\n" + "    ON sub_div.SUBDIV_ID = dc.SUBDIV_ID\r\n"
+			+ "LEFT JOIN DIVISION div \r\n" + "    ON div.DIV_ID = sub_div.DIVISION_ID\r\n"
+			+ "LEFT JOIN CIRCLE cir \r\n" + "    ON cir.CIRCLE_ID = div.CIRCLE_ID\r\n" + "LEFT JOIN REGION reg \r\n"
+			+ "    ON reg.REGION_ID = cir.REGION_ID\r\n" + "LEFT JOIN DISCOM disc \r\n"
+			+ "    ON disc.DISCOM_ID = reg.DISCOM_ID\r\n" + "LEFT JOIN CONSUMER cd \r\n"
+			+ "    ON cad.CONSUMER_ID = cd.CONSUMER_ID\r\n" + "LEFT JOIN VENDOR_WORK_ORDER vwo \r\n"
+			+ "    ON vwo.CONSUMER_APPLICATION_NO = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN NATURE_OF_WORK now_tbl \r\n" + "    ON now_tbl.NATURE_OF_WORK_ID = cad.NATURE_OF_WORK_ID\r\n"
+			+ "WHERE cad.NATURE_OF_WORK_ID IN (2)\r\n" + "  AND cad.APPLICATION_STATUS IN (27, 25, 28, 32, 33)\r\n"
+			+ "  AND cad.RESAMPLING_FLAG IN (0, 1) and cfb.CONTRACTOR_AUTHANTICATION_ID is not null and  cad.CREATED >= TO_DATE('01-01-2025', 'DD-MM-YYYY') and cad.SCHEME_TYPE_ID = 1", nativeQuery = true)
+	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetails(ArrayList<Long> l);
+	
+	
+	@Query(value = "SELECT DISTINCT\r\n" + "    cad.CONSUMER_APPLICATION_NUMBER,\r\n"
+			+ "    cad.erp_workflow_number,\r\n" + "  \r\n" + "    cfb.CONTRACTOR_NAME,\r\n" + " \r\n"
+			+ "    cfb.CONTRACTOR_AUTHANTICATION_ID,\r\n" + "    now_tbl.NATURE_OF_WORK_NAME,\r\n" + "   \r\n"
+			+ "    cir.circle,\r\n" + "    div.division,\r\n" + "    dc.dc_name,\r\n" + "    cad.CONSUMER_NAME,\r\n"
+			+ "    cad.ADDRESS,\r\n" + "    cad.PHONE_NUMBER,\r\n" + "    cd.CONSUMER_MOBILE_NO,\r\n"
+			+ "    vwo.WORK_ORDER_NO,\r\n" + "   cad.DC_ID,\r\n" + "    vwo.WORK_ORDER_DATE,\r\n" + "    cad.WORK_COMPLETION_DATE\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n" + "LEFT JOIN CONTRACTOR_FOR_BID cfb \r\n"
+			+ "    ON cfb.CONSUMER_APPLICATION_NUMBER = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN VENDOR_ADD_MATERIAL vam \r\n"
+			+ "    ON cad.CONSUMER_APPLICATION_NUMBER = vam.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN DISTRIBUTION_CENTER dc \r\n" + "    ON dc.DC_ID = cad.DC_ID\r\n"
+			+ "LEFT JOIN SUB_DIVISION sub_div \r\n" + "    ON sub_div.SUBDIV_ID = dc.SUBDIV_ID\r\n"
+			+ "LEFT JOIN DIVISION div \r\n" + "    ON div.DIV_ID = sub_div.DIVISION_ID\r\n"
+			+ "LEFT JOIN CIRCLE cir \r\n" + "    ON cir.CIRCLE_ID = div.CIRCLE_ID\r\n" + "LEFT JOIN REGION reg \r\n"
+			+ "    ON reg.REGION_ID = cir.REGION_ID\r\n" + "LEFT JOIN DISCOM disc \r\n"
+			+ "    ON disc.DISCOM_ID = reg.DISCOM_ID\r\n" + "LEFT JOIN CONSUMER cd \r\n"
+			+ "    ON cad.CONSUMER_ID = cd.CONSUMER_ID\r\n" + "LEFT JOIN VENDOR_WORK_ORDER vwo \r\n"
+			+ "    ON vwo.CONSUMER_APPLICATION_NO = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN NATURE_OF_WORK now_tbl \r\n" + "    ON now_tbl.NATURE_OF_WORK_ID = cad.NATURE_OF_WORK_ID\r\n"
+			+ "WHERE cad.NATURE_OF_WORK_ID IN (2)\r\n" + "  AND cad.APPLICATION_STATUS IN (27, 25, 28, 32, 33)\r\n"
+			+ "  AND cad.RESAMPLING_FLAG IN (0, 1) and cfb.CONTRACTOR_AUTHANTICATION_ID is not null and  cad.CREATED >= TO_DATE('01-01-2025', 'DD-MM-YYYY') and cad.SCHEME_TYPE_ID = 1"
+			+ "  AND cad.DC_ID IN (:dcId)", nativeQuery = true)
+	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetailsByDcId(ArrayList<Integer> dcId);
+	
+	
+	
+	@Query(value = "SELECT distinct dc.DC_ID\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
+			+ "LEFT JOIN distribution_center dc \r\n"
+			+ "       ON dc.dc_id = cad.dc_id\r\n"
+			+ "LEFT JOIN sub_division sub_div \r\n"
+			+ "       ON sub_div.SUBDIV_ID = dc.subdiv_id\r\n"
+			+ "LEFT JOIN division div \r\n"
+			+ "       ON div.div_id = sub_div.division_id\r\n"
+			+ "LEFT JOIN circle cir  \r\n"
+			+ "       ON cir.circle_id = div.circle_id\r\n"
+			+ "LEFT JOIN region reg  \r\n"
+			+ "       ON reg.region_id = cir.region_id\r\n"
+			+ "LEFT JOIN discom disc  \r\n"
+			+ "       ON disc.discom_id = reg.discom_id\r\n"
+			+ "WHERE\r\n"
+			+ "    disc.discom_id =:dicomId",nativeQuery = true)
+	public ArrayList<Integer> getDcIdByDiscomId(Integer dicomId);
+	
+	@Query(value = "SELECT distinct dc.DC_ID\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
+			+ "LEFT JOIN distribution_center dc \r\n"
+			+ "       ON dc.dc_id = cad.dc_id\r\n"
+			+ "LEFT JOIN sub_division sub_div \r\n"
+			+ "       ON sub_div.SUBDIV_ID = dc.subdiv_id\r\n"
+			+ "LEFT JOIN division div \r\n"
+			+ "       ON div.div_id = sub_div.division_id\r\n"
+			+ "LEFT JOIN circle cir  \r\n"
+			+ "       ON cir.circle_id = div.circle_id\r\n"
+			+ "LEFT JOIN region reg  \r\n"
+			+ "       ON reg.region_id = cir.region_id\r\n"
+			+ "LEFT JOIN discom disc  \r\n"
+			+ "       ON disc.discom_id = reg.discom_id\r\n"
+			+ "WHERE\r\n"
+			+ "    reg.region_id =:regionId",nativeQuery = true)
+	public ArrayList<Integer> getDcIdByRegionId(Integer regionId);
+	
+	
+	@Query(value = "SELECT distinct dc.DC_ID\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
+			+ "LEFT JOIN distribution_center dc \r\n"
+			+ "       ON dc.dc_id = cad.dc_id\r\n"
+			+ "LEFT JOIN sub_division sub_div \r\n"
+			+ "       ON sub_div.SUBDIV_ID = dc.subdiv_id\r\n"
+			+ "LEFT JOIN division div \r\n"
+			+ "       ON div.div_id = sub_div.division_id\r\n"
+			+ "LEFT JOIN circle cir  \r\n"
+			+ "       ON cir.circle_id = div.circle_id\r\n"
+			+ "LEFT JOIN region reg  \r\n"
+			+ "       ON reg.region_id = cir.region_id\r\n"
+			+ "LEFT JOIN discom disc  \r\n"
+			+ "       ON disc.discom_id = reg.discom_id\r\n"
+			+ "WHERE\r\n"
+			+ "    cir.circle_id =:circleId",nativeQuery = true)
+	public ArrayList<Integer> getDcIdByCircleId(Integer circleId);
+	
+	
+	@Query(value = "SELECT distinct dc.DC_ID\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
+			+ "LEFT JOIN distribution_center dc \r\n"
+			+ "       ON dc.dc_id = cad.dc_id\r\n"
+			+ "LEFT JOIN sub_division sub_div \r\n"
+			+ "       ON sub_div.SUBDIV_ID = dc.subdiv_id\r\n"
+			+ "LEFT JOIN division div \r\n"
+			+ "       ON div.div_id = sub_div.division_id\r\n"
+			+ "LEFT JOIN circle cir  \r\n"
+			+ "       ON cir.circle_id = div.circle_id\r\n"
+			+ "LEFT JOIN region reg  \r\n"
+			+ "       ON reg.region_id = cir.region_id\r\n"
+			+ "LEFT JOIN discom disc  \r\n"
+			+ "       ON disc.discom_id = reg.discom_id\r\n"
+			+ "WHERE\r\n"
+			+ "    div.div_id =:dividionId",nativeQuery = true)
+	public ArrayList<Integer> getDcIdByDivisionId(Integer dividionId);
+	
+	@Query(value = "SELECT distinct dc.DC_ID\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
+			+ "LEFT JOIN distribution_center dc \r\n"
+			+ "       ON dc.dc_id = cad.dc_id\r\n"
+			+ "LEFT JOIN sub_division sub_div \r\n"
+			+ "       ON sub_div.SUBDIV_ID = dc.subdiv_id\r\n"
+			+ "LEFT JOIN division div \r\n"
+			+ "       ON div.div_id = sub_div.division_id\r\n"
+			+ "LEFT JOIN circle cir  \r\n"
+			+ "       ON cir.circle_id = div.circle_id\r\n"
+			+ "LEFT JOIN region reg  \r\n"
+			+ "       ON reg.region_id = cir.region_id\r\n"
+			+ "LEFT JOIN discom disc  \r\n"
+			+ "       ON disc.discom_id = reg.discom_id\r\n"
+			+ "WHERE\r\n"
+			+ "    sub_div.SUBDIV_ID =:subDividionId",nativeQuery = true)
+	public ArrayList<Integer> getDcIdBysubDivisionId(Integer subDividionId);
+	
+	
+	@Query(value = "SELECT distinct dc.DC_ID\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
+			+ "LEFT JOIN distribution_center dc \r\n"
+			+ "       ON dc.dc_id = cad.dc_id\r\n"
+			+ "LEFT JOIN sub_division sub_div \r\n"
+			+ "       ON sub_div.SUBDIV_ID = dc.subdiv_id\r\n"
+			+ "LEFT JOIN division div \r\n"
+			+ "       ON div.div_id = sub_div.division_id\r\n"
+			+ "LEFT JOIN circle cir  \r\n"
+			+ "       ON cir.circle_id = div.circle_id\r\n"
+			+ "LEFT JOIN region reg  \r\n"
+			+ "       ON reg.region_id = cir.region_id\r\n"
+			+ "LEFT JOIN discom disc  \r\n"
+			+ "       ON disc.discom_id = reg.discom_id\r\n"
+			+ "WHERE\r\n"
+			+ "    dc.dc_id =:dcId",nativeQuery = true)
+	public ArrayList<Integer> getDcIdByDcId(Integer dcId);
+	
+	@Query(value = "SELECT * from CONSUMER_APPLICATION_DETAIL where CONSUMER_APPLICATION_NUMBER =:consumerApplicationNo and IS_ACTIVE = 1", nativeQuery = true)
+	public ConsumerApplicationDetail findByConsumerApplicationNo_11(String consumerApplicationNo);
+	
+	
+	@Query(value = "SELECT\r\n"
+			+ "    cfb.CONTRACTOR_AUTHANTICATION_ID,\r\n"
+			+ "    cfb.CONTRACTOR_NAME,\r\n"
+			+ "    COUNT(DISTINCT cad.CONSUMER_APPLICATION_NUMBER) AS APPLICATION_COUNT\r\n"
+			+ "FROM CONSUMER_APPLICATION_DETAIL cad\r\n"
+			+ "INNER JOIN CONTRACTOR_FOR_BID cfb\r\n"
+			+ "    ON cfb.CONSUMER_APPLICATION_NUMBER = cad.CONSUMER_APPLICATION_NUMBER\r\n"
+			+ "LEFT JOIN DISTRIBUTION_CENTER dc\r\n"
+			+ "    ON dc.DC_ID = cad.DC_ID\r\n"
+			+ "LEFT JOIN SUB_DIVISION sub_div\r\n"
+			+ "    ON sub_div.SUBDIV_ID = dc.SUBDIV_ID\r\n"
+			+ "LEFT JOIN DIVISION div\r\n"
+			+ "    ON div.DIV_ID = sub_div.DIVISION_ID\r\n"
+			+ "LEFT JOIN CIRCLE cir\r\n"
+			+ "    ON cir.CIRCLE_ID = div.CIRCLE_ID\r\n"
+			+ "LEFT JOIN REGION reg\r\n"
+			+ "    ON reg.REGION_ID = cir.REGION_ID\r\n"
+			+ "LEFT JOIN DISCOM disc\r\n"
+			+ "    ON disc.DISCOM_ID = reg.DISCOM_ID\r\n"
+			+ "WHERE cad.NATURE_OF_WORK_ID = 2\r\n"
+			+ "  AND cad.APPLICATION_STATUS IN (27, 25, 28, 32, 33)\r\n"
+			+ "  AND cad.RESAMPLING_FLAG IN (0, 1)\r\n"
+			+ "  AND cad.CREATED >= DATE '2025-01-01'\r\n"
+			+ "  AND cad.SCHEME_TYPE_ID = 1\r\n"
+			+ "  AND cad.DC_ID IN (:dcId)\r\n"
+			+ "GROUP BY cfb.CONTRACTOR_AUTHANTICATION_ID,cfb.CONTRACTOR_NAME\r\n"
+			+ "ORDER BY APPLICATION_COUNT DESC\r\n"
+			+ "", nativeQuery = true)
+	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetailsByDcIdgroupBy(ArrayList<Integer> dcId);
+
 	
 }

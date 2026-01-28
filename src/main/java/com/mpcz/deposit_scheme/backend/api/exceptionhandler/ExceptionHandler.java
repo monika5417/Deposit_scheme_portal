@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.poi.ss.formula.functions.T;
 import org.hibernate.exception.DataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.exception.ApplicationDemandApprovalException;
 import com.mpcz.deposit_scheme.backend.api.exception.ApplicationDocumentException;
 import com.mpcz.deposit_scheme.backend.api.exception.ApplicationHeadChargesException;
@@ -41,6 +43,7 @@ import com.mpcz.deposit_scheme.backend.api.exception.DistrictException;
 import com.mpcz.deposit_scheme.backend.api.exception.DivisionException;
 import com.mpcz.deposit_scheme.backend.api.exception.ErpEstimateAmountException;
 import com.mpcz.deposit_scheme.backend.api.exception.ErpEstimateException;
+import com.mpcz.deposit_scheme.backend.api.exception.ErpSurveyEstimationDetailException;
 import com.mpcz.deposit_scheme.backend.api.exception.FeederException;
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.exception.GeoLocationException;
@@ -51,6 +54,7 @@ import com.mpcz.deposit_scheme.backend.api.exception.LoadRequestedException;
 import com.mpcz.deposit_scheme.backend.api.exception.MasterException;
 import com.mpcz.deposit_scheme.backend.api.exception.MisExcelDataException;
 import com.mpcz.deposit_scheme.backend.api.exception.MmkyCalculationException;
+import com.mpcz.deposit_scheme.backend.api.exception.NatureOfWork14Exception;
 import com.mpcz.deposit_scheme.backend.api.exception.NatureOfWorkException;
 import com.mpcz.deposit_scheme.backend.api.exception.OtpInvalidException;
 import com.mpcz.deposit_scheme.backend.api.exception.PaymentTypeException;
@@ -67,6 +71,8 @@ import com.mpcz.deposit_scheme.backend.api.exception.VendorException;
 import com.mpcz.deposit_scheme.backend.api.exception.WorkOrderTypeException;
 import com.mpcz.deposit_scheme.backend.api.request.ErrorDetails;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
+
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 
 /*
  *   The Global Exception Handler class Implementation.
@@ -324,18 +330,17 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
 //	charitra code end
-	
-	
+
 	// Monika code start
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(VendorAddMaterialException.class)
-	public final ResponseEntity<Response<?>> handleVendorAddMaterialExceptionException(
-			VendorAddMaterialException ex, WebRequest request) {
+	public final ResponseEntity<Response<?>> handleVendorAddMaterialExceptionException(VendorAddMaterialException ex,
+			WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside RoleException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(BillDeskPaymentResponseException.class)
 	public final ResponseEntity<Response<?>> handleBillDeskPaymentResponseExceptionException(
 			BillDeskPaymentResponseException ex, WebRequest request) {
@@ -343,7 +348,7 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(ApplicationDocumentException.class)
 	public final ResponseEntity<Response<?>> handleApplicationDocumentExceptionException(
 			ApplicationDocumentException ex, WebRequest request) {
@@ -351,41 +356,39 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(ConsumerException.class)
-    public ResponseEntity<?> handleConsumerException(ConsumerException ex) {
-        return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
-    }
-	
+	public ResponseEntity<?> handleConsumerException(ConsumerException ex) {
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	}
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(RefundAmountException.class)
-	public final ResponseEntity<Response<?>> handleRefundAmountException(
-			RefundAmountException ex, WebRequest request) {
+	public final ResponseEntity<Response<?>> handleRefundAmountException(RefundAmountException ex, WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside RoleException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(ConnectionPradayException.class)
-	public final ResponseEntity<Response<?>> handleConnectionPradayException(
-			ConnectionPradayException ex, WebRequest request) {
+	public final ResponseEntity<Response<?>> handleConnectionPradayException(ConnectionPradayException ex,
+			WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside RoleException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(SanchayPaymentException.class)
-	    public ResponseEntity<Response> handleSanchayPaymentException(SanchayPaymentException ex) {
-	        return new ResponseEntity<>(ex.getResponse(), HttpStatus.BAD_REQUEST);
-	    }
-	
+	public ResponseEntity<Response> handleSanchayPaymentException(SanchayPaymentException ex) {
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.BAD_REQUEST);
+	}
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(UserException.class)
-	public final ResponseEntity<Response<?>> handleUserException(
-			UserException ex, WebRequest request) {
+	public final ResponseEntity<Response<?>> handleUserException(UserException ex, WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside RoleException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	// Monika code end
 
 	@org.springframework.web.bind.annotation.ExceptionHandler(ConsumerNotFoundByApplicationIdException.class)
@@ -468,40 +471,35 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(InvoiceException.class)
-	public final ResponseEntity<Response<?>> handleInvoiceException(InvoiceException ex,
-			WebRequest request) {
+	public final ResponseEntity<Response<?>> handleInvoiceException(InvoiceException ex, WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside ApplicationHeadChargesException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(MisExcelDataException.class)
-	public final ResponseEntity<Response<?>> handleMisExcelDataException(PaymentTypeException ex,
-			WebRequest request) {
+	public final ResponseEntity<Response<?>> handleMisExcelDataException(PaymentTypeException ex, WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside MisExcelDataException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(NatureOfWorkException.class)
-	public final ResponseEntity<Response<?>> handleNatureOfWorkException(PaymentTypeException ex,
-			WebRequest request) {
+	public final ResponseEntity<Response<?>> handleNatureOfWorkException(PaymentTypeException ex, WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside NatureOfWorkException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(DistrictException.class)
-	public final ResponseEntity<Response<?>> handleDistrictException(DistrictException ex,
-			WebRequest request) {
+	public final ResponseEntity<Response<?>> handleDistrictException(DistrictException ex, WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside DistrictException : " + ex.getMessage());
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-	
+
 	@org.springframework.web.bind.annotation.ExceptionHandler(LoadRequestedException.class)
 	public final ResponseEntity<Response<?>> handleLoadRequestedException(LoadRequestedException ex,
 			WebRequest request) {
@@ -509,68 +507,91 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 		logger.error(" ", ex);
 		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-		
-		@org.springframework.web.bind.annotation.ExceptionHandler(LandAreaUnitException.class)
-		public final ResponseEntity<Response<?>> handleLandAreaUnitException(LandAreaUnitException ex,
-				WebRequest request) {
-			logger.error(">>>>>>>>>>>>>>>Inside LandAreaUnitException : " + ex.getMessage());
-			logger.error(" ", ex);
-			return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);//ErpEstimateAmountException
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(LandAreaUnitException.class)
+	public final ResponseEntity<Response<?>> handleLandAreaUnitException(LandAreaUnitException ex, WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside LandAreaUnitException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);// ErpEstimateAmountException
 	}
-		@org.springframework.web.bind.annotation.ExceptionHandler(ErpEstimateException.class)
-		public final ResponseEntity<Response<?>> handleErpEstimateException(ErpEstimateException ex,
-				WebRequest request) {
-			logger.error(">>>>>>>>>>>>>>>Inside LandAreaUnitException : " + ex.getMessage());
-			logger.error(" ", ex);
-			return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(ErpEstimateException.class)
+	public final ResponseEntity<Response<?>> handleErpEstimateException(ErpEstimateException ex, WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside LandAreaUnitException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-		
-		@org.springframework.web.bind.annotation.ExceptionHandler(ErpEstimateAmountException.class)
-		public final ResponseEntity<Response<?>> handlerpEstimateAmountExceptionn(ErpEstimateAmountException ex,
-				WebRequest request) {
-			logger.error(">>>>>>>>>>>>>>>Inside ErpEstimateAmountException : " + ex.getMessage());
-			logger.error(" ", ex);
-			return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(ErpEstimateAmountException.class)
+	public final ResponseEntity<Response<?>> handlerpEstimateAmountExceptionn(ErpEstimateAmountException ex,
+			WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside ErpEstimateAmountException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-		//ContractorDetailException
-		
-		@org.springframework.web.bind.annotation.ExceptionHandler(ContractorDetailException.class)
-		public final ResponseEntity<Response<?>> handleContractorDetailException(ContractorDetailException ex,
-				WebRequest request) {
-			logger.error(">>>>>>>>>>>>>>>Inside ContractorDetailException : " + ex.getMessage());
-			logger.error(" ", ex);
-			return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	// ContractorDetailException
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(ContractorDetailException.class)
+	public final ResponseEntity<Response<?>> handleContractorDetailException(ContractorDetailException ex,
+			WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside ContractorDetailException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-				@org.springframework.web.bind.annotation.ExceptionHandler(ContractorForQcException.class)
-		public final ResponseEntity<Response<?>> handleContractorForQcException(ContractorForQcException ex,
-				WebRequest request) {
-			logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
-			logger.error(" ", ex);
-			return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(ContractorForQcException.class)
+	public final ResponseEntity<Response<?>> handleContractorForQcException(ContractorForQcException ex,
+			WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
 	}
-				
-				@org.springframework.web.bind.annotation.ExceptionHandler(MmkyCalculationException.class)
-				public final ResponseEntity<Response<?>> handlerMmkyCalculationException(MmkyCalculationException ex,
-						WebRequest request) {
-					logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
-					logger.error(" ", ex);
-					return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
-			}
-				
-				@org.springframework.web.bind.annotation.ExceptionHandler(VendorException.class)
-				public final ResponseEntity<Response<?>> handlerVendorException(VendorException ex,
-						WebRequest request) {
-					logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
-					logger.error(" ", ex);
-					return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
-			}
-				
-				@org.springframework.web.bind.annotation.ExceptionHandler(com.mpcz.deposit_scheme.backend.api.exception.TransactionAmountException.class)
-				public final ResponseEntity<Response<?>> TransactionAmountException(VendorException ex,
-						WebRequest request) {
-					logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
-					logger.error(" ", ex);
-					return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
-			}
-				
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(MmkyCalculationException.class)
+	public final ResponseEntity<Response<?>> handlerMmkyCalculationException(MmkyCalculationException ex,
+			WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	}
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(VendorException.class)
+	public final ResponseEntity<Response<?>> handlerVendorException(VendorException ex, WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	}
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(com.mpcz.deposit_scheme.backend.api.exception.TransactionAmountException.class)
+	public final ResponseEntity<Response<?>> TransactionAmountException(VendorException ex, WebRequest request) {
+		logger.error(">>>>>>>>>>>>>>>Inside ContractorForQcException : " + ex.getMessage());
+		logger.error(" ", ex);
+		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+	}
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(com.mpcz.deposit_scheme.backend.api.exception.NatureOfWork14Exception.class)
+	public final ResponseEntity<Response<T>> NatureOfWork14Exception(NatureOfWork14Exception ex) {
+		Response r = new Response();
+		r.setCode("200");
+		r.setMessage(ex.getMessage());
+
+		return ResponseEntity.ok(r);
+	}
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(RequestNotPermitted.class)
+	public ResponseEntity<?> handleRateLimit(RequestNotPermitted ex) {
+
+		return ResponseEntity.status(429).body(new Response<>(HttpCode.OK, "Too many requests from your system. Please try later."));
+	}
+
+	
+	@org.springframework.web.bind.annotation.ExceptionHandler(com.mpcz.deposit_scheme.backend.api.exception.ErpSurveyEstimationDetailException.class)
+	public final ResponseEntity<Response<T>> ErpSurveyEstimationDetailException(ErpSurveyEstimationDetailException ex) {
+		Response r = new Response();
+		r.setCode(ex.getResponse().getCode());
+		r.setMessage(ex.getMessage());
+
+		return ResponseEntity.ok(r);
+	}
+	
 }

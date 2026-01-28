@@ -137,52 +137,56 @@ public class SSPServiceImpl implements SSPService {
 		log.info("=== API CALLED: /sspSignUp ===");
 
 //		log.info("Incoming SSP DTO as GSON: {}" + new Gson().toJson(sspDto));
-		ConsumerApplicationDetail consumerAppDetail = consumerApplictionDetailRepository
-				.findByNscApplicationNo(sspDto.getNscApplicationNo());
-		if (consumerAppDetail != null) {
-			Response<Consumer> response = new Response<>();
-			response.setCode(HttpCode.NOT_ACCEPTABLE);
-			response.setMessage("NSC Application already exist");
-			response.setDspApplicationNo(consumerAppDetail.getConsumerApplicationNo());
-//			log.info("NSC Application already exist: {}", sspDto.getNscApplicationNo());
-			throw new ConsumerException(response);
+		if (sspDto.getNscApplicationNo() == null) {
+
 		} else {
-			validateDto(sspDto);
-			Optional<Consumer> consumer = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
+			ConsumerApplicationDetail consumerAppDetail = consumerApplictionDetailRepository
+					.findByNscApplicationNo(sspDto.getNscApplicationNo());
 
-			if (consumer.isPresent()) {
-
-				String consumerCredentials = consumer.get().getConsumerCredentials();
-
-				ResponseEntity<Response> checkCredentials = checkCredentials(consumer.get(), request);
-
-				Optional<Consumer> consumer3 = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
-
-				Consumer consumer10 = consumer3.get();
-				consumer10.setConsumerCredentials(consumerCredentials);
-				Consumer updatedConsumer = consumerRepository.save(consumer10);
-//				sspDto.setConsumerName(updatedConsumer.getConsumerName());
-//				sspDto.setEmailId(updatedConsumer.getConsumerEmailId());
-//				sspDto.setAddress(updatedConsumer.getAddress());
-				ConsumerApplicationDetail saveConsumerApplication = saveConsumerApplication(sspDto);
-				if (saveConsumerApplication != null) {
-					updatedConsumer.setDspApplicationNo(saveConsumerApplication.getConsumerApplicationNo());
-					updatedConsumer.setSspApplicationNo(saveConsumerApplication.getNscApplicationNo());
-				}
-
-				return new SignUpResponse(updatedConsumer, checkCredentials.getBody().getToken());
-			} else {
-
-				SignUpResponse saveConsumerBySSP = saveConsumerBySSP(sspDto, request);
-				ConsumerApplicationDetail saveConsumerApplication = saveConsumerApplication(sspDto);
-				if (saveConsumerApplication != null) {
-					consumer.get().setDspApplicationNo(saveConsumerApplication.getConsumerApplicationNo());
-					consumer.get().setSspApplicationNo(saveConsumerApplication.getNscApplicationNo());
-				}
-				return saveConsumerBySSP;
+			if (consumerAppDetail != null) {
+				Response<Consumer> response = new Response<>();
+				response.setCode(HttpCode.NOT_ACCEPTABLE);
+				response.setMessage("NSC Application already exist");
+				response.setDspApplicationNo(consumerAppDetail.getConsumerApplicationNo());
+//				log.info("NSC Application already exist: {}", sspDto.getNscApplicationNo());
+				throw new ConsumerException(response);
 			}
 		}
 
+		validateDto(sspDto);
+		Optional<Consumer> consumer = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
+
+		if (consumer.isPresent()) {
+
+			String consumerCredentials = consumer.get().getConsumerCredentials();
+
+			ResponseEntity<Response> checkCredentials = checkCredentials(consumer.get(), request);
+
+			Optional<Consumer> consumer3 = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
+
+			Consumer consumer10 = consumer3.get();
+			consumer10.setConsumerCredentials(consumerCredentials);
+			Consumer updatedConsumer = consumerRepository.save(consumer10);
+//				sspDto.setConsumerName(updatedConsumer.getConsumerName());
+//				sspDto.setEmailId(updatedConsumer.getConsumerEmailId());
+//				sspDto.setAddress(updatedConsumer.getAddress());
+			ConsumerApplicationDetail saveConsumerApplication = saveConsumerApplication(sspDto);
+			if (saveConsumerApplication != null) {
+				updatedConsumer.setDspApplicationNo(saveConsumerApplication.getConsumerApplicationNo());
+				updatedConsumer.setSspApplicationNo(saveConsumerApplication.getNscApplicationNo());
+			}
+
+			return new SignUpResponse(updatedConsumer, checkCredentials.getBody().getToken());
+		} else {
+
+			SignUpResponse saveConsumerBySSP = saveConsumerBySSP(sspDto, request);
+			ConsumerApplicationDetail saveConsumerApplication = saveConsumerApplication(sspDto);
+			if (saveConsumerApplication != null) {
+				consumer.get().setDspApplicationNo(saveConsumerApplication.getConsumerApplicationNo());
+				consumer.get().setSspApplicationNo(saveConsumerApplication.getNscApplicationNo());
+			}
+			return saveConsumerBySSP;
+		}
 	}
 
 	public SignUpResponse saveConsumerBySSP(SSPDto sspDto, HttpServletRequest request)
@@ -353,12 +357,12 @@ public class SSPServiceImpl implements SSPService {
 	public ConsumerApplicationDetail saveConsumerApplication(SSPDto sspDto)
 			throws DistributionCenterException, DistrictException {
 		log.info("=== Inside saveConsumerApplication() ===");
+		try {
+			NatureOfWork natureOfWork = null;
+			Optional<Consumer> consumer = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
+			Consumer consumerData = consumer.get();
 
-		NatureOfWork natureOfWork = null;
-		Optional<Consumer> consumer = consumerRepository.findByConsumerLoginId(sspDto.getMobileNumber());
-		Consumer consumerData = consumer.get();
-
-		SchemeType schemeType = schemeTypeRepository.findById(sspDto.getSchemeType()).get();
+			SchemeType schemeType = schemeTypeRepository.findById(sspDto.getSchemeType()).get();
 
 //		if (sspDto.getNatureOfWork().equals(5L) && sspDto.getMeterCost() <= 0) {
 //			natureOfWork = natureOfWorkRepository.findById(sspDto.getNatureOfWork()).get();
@@ -369,112 +373,119 @@ public class SSPServiceImpl implements SSPService {
 //		} else {
 //			natureOfWork = natureOfWorkRepository.findById(2L).get();
 //		}
-		sspDto = checkNatureOfWork(sspDto);
-		natureOfWork = natureOfWorkRepository.findById(sspDto.getNatureOfWork()).get();
+//			sspDto = checkNatureOfWork(sspDto);
+			natureOfWork = natureOfWorkRepository.findById(sspDto.getNatureOfWork()).get();
 
-		long uniqueCurrentTimeMS = uniqueCurrentTimeMS();
-		String applicationNumber = String.valueOf(uniqueCurrentTimeMS);
+			long uniqueCurrentTimeMS = uniqueCurrentTimeMS();
+			String applicationNumber = String.valueOf(uniqueCurrentTimeMS);
 
-		String prefix = schemeType.getSchemeTypeId().equals(1L) ? "SV" : "DS";
-		String consumerAppNo = prefix + applicationNumber;
+			String prefix = schemeType.getSchemeTypeId().equals(1L) ? "SV" : "DS";
+			String consumerAppNo = prefix + applicationNumber;
 
-		DistributionCenter distributionCenter = distributionCenterRepository
-				.findDistributionCenterByNgbDcCd(sspDto.getDcCode());
-		if (distributionCenter == null) {
-			log.info("Distribution Center not found for DC Code: {}", sspDto.getDcCode());
-			Response<Consumer> response = new Response<>();
-			response.setCode(HttpCode.NULL_OBJECT);
-			response.setMessage("Given Dc not found in database");
-			throw new DistributionCenterException(response);
-		}
-		log.info("Distribution Center found: {}", distributionCenter.getNgbDcCd());
-		District district;
-		try {
-			district = districtRepository.findById(distributionCenter.getDistrict().getDistrictId()).orElseThrow(() -> {
-				log.info("District not found for District ID: {}", distributionCenter.getDistrict().getDistrictId());
+			DistributionCenter distributionCenter = distributionCenterRepository
+					.findDistributionCenterByNgbDcCd(sspDto.getDcCode());
+			if (distributionCenter == null) {
+				log.info("Distribution Center not found for DC Code: {}", sspDto.getDcCode());
 				Response<Consumer> response = new Response<>();
 				response.setCode(HttpCode.NULL_OBJECT);
-				response.setMessage("District Id not found");
-				return new DistrictException(response);
-			});
-			log.info("District fetched: {}", district.getDistrictName());
-		} catch (DistrictException e) {
+				response.setMessage("Given Dc not found in database");
+				throw new DistributionCenterException(response);
+			}
+			log.info("Distribution Center found: {}", distributionCenter.getNgbDcCd());
+			District district;
+			try {
+				district = districtRepository.findById(distributionCenter.getDistrict().getDistrictId())
+						.orElseThrow(() -> {
+							log.info("District not found for District ID: {}",
+									distributionCenter.getDistrict().getDistrictId());
+							Response<Consumer> response = new Response<>();
+							response.setCode(HttpCode.NULL_OBJECT);
+							response.setMessage("District Id not found");
+							return new DistrictException(response);
+						});
+				log.info("District fetched: {}", district.getDistrictName());
+			} catch (DistrictException e) {
 
-			throw e;
-		}
+				throw e;
+			}
 
-		Optional<LandAreaUnit> landAreaUnit = landAreaUnitRepository.findById(sspDto.getAreaUnit());
-		if (!landAreaUnit.isPresent()) {
-			log.info("Land Area Unit not found for ID: {}", sspDto.getAreaUnit());
-			Response<Consumer> response = new Response<>();
-			response.setCode(HttpCode.NULL_OBJECT);
-			response.setMessage("Given Load Area Unit not found in database");
-			throw new LandAreaUnitException(response);
-		}
+			Optional<LandAreaUnit> landAreaUnit = landAreaUnitRepository.findById(sspDto.getAreaUnit());
+			if (!landAreaUnit.isPresent()) {
+				log.info("Land Area Unit not found for ID: {}", sspDto.getAreaUnit());
+				Response<Consumer> response = new Response<>();
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Given Load Area Unit not found in database");
+				throw new LandAreaUnitException(response);
+			}
 
 //		19-05-2025
-		LoadRequested loadRequestedUnit = null;
-		if (sspDto.getLoadUnit() != null) {
-			loadRequestedUnit = loadRequestedRepository.findByLoadRequestedName(sspDto.getLoadUnit())
-					.orElseThrow(() -> new LoadRequestedException(
-							new Response(HttpCode.NULL_OBJECT, "Given Load Unit not found in database")));
-		}
-		log.info("Load Requested Unit fetched: {}", loadRequestedUnit.getLoadRequestedName());
+			LoadRequested loadRequestedUnit = null;
+			if (sspDto.getLoadUnit() != null) {
+				loadRequestedUnit = loadRequestedRepository.findByLoadRequestedName(sspDto.getLoadUnit())
+						.orElseThrow(() -> new LoadRequestedException(
+								new Response(HttpCode.NULL_OBJECT, "Given Load Unit not found in database")));
+			}
+
+//		log.info("Load Requested Unit fetched: {}", loadRequestedUnit.getLoadRequestedName());
 //		19-05-2025
-		ConsumerApplicationDetail cad = new ConsumerApplicationDetail();
-		cad.setConsumers(consumerData);
-		cad.setConsumerApplicationNo(consumerAppNo);
-		cad.setConsumerName(sspDto.getConsumerName());
-		cad.setAddress(sspDto.getAddress());
-		cad.setConsumerphonNumber(sspDto.getMobileNumber());
-		cad.setNscApplicationNo(sspDto.getNscApplicationNo());
-		cad.setSspPortalName("SSP Portal");
-		cad.setNatureOfWorkType(natureOfWork);
-		cad.setSchemeType(schemeType);
-		cad.setDistributionCenter(distributionCenter);
-		cad.setGuardianName(sspDto.getGuardianName());
-		cad.setArea(sspDto.getArea());
-		cad.setLandAreaUnit(landAreaUnit.get());
-		cad.setAvedakRemark(sspDto.getOrganizationName());
+			ConsumerApplicationDetail cad = new ConsumerApplicationDetail();
+			cad.setConsumers(consumerData);
+			cad.setConsumerApplicationNo(consumerAppNo);
+			cad.setConsumerName(sspDto.getConsumerName());
+			cad.setAddress(sspDto.getAddress());
+			cad.setConsumerphonNumber(sspDto.getMobileNumber());
+			cad.setNscApplicationNo(sspDto.getNscApplicationNo());
+			cad.setSspPortalName("SSP Portal");
+			cad.setNatureOfWorkType(natureOfWork);
+			cad.setSchemeType(schemeType);
+			cad.setDistributionCenter(distributionCenter);
+			cad.setGuardianName(sspDto.getGuardianName());
+			cad.setArea(sspDto.getArea());
+			cad.setLandAreaUnit(landAreaUnit.get());
+			cad.setAvedakRemark(sspDto.getOrganizationName());
 //		added this line for samagra id 2-jan 2025
-		cad.setSamagraId(sspDto.getMemberId());
-		cad.setIvrsNo(sspDto.getConsumerNo());
-		cad.setPremiseAreaType(sspDto.getPremiseAreaType());
-		if (sspDto.getAppliedLoad() != null) {
-			cad.setLoadRequested(sspDto.getAppliedLoad().toString());
-		}
+			cad.setSamagraId(sspDto.getMemberId());
+			cad.setIvrsNo(sspDto.getConsumerNo());
+			cad.setPremiseAreaType(sspDto.getPremiseAreaType());
+			if (sspDto.getAppliedLoad() != null) {
+				cad.setLoadRequested(sspDto.getAppliedLoad().toString());
+			}
 //		end
-		cad.setLoadRequestedId(loadRequestedUnit);
-		if ((natureOfWork.getNatureOfWorkTypeId() == 2l || natureOfWork.getNatureOfWorkTypeId() == 5l)
-				&& Objects.nonNull(sspDto.getTotalAmount())) {
-			if (Objects.nonNull(sspDto.getRegistrationCharge()))
-				cad.setSspRegistrationCharge(BigDecimal.valueOf(sspDto.getRegistrationCharge()));
-			if (Objects.nonNull(sspDto.getMeterCost()))
-				cad.setSspMeterCost(BigDecimal.valueOf(sspDto.getMeterCost()));
-			if (Objects.nonNull(sspDto.getSecurityDeposit()))
-				cad.setSspSecurityDeposit(BigDecimal.valueOf(sspDto.getSecurityDeposit()));
-			if (Objects.nonNull(sspDto.getSupplyAffordingCharges()))
-				cad.setSspSupplyAffordingCharges(BigDecimal.valueOf(sspDto.getSupplyAffordingCharges()));
-			if (Objects.nonNull(sspDto.getTotalAmount()))
-				cad.setSspTotalAmount(BigDecimal.valueOf(sspDto.getTotalAmount()));
-		}
-		cad.setPurposeOfInstallation(sspDto.getPurposeOfInstallation());
-		cad.setPhase(sspDto.getPhase());
+			cad.setLoadRequestedId(loadRequestedUnit);
+			if ((natureOfWork.getNatureOfWorkTypeId() == 2l || natureOfWork.getNatureOfWorkTypeId() == 5l)
+					&& Objects.nonNull(sspDto.getTotalAmount())) {
+				if (Objects.nonNull(sspDto.getRegistrationCharge()))
+					cad.setSspRegistrationCharge(BigDecimal.valueOf(sspDto.getRegistrationCharge()));
+				if (Objects.nonNull(sspDto.getMeterCost()))
+					cad.setSspMeterCost(BigDecimal.valueOf(sspDto.getMeterCost()));
+				if (Objects.nonNull(sspDto.getSecurityDeposit()))
+					cad.setSspSecurityDeposit(BigDecimal.valueOf(sspDto.getSecurityDeposit()));
+				if (Objects.nonNull(sspDto.getSupplyAffordingCharges()))
+					cad.setSspSupplyAffordingCharges(BigDecimal.valueOf(sspDto.getSupplyAffordingCharges()));
+				if (Objects.nonNull(sspDto.getTotalAmount()))
+					cad.setSspTotalAmount(BigDecimal.valueOf(sspDto.getTotalAmount()));
+			}
+			cad.setPurposeOfInstallation(sspDto.getPurposeOfInstallation());
+			cad.setPhase(sspDto.getPhase());
 
-		if (sspDto.getIsGoverment().equals("YES")) {
-			cad.setAvedakKaPrakar("Government");
-		} else {
-			cad.setAvedakKaPrakar("Private");
-		}
-		cad.setDistrict(district);
-		cad.setConnectionType(sspDto.getConnectionType());
-		cad.setApplicationStatus(applicationStatusRepository
-				.findById(ApplicationStatusEnum.UNPAID_APPLICATION_VENDOR_REJECTED.getId()).get());
+			if (sspDto.getIsGoverment().equals("YES")) {
+				cad.setAvedakKaPrakar("Government");
+			} else {
+				cad.setAvedakKaPrakar("Private");
+			}
+			cad.setDistrict(district);
+			cad.setConnectionType(sspDto.getConnectionType());
+			cad.setApplicationStatus(applicationStatusRepository
+					.findById(ApplicationStatusEnum.UNPAID_APPLICATION_VENDOR_REJECTED.getId()).get());
 
-		cad.setConnectionCategory(sspDto.getConnectionCategory());
-		cad.setMeteringStatus(sspDto.getMeteringStatus());
-		cad.setCastCategory(sspDto.getCaste());
-		return consumerApplictionDetailRepository.save(cad);
+			cad.setConnectionCategory(sspDto.getConnectionCategory());
+			cad.setMeteringStatus(sspDto.getMeteringStatus());
+			cad.setCastCategory(sspDto.getCaste());
+			return consumerApplictionDetailRepository.save(cad);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 
 	}
 
@@ -507,10 +518,23 @@ public class SSPServiceImpl implements SSPService {
 				response.setMessage("Nature Of Work Can not be null");
 				throw new ConsumerException(response);
 			}
-// code written on 11-11-2025 start
-			if (sspDto.getMeteringStatus() == null || sspDto.getMeteringStatus().equals("")) {
-				throw new ConsumerException(new Response(HttpCode.NULL_OBJECT, "Metering status can not be null"));
-			}
+			// code written on 11-11-2025 start
+//			if (sspDto.getNatureOfWork().equals(5l)) {
+//				if (sspDto.getIsOyt().equals(1)) {
+//					if (sspDto.getMeteringStatus() == null || sspDto.getMeteringStatus().equals("")) {
+//						throw new ConsumerException(
+//								new Response(HttpCode.NULL_OBJECT, "Metering status can not be null"));
+//					}
+//				}
+//
+//				if (sspDto.getIsOyt().equals(2)) {
+//					if (sspDto.getMeteringStatus() == null || sspDto.getMeteringStatus().equals("")) {
+//						throw new ConsumerException(
+//								new Response(HttpCode.NULL_OBJECT, "Metering status can not be null"));
+//					}
+//				}
+//			}
+
 			sspDto = checkNatureOfWork(sspDto);
 
 			// code written on 11-11-2025 end
@@ -543,12 +567,14 @@ public class SSPServiceImpl implements SSPService {
 				throw new ConsumerException(response);
 			}
 
-			if (sspDto.getNscApplicationNo() == null || sspDto.getNscApplicationNo().equals("")) {
-
-				response.setCode(HttpCode.NULL_OBJECT);
-				response.setMessage("SSP Application No. Can not be null");
-				throw new ConsumerException(response);
-			}
+//			if (sspDto.getIsOyt() != null && (sspDto.getIsOyt().equals(1) || sspDto.getIsOyt().equals(2))) {
+//				if (sspDto.getNscApplicationNo() == null || sspDto.getNscApplicationNo().equals("")) {
+//
+//					response.setCode(HttpCode.NULL_OBJECT);
+//					response.setMessage("SSP Application No. Can not be null");
+//					throw new ConsumerException(response);
+//				}
+//			}
 
 			if (sspDto.getSchemeType() == null) {
 
@@ -600,7 +626,6 @@ public class SSPServiceImpl implements SSPService {
 
 			if (sspDto.getNatureOfWork() == 2L || sspDto.getNatureOfWork() == 5L) {
 
-		
 				if (sspDto.getTotalAmount() == null
 						|| BigDecimal.valueOf(sspDto.getTotalAmount()).compareTo(BigDecimal.ZERO) <= 0) {
 					response.setCode(HttpCode.NULL_OBJECT);
@@ -608,17 +633,21 @@ public class SSPServiceImpl implements SSPService {
 					throw new ConsumerException(response);
 				}
 
+//				|| sspDto.getIsBpl().equals("NO")  || sspDto.getIsShramik().equals("NO") ye 2 check charitra ne lagaye hai 31-12-2025
 //				check added on 11-11-2025 because in case of OYT there is only 5 as TotalAmount()
 				if ((sspDto.getSecurityDeposit() == null
-						|| BigDecimal.valueOf(sspDto.getSecurityDeposit()).compareTo(BigDecimal.ZERO) <= 0)
-						&& (!"SC".equals(sspDto.getCaste()) && !"ST".equals(sspDto.getCaste()))
-						) {
+						|| BigDecimal.valueOf(sspDto.getSecurityDeposit()).compareTo(BigDecimal.ZERO) <= 0)  
+						&& (!"SC".equals(sspDto.getCaste()) && !"ST".equals(sspDto.getCaste()))) {
 					response.setCode(HttpCode.NULL_OBJECT);
 					response.setMessage(
 							"Security Deposit Amount should not be null, 0 or negative in case of new NSC and OYT. Please edit your application.");
 					throw new ConsumerException(response);
 				}
+				
 			}
+			
+			
+			
 		}
 	}
 
@@ -657,18 +686,36 @@ public class SSPServiceImpl implements SSPService {
 	}
 
 	public static SSPDto checkNatureOfWork(SSPDto sspDto) {
-		if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 1l && sspDto.getMeterCost() <= 0) {
+		
+		 if(sspDto.getNatureOfWork().equals(5l)  && ((sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(13) )|| (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(14) ))) {
+			 if (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(13)) {
+					sspDto.setNatureOfWork(13l);
+					sspDto.setConnectionCategory("LV5");
+					sspDto.setSchemeType(1L);
+				} else if (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(14)) {
+					sspDto.setNatureOfWork(14l);
+					sspDto.setConnectionCategory("LV5");
+					sspDto.setSchemeType(1L);
+				}
+		} 
+		 else  if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 1l && sspDto.getMeterCost() != null
+				&& sspDto.getMeterCost() <= 0) {
 			sspDto.setNatureOfWork(5l);
 			sspDto.setConnectionCategory("LV5");
-		} else if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 2l && sspDto.getMeterCost() > 0) {
+		} else if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 2l && sspDto.getMeterCost() != null
+				&& sspDto.getMeterCost() > 0) {
 			sspDto.setNatureOfWork(2l);
 			sspDto.setConnectionCategory("LV5");
-		} else if (sspDto.getNatureOfWork().equals(7L)) {
+		}  else if (sspDto.getNatureOfWork().equals(7L)) {
 			sspDto.setNatureOfWork(7l);
-		} else {
+		} 
+		else {
 			sspDto.setNatureOfWork(2l);
 		}
+		
 		return sspDto;
-	}
-
+		}
+	
 }
+
+

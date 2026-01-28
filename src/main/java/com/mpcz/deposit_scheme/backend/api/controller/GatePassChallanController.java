@@ -84,6 +84,7 @@ public class GatePassChallanController {
 		List<MaterialDetail> materialDetail = gatePassChallanDTO.getMaterialDetail();
 
 		VerifierBy verifierBy = gatePassChallanDTO.getVerifierBy();
+		verifierBy.setConsumerApplicationNumber(gatePassChallanDTO.getGatePassChallan().getConsumerApplicationNumber());
 
 		VerifierGatekeeper verifierGatekeeper = gatePassChallanDTO.getVerifierGatekeeper();
 
@@ -189,21 +190,23 @@ public class GatePassChallanController {
 		reSample.setTaAcceptDtrOrNotDate(LocalDateTime.now() + "");
 	
 		reSample.setRemark(remark);
-	if(dtrAcceptOrNot.equals("reject")) {
-		reSample.setDtrPassOrFail(dtrAcceptOrNot);
-	}
 	
+	
+		if(dtrAcceptOrNot.equalsIgnoreCase("yes")) {
+			reSample.setDtrAcceptOrNot("accept");
+		}
+		
 		ReSampling save = reSamplingRepository.save(reSample);
 
 		Response res = new Response();
 
 		if (dtrAcceptOrNot.equals("reject")) {
-			reSample.setDtrAcceptOrNot(dtrAcceptOrNot);
+			
 			ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
 					.findByConsumerApplicationNo(consumerApplicationNo).get();
 			
 			if (consumerApplicationDetail == null) {
-				res.setMessage("data not foun");
+				res.setMessage("data not found");
 				res.setCode("404");
 				return res;
 			}
@@ -270,4 +273,101 @@ public class GatePassChallanController {
 						: new Response(HttpCode.UPDATED, "Data Updated successfully", Arrays.asList(save)));
 
 	}
+	
+	
+//	 new method for multipal dtr 
+	
+//	@PostMapping("/saveGetPassPdfaAndtrfUploadFile")
+//	public ResponseEntity<?> saveGetPassPdf1(@RequestPart String consumerApplicationNo,
+//			@RequestPart(required = false) MultipartFile getPassFilee,
+//			@RequestPart(required = false) MultipartFile trfFile,
+//			@RequestPart(required = true) Long id )
+//			throws DocumentTypeException, ConsumerApplicationDetailException {
+//
+//		ReSampling findByConAppNo = reSamplingRepository.findByConAppNoAndId(consumerApplicationNo,id);
+//
+//		if (findByConAppNo == null) {
+//			return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE, "application not found "));
+//		}
+//
+//		findByConAppNo.setDate(LocalDateTime.now() + "");
+//		ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
+//				.findByConsumerApplicationNo(consumerApplicationNo).get();
+//		if (consumerApplicationDetail == null) {
+//			return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE, "application is null or empty"));
+//
+//		}
+//		ApplicationDocument appDoc = null;
+//		appDoc = applicationDocumentRepository
+//				.findByConsumerApplicationDetailId(consumerApplicationDetail.getConsumerApplicationId());
+//		if (appDoc == null) {
+//			appDoc = new ApplicationDocument();
+//		}
+//
+//		Upload getPassFile = null;
+//		Upload trfFile1 = null;
+//
+//		if (getPassFilee != null) {
+//			getPassFile = uploadService.uploadFile(getPassFilee, "GET_PASS_PIC");
+//			appDoc.setGetPassfile(getPassFile);
+//		}
+//		if (trfFile != null) {
+//			trfFile1 = uploadService.uploadFile(trfFile, "TRF_FILE");
+//			appDoc.setTrffile(trfFile1);
+//		}
+//
+//		appDoc.setConsumerApplicationDetail(consumerApplicationDetail);
+//		ApplicationDocument save = applicationDocumentRepository.save(appDoc);
+//
+//		return ResponseEntity
+//				.ok(Objects.isNull(save) ? new Response(HttpCode.NULL_OBJECT, "Data not saved successfully")
+//						: new Response(HttpCode.UPDATED, "Data Updated successfully", Arrays.asList(save)));
+//
+//	}
+	
+	
+//	@PostMapping("/saveReversiveGetPassPdfaAndtrfUploadFile")
+//	public ResponseEntity<?> saveReversiveGetPassPdfaAndtrfUploadFile1(@RequestPart String consumerApplicationNo,
+//			@RequestPart(required = false) MultipartFile getRivicePassFilee,
+//			@RequestPart Long id
+//	)
+//			throws DocumentTypeException, ConsumerApplicationDetailException {
+//
+//		ReSampling findByConAppNo = reSamplingRepository.findByConAppNo(consumerApplicationNo,id);
+//
+//		if (findByConAppNo == null) {
+//			return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE, "application not found "));
+//		}
+//
+//		findByConAppNo.setGatPassDate(LocalDateTime.now() + "");
+//		ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
+//				.findByConsumerApplicationNo(consumerApplicationNo).get();
+//		if (consumerApplicationDetail == null) {
+//			return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE, "application is null or empty"));
+//
+//		}
+//		ApplicationDocument appDoc = null;
+//		appDoc = applicationDocumentRepository
+//				.findByConsumerApplicationDetailId(consumerApplicationDetail.getConsumerApplicationId());
+//		if (appDoc == null) {
+//			appDoc = new ApplicationDocument();
+//		}
+//
+//		Upload REVgetPassFile = null;
+//
+//
+//		if (getRivicePassFilee != null) {
+//			REVgetPassFile = uploadService.uploadFile(getRivicePassFilee, "REV_GET_PASS_PIC");
+//			appDoc.setRevGetPassfile(REVgetPassFile);
+//		}
+//		
+//		appDoc.setConsumerApplicationDetail(consumerApplicationDetail);
+//		ApplicationDocument save = applicationDocumentRepository.save(appDoc);
+//
+//		return ResponseEntity
+//				.ok(Objects.isNull(save) ? new Response(HttpCode.NULL_OBJECT, "Data not saved successfully")
+//						: new Response(HttpCode.UPDATED, "Data Updated successfully", Arrays.asList(save)));
+//
+//	}
+
 }

@@ -281,6 +281,10 @@ public class ApplicationDocument extends Auditable<Long> {
 	@ManyToOne
 	@JoinColumn(name = "DOC_DRAFT_AGREEMENT", referencedColumnName = "UPLOAD_ID")
 	private Upload docDraftAgreement;
+	
+	@ManyToOne
+	@JoinColumn(name = "CONSENT_LETTER", referencedColumnName = "UPLOAD_ID")
+	private Upload consentletter;
 
 	@ManyToOne
 	@JoinColumn(name = "CONSUMER_ID", referencedColumnName = "CONSUMER_ID")
@@ -812,6 +816,14 @@ public class ApplicationDocument extends Auditable<Long> {
 
 	public void setTestReportFile(Upload testReportFile) {
 		this.testReportFile = testReportFile;
+	}
+
+	public Upload getConsentletter() {
+		return consentletter;
+	}
+
+	public void setConsentletter(Upload consentletter) {
+		this.consentletter = consentletter;
 	}
 
 }

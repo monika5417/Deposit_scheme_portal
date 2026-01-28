@@ -48,12 +48,12 @@ public interface ConsumerApplicationDetailService {
 			MultipartFile docNoc, MultipartFile docAllPaperNotarized03Set, MultipartFile docCommittee,
 			MultipartFile docDiversion, MultipartFile docNazul, MultipartFile docMap, MultipartFile docKhasraKhatoni,
 			MultipartFile docMapCivilEngineer, MultipartFile docApplicationConsent, MultipartFile docPerforma5A,
-			MultipartFile docPerforma5B, MultipartFile docPlotAreaDetailsWithOwner,
-			MultipartFile docIndividualOrGroup,MultipartFile docAdministrative,MultipartFile docGst, MultipartFile energyBillDoc, MultipartFile docSamagraFile)
-			throws ConsumerApplicationDetailException, DocumentTypeException, ConsumerApplicationSurveyException,
-			SMSDirectServiceException, PaymentTypeException, ApplicationHeadChargesException,
-			ApplicationDocumentException, SupplyVoltageException, TariffCategoryException, TaskTypeException,
-			NatureOfWorkException;
+			MultipartFile docPerforma5B, MultipartFile docPlotAreaDetailsWithOwner, MultipartFile docIndividualOrGroup,
+			MultipartFile docAdministrative, MultipartFile docGst, MultipartFile energyBillDoc,
+			MultipartFile docSamagraFile) throws ConsumerApplicationDetailException, DocumentTypeException,
+			ConsumerApplicationSurveyException, SMSDirectServiceException, PaymentTypeException,
+			ApplicationHeadChargesException, ApplicationDocumentException, SupplyVoltageException,
+			TariffCategoryException, TaskTypeException, NatureOfWorkException;
 
 	public Response<PageConsumerApplicationDetailDTO> findAllConsumerApplicationDetailPagination(Integer page,
 			Integer size, ConsumerApplicationDetailsFilterDTO filterDTO) throws ConsumerApplicationDetailException;
@@ -96,55 +96,54 @@ public interface ConsumerApplicationDetailService {
 			MultipartFile docNazul, MultipartFile docMap, MultipartFile docKhasraKhatoni,
 			MultipartFile docMapCivilEngineer, MultipartFile docApplicationConsent, MultipartFile docPerforma5A,
 			MultipartFile docPerforma5B, MultipartFile docPlotAreaDetailsWithOwner, MultipartFile docIndividualOrGroup,
-			MultipartFile docAdministrative,Long id,MultipartFile docGst) throws ConsumerApplicationDetailException, DocumentTypeException, ConsumerApplicationSurveyException,
-			SMSDirectServiceException, PaymentTypeException, ApplicationHeadChargesException,
-			ApplicationDocumentException, SupplyVoltageException, TariffCategoryException, TaskTypeException,
-			NatureOfWorkException;
+			MultipartFile docAdministrative, Long id, MultipartFile docGst,MultipartFile consentletter) throws ConsumerApplicationDetailException,
+			DocumentTypeException, ConsumerApplicationSurveyException, SMSDirectServiceException, PaymentTypeException,
+			ApplicationHeadChargesException, ApplicationDocumentException, SupplyVoltageException,
+			TariffCategoryException, TaskTypeException, NatureOfWorkException ;
 
-	public List<Map<String,String>> findAllConsumerDetail() throws ConsumerApplicationDetailException;
+
+	public List<Map<String, String>> findAllConsumerDetail() throws ConsumerApplicationDetailException;
 
 	public Response findConsumerApplicationDetailsByCityCricleAndBhopal(long circleid);
 
 //	O&M ko dikhna hai
 	public Response findConsumerApplicationDetailsByCityCricleAndBhopalBasedOnNullValue(long circleid);
 
-	public Response<?> rejectApplication(String consumerApplicationNumber, String rejectedApplicationDate, String rejectedRemark, String rejectApplicationGMName, Boolean gmAccepted);
+	public Response<?> rejectApplication(String consumerApplicationNumber, String rejectedApplicationDate,
+			String rejectedRemark, String rejectApplicationGMName, Boolean gmAccepted);
 
 //	public Response<?> jeLoadApplication(String consumerApplicationNumber, String jeLoad, String jeLoadUnitKwYaKva);
-	
-	public Response<?> jeLoadApplication(String consumerApplicationNumber, String jeLoad, String jeLoadUnitKwYaKva,int goodMaterialOrNot);
+
+	public Response<?> jeLoadApplication(String consumerApplicationNumber, String jeLoad, String jeLoadUnitKwYaKva,
+			int goodMaterialOrNot);
 
 //	public ErpEstimateCalculatedDto getConsumerChalan(String consumerApplicationNumber) throws ConsumerApplicationDetailException, SchemeTypeException, Exception;
 
-	
 	Response<?> rejectProposalApplication(String consumerApplicationNumber, String rejectionProposal,
-			String rejectionRemark, MultipartFile docRejectProposal,String userId,String userName,String role)
+			String rejectionRemark, MultipartFile docRejectProposal, String userId, String userName, String role)
 			throws ConsumerApplicationDetailException, DocumentTypeException;
 
-	//public ConsumerApplicationDetail findConsumerApplicationDetailByConsumerId(Long consumerId)throws ConsumerApplicationDetailException, GeoLocationException;
+	// public ConsumerApplicationDetail
+	// findConsumerApplicationDetailByConsumerId(Long consumerId)throws
+	// ConsumerApplicationDetailException, GeoLocationException;
 
-	
 	public Response<PageConsumerApplicationDetailDTO> findAllConsumerApplicationDetailNewPagination(Integer page,
-			Integer size, ConsumerApplicationDetailsFilterDTO filterDTO, String filterType, String filterValue) throws ConsumerApplicationDetailException;
+			Integer size, ConsumerApplicationDetailsFilterDTO filterDTO, String filterType, String filterValue)
+			throws ConsumerApplicationDetailException;
 
 	public Response<?> jeReturnAmountApplication(String consumerApplicationNumber, BigDecimal jeReturnAmount);
 
+
 	
 	public ConsumerApplicationDetail updateConsumerApplicationDetailChangeSchemeType(
-			ConsumerApplicationDetailForm form,
-			MultipartFile docRegistry,  MultipartFile docT$cpPermission,
-			MultipartFile docReraPermission, MultipartFile docNoc,
-			 MultipartFile docKhasraKhatoni,
-			 MultipartFile docIndividualOrGroup,
-			MultipartFile docAdministrative, Long id, MultipartFile docGst, MultipartFile docEnergyBill, MultipartFile docSamagraFile,MultipartFile docLoadSheet, MultipartFile docMap ) throws ConsumerApplicationDetailException, DocumentTypeException, ApplicationDocumentException, NatureOfWorkException;
+			ConsumerApplicationDetailForm consumerApplicationDetailForm, MultipartFile docRegistry,
+			MultipartFile docT$cpPermission, MultipartFile docReraPermission, MultipartFile docNoc,
+			MultipartFile docKhasraKhatoni, MultipartFile docIndividualOrGroup, MultipartFile docAdministrative,
+			Long id, MultipartFile docGst, MultipartFile docEnergyBill, MultipartFile docSamagraFile,
+			MultipartFile docLoadSheet, MultipartFile docMap,MultipartFile docconsentletter)
+			throws ConsumerApplicationDetailException, DocumentTypeException, ApplicationDocumentException;
 
-	public Response updateMKMYDocument(MultipartFile samagraFile, MultipartFile khasraFile, String consumerApplicationNo) throws DocumentTypeException;
-
-	
-
-
-	
-
-	
+	public Response updateMKMYDocument(MultipartFile samagraFile, MultipartFile khasraFile,
+			String consumerApplicationNo) throws DocumentTypeException;
 
 }

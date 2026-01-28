@@ -150,9 +150,25 @@ public class ReSampling {
 	@Column (name = "DTR_LEFTING_DATE")
 	private String dtrLeftingDate;
 	
+	@Column(name = "DIVISION_ID")
+	private Long divisionId;
+	
+	
 
 	
 	
+	public Long getDivisionId() {
+		return divisionId;
+	}
+
+
+
+	public void setDivisionId(Long divisionId) {
+		this.divisionId = divisionId;
+	}
+
+
+
 	public String getDtrLeftingDate() {
 		return dtrLeftingDate;
 	}

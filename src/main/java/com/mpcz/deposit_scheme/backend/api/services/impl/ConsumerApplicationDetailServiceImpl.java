@@ -18,11 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
@@ -462,7 +464,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 				}
 
 				// this is for LineShifting(Govermnet)
-				else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(6l) == 0)) {
+				else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(6l) == 0)
+						|| (natureOfWorkdb.getNatureOfWorkTypeId().compareTo(12l) == 0)) {
 
 					if (docAdministrative == null) {
 						response.setCode(HttpCode.NULL_OBJECT);
@@ -1434,7 +1437,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			MultipartFile docNazul, MultipartFile docMap, MultipartFile docKhasraKhatoni,
 			MultipartFile docMapCivilEngineer, MultipartFile docApplicationConsent, MultipartFile docPerforma5A,
 			MultipartFile docPerforma5B, MultipartFile docPlotAreaDetailsWithOwner, MultipartFile docIndividualOrGroup,
-			MultipartFile docAdministrative, Long id, MultipartFile docGst) throws ConsumerApplicationDetailException,
+			MultipartFile docAdministrative, Long id, MultipartFile docGst,MultipartFile consentletter) throws ConsumerApplicationDetailException,
 			DocumentTypeException, ConsumerApplicationSurveyException, SMSDirectServiceException, PaymentTypeException,
 			ApplicationHeadChargesException, ApplicationDocumentException, SupplyVoltageException,
 			TariffCategoryException, TaskTypeException, NatureOfWorkException {
@@ -1489,6 +1492,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		Upload plotAreaDetailsWithOwnerUpload = null;
 		Upload docAdministrativeUpload = null;
 		Upload docGstUpload = null;
+		Upload docconsentletter =null;
 
 		/*********** validations start ***********************/
 
@@ -1596,12 +1600,29 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 				}
 
 			}
+			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(13l) == 0)) {
 
+				if (consentletter == null) {
+					response.setCode(HttpCode.NULL_OBJECT);
+					response.setMessage("Please upload consentletter document");
+					throw new ConsumerApplicationDetailException(response);
+				}
+			}
 			consumerAppdetail.setNatureOfWorkType(natureOfWorkdb);
 
 		}
 
 		/*********** validations ends ************************/
+		
+		if(consentletter!=null){
+			docconsentletter = uploadService.uploadFile(consentletter, "CONSENT_LETTER");
+			if (registryUpload == null) {
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Document consent letter not uploaded.");
+				throw new ConsumerApplicationDetailException(response);
+			}
+			applicationDocument.setConsentletter(docconsentletter);
+		}
 
 		if (docRegistry != null) {
 			registryUpload = uploadService.uploadFile(docRegistry, "REGISTRY");
@@ -2124,7 +2145,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 //				added code start for release erp no. when application is going to Reject 2-jan-2025
 				String deleteRejectedApplication = deleteRejectedApplication(
-						consumerApplicationDetail.getErpWorkFlowNumber());
+						consumerApplicationDetail.getErpWorkFlowNumber(),consumerApplicationDetail.getConsumerApplicationNo());
+				System.err.println("deleteRejectedApplication : " + deleteRejectedApplication);
 				if (deleteRejectedApplication.equals("ERP No. can be deleted")) {
 					deletErp(consumerApplicationDetail.getErpWorkFlowNumber());
 					consumerApplicationDetail.setErpWorkFlowNumber(null);
@@ -2324,6 +2346,19 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 				consumerApplicationDetail.setRejectionProposal(rejectionProposal);
 				consumerApplicationDetail.setRejectionRemarkByDGMOAndM(rejectionRemark);
 				if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 5L) {
+					List<ConsumerApplicationDetail> consumerDetailList = consumerApplicationDetailRepository
+							.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+					System.err.println("consumerDetailList : " + consumerDetailList);
+					if (consumerDetailList.size() > 1) {
+						return new Response<>(HttpCode.NOT_ACCEPTABLE,
+								"Application can not revert back because this erp is tagged with multiple applications kindly contact DSP Team",
+								null);
+					}
+					consumerDetailList.stream().forEach(con -> {
+						deletErp(consumerApplicationDetail.getErpWorkFlowNumber());
+
+					});
+					consumerApplicationDetail.setErpWorkFlowNumber(null);
 					consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
 							.findById(ApplicationStatusEnum.APPLICATION_REJECT_BY_GM.getId()).get());
 				} else {
@@ -2561,7 +2596,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			MultipartFile docT$cpPermission, MultipartFile docReraPermission, MultipartFile docNoc,
 			MultipartFile docKhasraKhatoni, MultipartFile docIndividualOrGroup, MultipartFile docAdministrative,
 			Long id, MultipartFile docGst, MultipartFile docEnergyBill, MultipartFile docSamagraFile,
-			MultipartFile docLoadSheet, MultipartFile docMap)
+			MultipartFile docLoadSheet, MultipartFile docMap,MultipartFile docconsentletter)
 			throws ConsumerApplicationDetailException, DocumentTypeException, ApplicationDocumentException {
 
 		Response response = new Response();
@@ -2594,6 +2629,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		Upload samagraUpload = null;
 		Upload loadSheetUpload = null;
 		Upload mapUpload = null;
+		Upload docconsentletterUpload = null;
 		/*********** validations start ***********************/
 
 		NatureOfWork natureOfWorkdb = null;
@@ -2706,7 +2742,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			}
 
 			// this is for OYT
-			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(5l) == 0)) {
+			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(5l) == 0) || (natureOfWorkdb.getNatureOfWorkTypeId().compareTo(13l) == 0) || (natureOfWorkdb.getNatureOfWorkTypeId().compareTo(14l) == 0) ) {
 
 				if (docKhasraKhatoni == null) {
 					response.setCode(HttpCode.NULL_OBJECT);
@@ -2745,6 +2781,15 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 					response.setMessage("Please fill khatoni number");
 					throw new ConsumerApplicationDetailException(response);
 				}
+				
+				if((consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13l)) || consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14l) ) {
+					if (docconsentletter == null) {
+						response.setCode(HttpCode.NULL_OBJECT);
+						response.setMessage("Please upload consentletter document");
+						throw new ConsumerApplicationDetailException(response);
+					}
+				}
+					
 
 			}
 
@@ -2784,7 +2829,18 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 		}
 
+		
 		/*********** validations ends ************************/
+		
+		if (docconsentletter != null) {
+			docconsentletterUpload = uploadService.uploadFile(docconsentletter, "CONSENT_LETTER");
+			if (docconsentletterUpload == null) {
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Document consent letter not uploaded.");
+				throw new ConsumerApplicationDetailException(response);
+			}
+			applicationDocument.setConsentletter(docconsentletterUpload);
+		}
 
 		if (docRegistry != null) {
 			registryUpload = uploadService.uploadFile(docRegistry, "REGISTRY");
@@ -2929,14 +2985,13 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			consumerAppdetail.setBillNo(consumerApplicationDetailForm.getBillNo().trim());
 		}
 
-		
 //		CHARITRA ADD KEY 13-11-2025  fOR oyt CASE 
 		if (consumerApplicationDetailForm.getOytTepOrParma() != null
 				&& !consumerApplicationDetailForm.getOytTepOrParma().equals("")) {
 			consumerAppdetail.setOytTepOrParma(consumerApplicationDetailForm.getOytTepOrParma().trim());
-			consumerAppdetail.setOytTempApplicationNo(consumerAppdetail.getConsumerApplicationNo()+"T");
+			consumerAppdetail.setOytTempApplicationNo(consumerAppdetail.getConsumerApplicationNo() + "T");
 		}
-		
+
 		consumerAppdetail.setIsRejected(Boolean.FALSE);
 		consumerAppdetail.setRejectedRemark("NA");
 
@@ -2962,7 +3017,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		}
 
 		if (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(1L)
-				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(7L)) {
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(7L) ||  consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13L) 
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14L)) {
 			if (consumerApplicationDetailForm.getIvrsNo() != null
 					&& !consumerApplicationDetailForm.getIvrsNo().equals("")) {
 				consumerAppdetail.setIvrsNo(consumerApplicationDetailForm.getIvrsNo().trim());
@@ -3036,7 +3092,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			consumerAppdetail.setColonyLegalSelectionType(null);
 		}
 
-		if (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(5L)) {
+		if ((consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(5L)) || (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13L)) || (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14L))) {
 
 			if (consumerApplicationDetailForm.getSamagraId() != null) {
 				consumerAppdetail.setSamagraId(consumerApplicationDetailForm.getSamagraId());
@@ -3167,7 +3223,14 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(4L)) {
 			consumerAppdetail.setApplicationStatus(
 					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
-		} else {
+		}else if (consumerAppdetail.getNatureOfWorkType().equals(5l) && consumerAppdetail.getNscApplicationNo()==null) {
+			consumerAppdetail.setApplicationStatus(
+					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
+		}else if (consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
+			consumerAppdetail.setApplicationStatus(
+					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
+		}
+		else {
 			consumerAppdetail.setApplicationStatus(applicationStatusRepository
 					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId()).get());
 
@@ -3264,7 +3327,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 	}
 
-	public String deleteRejectedApplication(String erpNo) {
+	public String deleteRejectedApplication(String erpNo, String consumerApplicationNo) {
 		List<String> erpNumberDemandPaymentDone = new ArrayList<>();
 
 		List<ConsumerApplicationDetail> erpNoDB = consumerApplicationDetailRepository.findByErpNo(erpNo);
@@ -3273,6 +3336,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 				if (cad.getApplicationStatus().getApplicationStatusId() > 12
 						&& !cad.getApplicationStatus().getApplicationStatusId().equals(37L)) {
 					System.err.println("consumer applciaiotn no : " + cad.getConsumerApplicationNo());
+					if(!consumerApplicationNo.equals(cad.getConsumerApplicationNo()))
 					erpNumberDemandPaymentDone.add(cad.getConsumerApplicationNo());
 				}
 			}
@@ -3286,5 +3350,6 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		}
 
 	}
+	
 
 }

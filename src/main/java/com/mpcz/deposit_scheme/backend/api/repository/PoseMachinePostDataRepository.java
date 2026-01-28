@@ -45,4 +45,7 @@ public interface PoseMachinePostDataRepository extends JpaRepository<PoseMachine
 	@Query(value="select * from pose_machine_d where application_numbwer=:applicationNumber and payment_type=:paymentType",nativeQuery = true)
 	public PoseMachinePostData findDataByApplicationNumber(String applicationNumber, String paymentType);
 
+	@Query(value = "select * from pose_machine_d where application_numbwer = :consumerApplicationNo and payment_type='Registration_Fees'", nativeQuery = true)
+	public List<PoseMachinePostData> getRegistrationPaymentDetail(String consumerApplicationNo);
+
 }

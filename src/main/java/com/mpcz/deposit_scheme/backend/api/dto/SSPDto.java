@@ -39,13 +39,45 @@ public class SSPDto {
 	private String connectionCategory;
 	private String caste;
 	
+//	likha gya code 15-12-2025
+//	live code date 
+	private Integer isOyt =1;
+	
 	
 	
 	
 	
 
+	private String isBpl;
+	private String isShramik;
 	
 	
+	
+	
+
+	public String getIsBpl() {
+		return isBpl;
+	}
+
+	public void setIsBpl(String isBpl) {
+		this.isBpl = isBpl;
+	}
+
+	public String getIsShramik() {
+		return isShramik;
+	}
+
+	public void setIsShramik(String isShramik) {
+		this.isShramik = isShramik;
+	}
+
+	public Integer getIsOyt() {
+		return isOyt;
+	}
+
+	public void setIsOyt(Integer isOyt) {
+		this.isOyt = isOyt;
+	}
 
 	public String getCaste() {
 		return caste;
@@ -278,6 +310,56 @@ public class SSPDto {
 	public void setNscApplicationNo(String nscApplicationNo) {
 		this.nscApplicationNo = nscApplicationNo;
 	}
+
+	@Override
+	public String toString() {
+		return "{consumerName=" + consumerName + ", guardianName=" + guardianName + ", mobileNumber="
+				+ mobileNumber + ", emailId=" + emailId + ", address=" + address + ", nscApplicationNo="
+				+ nscApplicationNo + ", schemeType=" + schemeType + ", natureOfWork=" + natureOfWork + ", dcCode="
+				+ dcCode + ", organizationName=" + organizationName + ", isGoverment=" + isGoverment + ", area=" + area
+				+ ", areaUnit=" + areaUnit + ", memberId=" + memberId + ", consumerNo=" + consumerNo + ", appliedLoad="
+				+ appliedLoad + ", loadUnit=" + loadUnit + ", connectionType=" + connectionType
+				+ ", registrationCharge=" + registrationCharge + ", meterCost=" + meterCost + ", securityDeposit="
+				+ securityDeposit + ", supplyAffordingCharges=" + supplyAffordingCharges + ", totalAmount="
+				+ totalAmount + ", purposeOfInstallation=" + purposeOfInstallation + ", phase=" + phase
+				+ ", premiseAreaType=" + premiseAreaType + ", meteringStatus=" + meteringStatus
+				+ ", connectionCategory=" + connectionCategory + ", caste=" + caste + ", isOyt=" + isOyt + ", isBpl="
+				+ isBpl + ", isShramik=" + isShramik + "}";
+	}
+
+//	@Override
+//	public String toString() {
+//		return "SSPDto [consumerName=" + consumerName + ", guardianName=" + guardianName + ", mobileNumber="
+//				+ mobileNumber + ", emailId=" + emailId + ", address=" + address + ", nscApplicationNo="
+//				+ nscApplicationNo + ", schemeType=" + schemeType + ", natureOfWork=" + natureOfWork + ", dcCode="
+//				+ dcCode + ", organizationName=" + organizationName + ", isGoverment=" + isGoverment + ", area=" + area
+//				+ ", areaUnit=" + areaUnit + ", memberId=" + memberId + ", consumerNo=" + consumerNo + ", appliedLoad="
+//				+ appliedLoad + ", loadUnit=" + loadUnit + ", connectionType=" + connectionType
+//				+ ", registrationCharge=" + registrationCharge + ", meterCost=" + meterCost + ", securityDeposit="
+//				+ securityDeposit + ", supplyAffordingCharges=" + supplyAffordingCharges + ", totalAmount="
+//				+ totalAmount + ", purposeOfInstallation=" + purposeOfInstallation + ", phase=" + phase
+//				+ ", premiseAreaType=" + premiseAreaType + ", meteringStatus=" + meteringStatus
+//				+ ", connectionCategory=" + connectionCategory + ", caste=" + caste + ", isOyt=" + isOyt + ", isBpl="
+//				+ isBpl + ", isShramik=" + isShramik + ", getIsBpl()=" + getIsBpl() + ", getIsShramik()="
+//				+ getIsShramik() + ", getIsOyt()=" + getIsOyt() + ", getCaste()=" + getCaste()
+//				+ ", getPremiseAreaType()=" + getPremiseAreaType() + ", getConnectionCategory()="
+//				+ getConnectionCategory() + ", getMeteringStatus()=" + getMeteringStatus()
+//				+ ", getPurposeOfInstallation()=" + getPurposeOfInstallation() + ", getPhase()=" + getPhase()
+//				+ ", getRegistrationCharge()=" + getRegistrationCharge() + ", getMeterCost()=" + getMeterCost()
+//				+ ", getSecurityDeposit()=" + getSecurityDeposit() + ", getSupplyAffordingCharges()="
+//				+ getSupplyAffordingCharges() + ", getTotalAmount()=" + getTotalAmount() + ", getConnectionType()="
+//				+ getConnectionType() + ", getConsumerNo()=" + getConsumerNo() + ", getAppliedLoad()="
+//				+ getAppliedLoad() + ", getLoadUnit()=" + getLoadUnit() + ", getMemberId()=" + getMemberId()
+//				+ ", getOrganizationName()=" + getOrganizationName() + ", getIsGoverment()=" + getIsGoverment()
+//				+ ", getGuardianName()=" + getGuardianName() + ", getArea()=" + getArea() + ", getAreaUnit()="
+//				+ getAreaUnit() + ", getNatureOfWork()=" + getNatureOfWork() + ", getDcCode()=" + getDcCode()
+//				+ ", getSchemeType()=" + getSchemeType() + ", getConsumerName()=" + getConsumerName()
+//				+ ", getMobileNumber()=" + getMobileNumber() + ", getEmailId()=" + getEmailId() + ", getAddress()="
+//				+ getAddress() + ", getNscApplicationNo()=" + getNscApplicationNo() + ", getClass()=" + getClass()
+//				+ ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
+	
+	
+//	}
 	
 	
 

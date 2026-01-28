@@ -10,10 +10,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.http.HttpServletRequest;
@@ -60,11 +62,13 @@ import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateDomain;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpRev;
 import com.mpcz.deposit_scheme.backend.api.domain.ManualPayment;
 import com.mpcz.deposit_scheme.backend.api.domain.MmkyPayAmount;
+import com.mpcz.deposit_scheme.backend.api.domain.NonOytProjectDetails;
 import com.mpcz.deposit_scheme.backend.api.domain.OytMaterialCharges;
 import com.mpcz.deposit_scheme.backend.api.domain.OytProjectDetails;
 import com.mpcz.deposit_scheme.backend.api.domain.PoseMachinePostData;
 import com.mpcz.deposit_scheme.backend.api.domain.SanchayPaymentDetails;
 import com.mpcz.deposit_scheme.backend.api.domain.SchemeType;
+import com.mpcz.deposit_scheme.backend.api.domain.SupervisionOnlyButNotForOyt;
 import com.mpcz.deposit_scheme.backend.api.domain.Upload;
 import com.mpcz.deposit_scheme.backend.api.dto.ApiResponseOYT;
 import com.mpcz.deposit_scheme.backend.api.dto.ErpEstimateCalculatedDto;
@@ -82,16 +86,19 @@ import com.mpcz.deposit_scheme.backend.api.repository.ApplicationDocumentReposit
 import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplicationSurveyRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.DemandNoteAllowedStatusRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ErpEstimateAmountDataGetRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ErpRevRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ManualPaymentRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.MmkyPayAmountRespository;
+import com.mpcz.deposit_scheme.backend.api.repository.NonOytProjectDetailsRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.OytMaterialChargesRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.OytProjectDetailsRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.PoseMachinePostDataRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ReSamplingRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.SanchayPaymentDetailsRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.SupervisionOnlyButNotForOytRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.UploadRepository;
 import com.mpcz.deposit_scheme.backend.api.response.ErpEstimateResponse;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
@@ -105,7 +112,6 @@ import com.mpcz.deposit_scheme.backend.api.services.impl.ErpRevServiceIMP;
 import com.mpcz.deposit_scheme.dryprincipalutility.DryUtility;
 import com.mpcz.deposit_scheme.feignClient.OytMaterialChargesClient;
 import com.mpcz.deposit_scheme.feignClient.OytMaterialChargesClient1;
-import com.mpcz.deposit_scheme.projection.ConsummerAppDetails;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -175,6 +181,12 @@ public class ERPEstimateController {
 
 	@Autowired
 	ErpEstimateAmountDataGetRepository erpEstimateAmountDataGetRepository;
+
+	@Autowired
+	SupervisionOnlyButNotForOytRepository supervisionOnlyButNotForOytRepository;
+
+	@Autowired
+	private DemandNoteAllowedStatusRepository demandNoteAllowedStatusRepository;
 
 	public Long getNextVal() {
 		return jdbcTemplate.queryForObject("SELECT deposite_schema.DSP_REF_NO_SEQ.nextval FROM dual", Long.class);
@@ -350,11 +362,7 @@ public class ERPEstimateController {
 		ConsumerApplicationDetail consumerapplication = consumerApplicationDetailService
 				.findByConsumerApplicationId(consumerAppId);
 
-		if (savedataId == 2l) {
-			consumerapplication.setErpWorkFlowNumber(erpNumber);
-
-			consumerApplicationDetailService.saveConsumerApplication(consumerapplication);
-		}
+	
 		HttpStatus status = null;
 		Integer statusCode = null;
 
@@ -443,7 +451,13 @@ public class ERPEstimateController {
 							|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("KMY")
 									&& !consumerapplication.getNatureOfWorkType().getNatureOfWorkName().equals("MKMY"))
 							|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("OYT")
-									&& !consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5L))
+									&& ((!consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5L))
+											&& (!consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId()
+													.equals(13L))
+											&& (!consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId()
+													.equals(14L))
+
+									))
 							|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("RRTD")
 									&& (consumerapplication.getSchemeType().getSchemeTypeId().equals(1L)
 											|| consumerapplication.getSchemeType().getSchemeTypeId().equals(2L)))
@@ -451,7 +465,9 @@ public class ERPEstimateController {
 									&& consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 8l)
 
 							|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("SCCW")
-									&& consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 5l)
+									&& consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 5l
+
+							)
 
 					) {
 						response.setCode(HttpCode.NOT_ACCEPTABLE);
@@ -508,6 +524,12 @@ public class ERPEstimateController {
 
 					if (jsonArray.getJSONObject(i).getString("DESIG") != null)
 						erpEstimateAmountData.setDesignation(jsonArray.getJSONObject(i).getString("DESIG"));
+					
+					if (jsonArray.getJSONObject(i).getString("VERSION_NUMBER") != null) {
+						String string = jsonArray.getJSONObject(i).getString("VERSION_NUMBER");
+						erpEstimateAmountData.setVersionNumber(Long.valueOf(string));
+						consumerapplication.setErpVersionInApi(erpEstimateAmountData.getVersionNumber());
+					}
 
 					if (jsonArray.getJSONObject(i).getString("SCHEMECODE") != null
 							&& jsonArray.getJSONObject(i).getString("PROJECT_TYPE") != null) {
@@ -640,7 +662,16 @@ public class ERPEstimateController {
 
 						if (jsonArray.getJSONObject(i).getString("DESIG") != null)
 							erpEstimateAmountData.setDesignation(jsonArray.getJSONObject(i).getString("DESIG"));
+						
+						if (jsonArray.getJSONObject(i).getString("VERSION_NUMBER") != null) {
+							String string = jsonArray.getJSONObject(i).getString("VERSION_NUMBER");
+							Long valueOf = Long.valueOf(string);
+							erpEstimateAmountData.setVersionNumber(valueOf);
 
+							consumerapplication.setErpVersionInApi(erpEstimateAmountData.getVersionNumber());
+						}
+							
+							
 						if (jsonArray.getJSONObject(i).getString("SCHEMECODE") != null
 								&& jsonArray.getJSONObject(i).getString("PROJECT_TYPE") != null) {
 							schemaCode = jsonArray.getJSONObject(i).getString("SCHEMECODE");
@@ -689,7 +720,11 @@ public class ERPEstimateController {
 
 		System.out.println("----------------------------------------------------------------------------------"
 				+ estimateAmountObject);
+		if (savedataId == 2l) {
+			consumerapplication.setErpWorkFlowNumber(erpNumber);
 
+			consumerApplicationDetailService.saveConsumerApplication(consumerapplication);
+		}
 //		Api me changes kiye h jisse y api status 7 or 9 pr call hogi  API changes start
 		if (savedataId.equals(2L)) {
 			if (erpEstimateAmountData.getSupervisionAmount().compareTo(BigDecimal.ZERO) < 0) {
@@ -867,7 +902,10 @@ public class ERPEstimateController {
 					.findByConsumerApplicationId(consumerAppId)
 					.orElseThrow(() -> new DataNotFoundException(new Response<String>(ResponseCode.DATA_NOT_FOUND,
 							ResponseMessage.CONSUMER_APPLICATION_NOT_FOUND)));
-			if (!consumerApplicationDetail.getApplicationStatus().getApplicationStatusId().equals(12l) && !consumerApplicationDetail.getApplicationStatus().getApplicationStatusId().equals(9l)) {
+			Set<Long> allowedStatuses = new HashSet<>(demandNoteAllowedStatusRepository.findActiveAllowedStatusIds());
+			Long currentStatus = consumerApplicationDetail.getApplicationStatus().getApplicationStatusId();
+			System.err.println("allowedStatuses  : " + allowedStatuses);
+			if (!allowedStatuses.contains(currentStatus)) {
 				response = new Response<>();
 
 				response.setCode(HttpCode.NOT_ACCEPTABLE);
@@ -986,7 +1024,8 @@ public class ERPEstimateController {
 //	return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 
 	@GetMapping("/getamount/{consumerApplicationid}")
-	public Response<ErpEstimateCalculatedDto> getAmount(@PathVariable("consumerApplicationid") long consumerApplicationid)
+	public Response<ErpEstimateCalculatedDto> getAmount(
+			@PathVariable("consumerApplicationid") long consumerApplicationid)
 			throws ConsumerApplicationDetailException, SchemeTypeException, Exception {
 
 		Response<ErpEstimateCalculatedDto> response = new Response<ErpEstimateCalculatedDto>();
@@ -1011,14 +1050,14 @@ public class ERPEstimateController {
 		if (findByEstimateNumber == null) {
 			response.setCode("404");
 			response.setMessage("Erp Scheme code not matched");
-		
-			return response;	
+
+			return response;
 
 		}
 		response.setCode("200");
 		response.setMessage("data successfully return");
 		response.setList(Arrays.asList(findByEstimateNumber));
-	
+
 		return response;
 	}
 
@@ -2165,7 +2204,7 @@ public class ERPEstimateController {
 	@GetMapping("/erpEstimateAmountDataGetByerp/{consumerApplicationNo}")
 	public ResponseEntity<Response> erpEstimateAmountDataGetBYERP(@PathVariable String consumerApplicationNo)
 			throws ConsumerApplicationDetailException {
-		Response<ErpEstimateAmountDataGet> response = new Response<ErpEstimateAmountDataGet>();
+		Response<ErpEstimateCalculatedDto> response = new Response<ErpEstimateCalculatedDto>();
 		List<ConsumerApplicationDetail> findListByConsumerApplicatonNumber = consumerApplictionDetailRepository
 				.findListByConsumerApplicatonNumber(consumerApplicationNo);
 		if (findListByConsumerApplicatonNumber.isEmpty()) {
@@ -2175,13 +2214,188 @@ public class ERPEstimateController {
 		}
 		ErpEstimateAmountDataGet findByErpNo = erpEstimateAmountDataGetRepository
 				.findByErpNo(findListByConsumerApplicatonNumber.get(0).getErpWorkFlowNumber());
-		
+
+		ErpEstimateCalculatedDto dto = new ErpEstimateCalculatedDto();
+
+//		dto.setActionPerformed(null);
+//		dto.setBalanceRemaining(null);
+
+		if (findByErpNo.getAvedanShulk() != null) {
+			dto.setAvedanShulk(findByErpNo.getAvedanShulk());
+		}
+		if (findByErpNo.getAvedanShulkFiveRupee() != null) {
+			dto.setAvedanShulkFiveRupee(findByErpNo.getAvedanShulkFiveRupee());
+		}
+
+		if (findByErpNo.getCgst() != null) {
+			dto.setCgst(findByErpNo.getCgst());
+		}
+		if (findByErpNo.getSgst() != null) {
+			dto.setSgst(findByErpNo.getSgst());
+		}
+
+		if (findByErpNo.getConsumerApplicationNo() != null) {
+			dto.setConsumerApplicationNo(consumerApplicationNo);
+		}
+		if (findByErpNo.getDepositAmount() != null) {
+			dto.setDepositAmount(findByErpNo.getDepositAmount());
+		}
+
+		if (findByErpNo.getJeReturnAmount() != null) {
+			dto.setJeReturnAmount(findByErpNo.getJeReturnAmount());
+		}
+		if (findByErpNo.getKvaLoad() != null) {
+			dto.setKvaLoadAmount(findByErpNo.getKvaLoad());
+		}
+		if (findByErpNo.getKwLoad() != null) {
+			dto.setKwLoadAmount(findByErpNo.getKwLoad());
+		}
+		if (findByErpNo.getMinusCost() != null) {
+			dto.setMinusCost(findByErpNo.getMinusCost());
+		}
+
+		if (findByErpNo.getOytMaterialTotalCostWithCsgstAndSgst() != null) {
+			dto.setOytMaterialtotalcostwithCgstAndSgst(null);
+		}
+		if (findByErpNo.getPrayakshanShulk() != null) {
+			dto.setPrayakshanShulk(findByErpNo.getPrayakshanShulk());
+		}
+		if (findByErpNo.getRegistrationCharges() != null) {
+			dto.setRegistrationCharges(findByErpNo.getRegistrationCharges());
+		}
+
+		if (findByErpNo.getSecurityDeposit() != null) {
+			dto.setSecurityDeposit(findByErpNo.getSecurityDeposit());
+		}
+		if (findByErpNo.getColonyOrSlum() != null) {
+			dto.setColonyOrSlum(findByErpNo.getColonyOrSlum());
+		}
+		if (findByErpNo.getSspMeterCost() != null) {
+			dto.setSspMeterCost(findByErpNo.getSspMeterCost());
+		}
+		if (findByErpNo.getSspRegistrationCharge() != null) {
+			dto.setSspRegistrationCharge(findByErpNo.getSspRegistrationCharge());
+		}
+		if (findByErpNo.getRegistrationCharges() != null) {
+			dto.setRegistrationCharges(findByErpNo.getRegistrationCharges());
+		}
+		if (findByErpNo.getSspTotalAmount() != null) {
+			dto.setSspTotalAmount(findByErpNo.getSspTotalAmount());
+		}
+		if (findByErpNo.getSupervisionAmount() != null) {
+			dto.setSuperVisionAmount(findByErpNo.getSupervisionAmount());
+		}
+
+		if (findByErpNo.getTotalBalanceSupervisionAmount() != null) {
+			dto.setTotalamountOfSupervision(findByErpNo.getTotalBalanceSupervisionAmount());
+		}
+		if (findByErpNo.getTotalBalanceDepositAmount() != null) {
+			dto.setTotalBalanceDepositAmount(findByErpNo.getTotalBalanceDepositAmount());
+		}
+		if (findByErpNo.getTotalBalanceSupervisionAmount() != null) {
+			dto.setTotalBalanceSupervisionAmount(findByErpNo.getTotalBalanceSupervisionAmount());
+		}
+		if (findByErpNo.getTotalBalanceDepositAmount() != null) {
+			dto.setTotaldepositAmount(findByErpNo.getTotalBalanceDepositAmount());
+		}
+		if (findByErpNo.getU_sec_194J_tds2() != null) {
+			dto.setU_sec_194J_tds2(findByErpNo.getU_sec_194J_tds2());
+		}
+
+		if (findByErpNo.getU_sec_194C_tds2() != null) {
+			dto.setU_sec_194C_tds2(findByErpNo.getU_sec_194C_tds2());
+		}
+
+		if (findByErpNo.getU_194C_tds2_fSupDep() != null) {
+			dto.setU_sec_194C_tds2(findByErpNo.getU_194C_tds2_fSupDep());
+		}
+
+//		if (findByErpNo.getApprovedBy() != null) {
+//			dto.setFinalOyt(null);
+//		}
+//		if (findByErpNo.getApprovedBy() != null) {
+//			dto.setGovMaffBill(null);
+//		dto.setTotalAmountOfMKMY(null);
+//		}
+//		if (findByErpNo.getApprovedBy() != null) {
+//			dto.setRegistrationFee(null);
+//		}
+//		if (findByErpNo.getApprovedBy() != null) {
+//			dto.setParikshanCgst(null);
+//		}
+//		if (findByErpNo.getApprovedBy() != null) {
+//			dto.setMpmkvvclMaffBill(null);
+//		}
+//
+//		if (findByErpNo.getApprovedBy() != null) {
+//			dto.setOytMaterialcostwithCgst(null);
+//		}
+//		if (findByErpNo.getApprovedBy() != null) {
+//			dto.setOytMaterialcostwithSgst(null);
+//		}
 
 		response.setCode("200");
 		response.setMessage("data successfull retrive");
-		response.setList(Arrays.asList(findByErpNo));
+		response.setList(Arrays.asList(dto));
 		return ResponseEntity.ok(response);
 	}
 
 //	erpEstimateAmountDataGetRepository
+
+	@GetMapping("/saveForSupervisionOnlyButNotForOyt/{erpNo}/{consumerApplicationNo}")
+	public ApiResponseOYT saveForSupervisionOnlyButNotForOyt(@PathVariable String erpNo,
+			@PathVariable String consumerApplicationNo) throws ConsumerApplicationDetailException {
+
+		ApiResponseOYT apiResponse = oytMaterialChargesClient1.oytMaterialCharges1(erpNo);
+
+		if (apiResponse.getStatusCode().equals("200")) {
+
+			apiResponse.getData().stream().forEach(oyt -> {
+
+				SupervisionOnlyButNotForOyt SupervisionOnlyButNotForOyt = new SupervisionOnlyButNotForOyt();
+
+				ModelMapper mapper = new ModelMapper();
+
+				mapper.map(oyt, SupervisionOnlyButNotForOyt);
+
+				SupervisionOnlyButNotForOyt.setErpNo(erpNo);
+				SupervisionOnlyButNotForOyt.setConsumerApplicationNo(consumerApplicationNo);
+
+				System.err.println("dddddddd : " + new Gson().toJson(SupervisionOnlyButNotForOyt));
+				supervisionOnlyButNotForOytRepository.save(SupervisionOnlyButNotForOyt);
+
+			});
+
+		}
+
+		return apiResponse;
+	}
+
+	@Autowired
+	private NonOytProjectDetailsRepository nonOytProjectDetailsRepository;
+
+//	start 27-01-2026   by Monika Rajpoot
+	@GetMapping("/nonOytMaterialCharges/{erpNo}/{consumerApplicationNo}")
+	public ApiResponseOYT nonOytMaterialCharges(@PathVariable String erpNo, @PathVariable String consumerApplicationNo)
+			throws ConsumerApplicationDetailException {
+		ApiResponseOYT apiResponse = oytMaterialChargesClient1.oytMaterialCharges1(erpNo);
+		dryUtility.validateConsumerApplication(consumerApplicationNo);
+		if (apiResponse.getStatusCode().equals("200")) {
+			apiResponse.getData().forEach(nonOyt -> {
+				NonOytProjectDetails nonOytProjectDetails = new NonOytProjectDetails();
+				ModelMapper mapper = new ModelMapper();
+				mapper.map(nonOyt, nonOytProjectDetails);
+				nonOytProjectDetails.setErpNo(erpNo);
+				nonOytProjectDetails.setConsumerApplicationNo(consumerApplicationNo);
+				nonOytProjectDetailsRepository.save(nonOytProjectDetails);
+
+			});
+
+		} else {
+			throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT, "Erp Data Not Found"));
+		}
+
+		return apiResponse;
+	}
+
 }

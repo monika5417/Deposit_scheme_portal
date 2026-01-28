@@ -61,7 +61,7 @@ public class TdsController {
 				return new Response(HttpCode.NOT_ACCEPTABLE, "Tds Not Acceptable for MKMY Scheme");
 			}
 			System.err.println("gstnumber : " + findByConsumerApplicationNumber.getGstNumber());
-			if (findByConsumerApplicationNumber.getAvedakKaPrakar().equals("Government")
+			if (findByConsumerApplicationNumber.getIsAvedakGovernmentErp().equals("Yes")
 					&& findByConsumerApplicationNumber.getGstNumber() != null) {
 
 				Optional<ErpEstimateAmountData> findById = estimateAmountRepository

@@ -35,8 +35,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
@@ -462,20 +465,16 @@ public class NgbDataController {
 								? findByConsumerApplicationNumber.getPhase()
 								: "THREE");
 //				code start 01-12-2025
-				if ("SINGLE".equals(dto.getPhase())
-						&& "URBAN".equals(dto.getPremiseType())) {
+				if ("SINGLE".equals(dto.getPhase()) && "URBAN".equals(dto.getPremiseType())) {
 					dto.setSubCategoryCode(509L);
 				}
-				if ("SINGLE".equals(dto.getPhase())
-						&& "RURAL".equals(dto.getPremiseType())) {
+				if ("SINGLE".equals(dto.getPhase()) && "RURAL".equals(dto.getPremiseType())) {
 					dto.setSubCategoryCode(510L);
 				}
-				if ("THREE".equals(dto.getPhase())
-						&& "URBAN".equals(dto.getPremiseType())) {
+				if ("THREE".equals(dto.getPhase()) && "URBAN".equals(dto.getPremiseType())) {
 					dto.setSubCategoryCode(511L);
 				}
-				if ("THREE".equals(dto.getPhase())
-						&& "RURAL".equals(dto.getPremiseType())) {
+				if ("THREE".equals(dto.getPhase()) && "RURAL".equals(dto.getPremiseType())) {
 					dto.setSubCategoryCode(512L);
 				}
 //				end 01-12-2025
@@ -1015,6 +1014,59 @@ public class NgbDataController {
 			response.setMessage("Internal Server Error");
 			return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 		}
+	}
+
+	@PostMapping("/pdc/{ivrsNo}")
+	public ResponseEntity<?> pdc(@PathVariable String ivrsNo, @RequestBody Map<String, String> map) {
+		Response response = new Response();
+		ResponseEntity<String> response1 = null;
+		RestTemplate t = new RestTemplate();
+		String url = "https://ngb.mpcz.in/mppkvvcl/nextgenbilling/backend/api/v1/consumer/master/pdc/consumer-no/"
+				+ ivrsNo;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.setBearerAuth(
+				"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJWSUdJTElBTkNFIiwidXNlciI6eyJpZCI6MTQ5NCwidXNlcm5hbWUiOiJWSUdJTElBTkNFIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlZJR0lMSUFOQ0UiLCJkZXNpZ25hdGlvbiI6IiIsImxvY2F0aW9uQ29kZSI6IjIzMDQyMDQiLCJzdGF0dXMiOiJBQ1RJVkUiLCJtb2JpbGVObyI6IiIsIm90cE1vYmlsZU5vIjpudWxsLCJjcmVhdGVkQnkiOm51bGwsImNyZWF0ZWRPbiI6bnVsbCwidXBkYXRlZEJ5IjpudWxsLCJ1cGRhdGVkT24iOm51bGwsImlkZW50aWZpZXIiOiIiLCJ6b25lIjpudWxsfSwiaWF0IjoxNzM3OTgxOTkyLCJleHAiOjE3NjcxMTk0MDB9.WFL4-bZhnXqsXrqyXfPv_jeP8I3BxCJPKs1RlkNDRN4"); // 👈
+																																																																																																																																	// JWT
+																																																																																																																																	// token
+		 HttpEntity<Map<String, String>> entity =
+		            new HttpEntity<>(map, headers);
+		
+		
+		 try {
+			    response1 = t.exchange(url, HttpMethod.PUT, entity, String.class);
+
+			    response.setCode(HttpCode.OK);
+			    response.setMessage(response1.getBody());
+
+			} catch (HttpClientErrorException ex) {
+
+			    String errorBody = ex.getResponseBodyAsString();
+			    String errorMessage = "Unknown error";
+
+			    try {
+			        ObjectMapper mapper = new ObjectMapper();
+			        JsonNode node = mapper.readTree(errorBody);
+
+			        if (node.has("errorMessage")) {
+			            errorMessage = node.get("errorMessage").asText();
+			        }
+
+			    } catch (Exception e) {
+			        e.printStackTrace();
+			    }
+
+			    response.setCode("417");
+			    response.setMessage(errorMessage);
+			    return ResponseEntity.ok(response);
+			}
+
+		 
+
+		response.setCode(HttpCode.OK);
+		response.setMessage(response1.getBody());
+		return ResponseEntity.ok(response);
 	}
 
 }

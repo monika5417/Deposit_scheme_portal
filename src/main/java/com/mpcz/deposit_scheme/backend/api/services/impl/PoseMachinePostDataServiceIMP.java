@@ -110,8 +110,16 @@ public class PoseMachinePostDataServiceIMP implements PoseMachinePostDataService
 						|| (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().equals(47L)
 								&& save.getPaymentType().equals("Registration_Fees"))) {
 
-					appStatusDb = applicationStatusService
-							.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+					if (findByConsumerApplicationNumber.getAdminStatusChangedTo() != null
+							&& findByConsumerApplicationNumber.getAdminStatusChangedTo().equals(5l)) { // added this check for
+																								// government case
+																								// 17-12-2025
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.PENDING_FOR_DEMAND_NOTE_APPROVAL_AT_DGM.getId());
+					} else {
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+					}
 				} else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().equals(12L)
 						|| (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().equals(47L)
 								&& save.getPaymentType().equals("Demand_fees"))) {
@@ -139,7 +147,11 @@ public class PoseMachinePostDataServiceIMP implements PoseMachinePostDataService
 					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
 							.equalsIgnoreCase("Supervision")) {
 
-						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
+						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
+							appStatusDb = applicationStatusService
+									.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+						}
+						else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 						}

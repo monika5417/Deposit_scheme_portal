@@ -337,7 +337,8 @@ public class AdminChangableController {
 									.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId())
 									.orElseThrow(() -> new RuntimeException("Application status not found")));
 						} else if (applicationStatusNo == 5l) {
-							deleSurvey(findByConsumerApplicationNumber.getConsumerApplicationId());
+//							deleSurvey(findByConsumerApplicationNumber.getConsumerApplicationId());
+							findByConsumerApplicationNumber.setAdminStatusChangedTo(5l);
 							findByConsumerApplicationNumber.setApplicationStatus(applicationStatusRepository
 									.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId())
 									.orElseThrow(() -> new RuntimeException("Application status not found")));

@@ -29,6 +29,7 @@ import com.mpcz.deposit_scheme.backend.api.repository.GatePassChallanByNistraLab
 import com.mpcz.deposit_scheme.backend.api.repository.ReSamplingRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.UploadService;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/nistha-lab")
@@ -49,12 +50,11 @@ public class NisthaLab {
 	@Autowired
 	private GatePassChallanByNistraLabRepository gatePassChallanByNistraLabRepository;
 
-//	nistha lab DGM 
+//	nistha lab DGM  testing-report-upload
 	@PostMapping("/testing-report-upload")
 	public ResponseEntity<?> saveGetPassPdf(@RequestPart String consumerApplicationNo,
 			@RequestPart(required = true) MultipartFile testingReport,
-			@RequestPart(required = true) String dtrPassOrFail,
-			@RequestPart(required = true) String remarkDGM  )
+			@RequestPart(required = true) String dtrPassOrFail, @RequestPart(required = true) String remarkDGM)
 			throws DocumentTypeException, ConsumerApplicationDetailException {
 
 		if (testingReport.isEmpty() || testingReport == null) {
@@ -69,46 +69,47 @@ public class NisthaLab {
 			return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE, "application is null or empty"));
 
 		}
+		
 		ApplicationDocument appDoc = null;
 		ApplicationDocument save = null;
 		appDoc = applicationDocumentRepository.findByconsumerApplicationDetail_consumerApplicationId(
 				consumerApplicationDetail.getConsumerApplicationId());
-		if(dtrPassOrFail.equals("yes")) {
-		
+
 		if (appDoc == null) {
 			appDoc = new ApplicationDocument();
 		}
 
 		Upload testReport = null;
 
-		if (testingReport != null) {
-			testReport = uploadService.uploadFile(testingReport, "TEST_REPORT");
-			if (testReport == null || testReport == null) {
-				throw new ConsumerApplicationDetailException(
-						new Response(HttpCode.NULL_OBJECT, "Document Test Not Uploaded"));
-			}
-
+		testReport = uploadService.uploadFile(testingReport, "TEST_REPORT");
+		if (testReport == null || testReport == null) {
+			throw new ConsumerApplicationDetailException(
+					new Response(HttpCode.NULL_OBJECT, "Document Test Not Uploaded"));
 		}
+
 		appDoc.setTestReportFile(testReport);
 		appDoc.setConsumerApplicationDetail(consumerApplicationDetail);
+
 		
-		}
-		else {
-			appDoc.setTrffile(null);
-			appDoc.setGetPassfile(null);
-//			appDoc.setTestReportFile(null);
-		}
-		 save = applicationDocumentRepository.save(appDoc);
+
+		save = applicationDocumentRepository.save(appDoc);
 		ReSampling findByConAppNo = reSamplingRepository.findByConAppNo(consumerApplicationNo).get();
-		List<ReSampling> findByChildApplicationNo = reSamplingRepository
-				.findByChildApplicationNo(findByConAppNo.getChildApplicationNo());
 		
+		findByConAppNo.setDtrPassOrFail(dtrPassOrFail);
+
+		
+		reSamplingRepository.save(findByConAppNo);
+		
+		List<ReSampling> findByChildApplicationNo = reSamplingRepository
+				.findByChildApplicationNo(findByConAppNo.getParantApplicationNo());
+
 		findByChildApplicationNo.stream().forEach(re -> {
-			re.setDtrPassOrFail(dtrPassOrFail);
+			
 			re.setRemarkDGM(remarkDGM);
-			if(dtrPassOrFail.equals("reject")) {
-				re.setDtrPassOrFail("reject");
-				re.setDtrAcceptOrNot("reject												");
+			if (dtrPassOrFail.equals("reject")) {
+				re.setDtrPassOrFail("Fail");
+			}else {
+				re.setDtrPassOrFail("Pass");
 			}
 			reSamplingRepository.save(re);
 		});
@@ -151,9 +152,5 @@ public class NisthaLab {
 						: new Response(HttpCode.UPDATED, "Data Updated successfully", Arrays.asList(save)));
 
 	}
-
-	
-	
-	
 
 }

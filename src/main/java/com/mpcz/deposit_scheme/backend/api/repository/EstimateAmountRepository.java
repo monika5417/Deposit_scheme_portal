@@ -31,7 +31,7 @@ public interface EstimateAmountRepository extends JpaRepository<ErpEstimateAmoun
 	Optional<ErpEstimateAmountData> findByIdAndConsumerApplicationNo(String estimateNumber,String consumerApplicationNo);
 
 
-
+	
 
 	
 }

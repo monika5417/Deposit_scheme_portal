@@ -17,7 +17,19 @@ public class Response<T> {
 	private List<ErrorDetails> error;
 	private String token;
 	private String dspApplicationNo;
+	private Map<String, Object> map2;
 
+
+
+	
+	public Map<String, Object> getMap2() {
+		return map2;
+	}
+
+
+	public void setMap2(Map<String, Object> map2) {
+		this.map2 = map2;
+	}
 
 
 	public String getDspApplicationNo() {

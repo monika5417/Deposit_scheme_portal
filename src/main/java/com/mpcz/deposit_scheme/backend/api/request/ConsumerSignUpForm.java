@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -27,12 +28,11 @@ public @Data class ConsumerSignUpForm implements Serializable {
 
 
 	@ApiModelProperty(notes = "consumerName cannot be null", required = true)
-	@NotEmpty(message = "Please enter Consumer Name")
+	@NotBlank(message = "Please enter Consumer Name")
 	@Pattern(
-		    regexp = "^[A-Za-z ]+$", 
-		    message = "Only English alphabets and spaces are allowed"
-		)
-
+	    regexp = "^(?!.*\\b(S/O|D/O|W/O|C/O)\\b)[A-Za-z]+( [A-Za-z]+){0,}$",
+	    message = "Consumer Name must contain only English alphabets, minimum 0 spaces (1 words), and must not contain relations or special characters"
+	)
 	private String consumerName;
 
 	@ApiModelProperty(notes = "Enter valid Email Id", required = true)

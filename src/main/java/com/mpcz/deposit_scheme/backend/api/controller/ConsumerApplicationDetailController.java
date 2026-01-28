@@ -238,7 +238,7 @@ public class ConsumerApplicationDetailController {
 
 	@Autowired
 	private EstimateAmountRepository estimateAmountRepository;
-	
+
 	@Autowired
 	private DynamicQueryRepository dynamicQueryRepository;
 	@Autowired
@@ -646,7 +646,8 @@ public class ConsumerApplicationDetailController {
 			@RequestPart("docPlotAreaDetailsWithOwner") Optional<MultipartFile> docPlotAreaDetailsWithOwnerOptional,
 			@RequestPart("docIndividualOrGroup") Optional<MultipartFile> docIndividualOrGroupOptional,
 			@RequestPart("docAdministrative") Optional<MultipartFile> docAdministrativeOptional,
-			@RequestPart("docGst") Optional<MultipartFile> docGstOptional, @PathVariable("id") Long id,
+			@RequestPart("docGst") Optional<MultipartFile> docGstOptional,
+			@RequestPart("consentletter") Optional<MultipartFile> consentletterOptional, @PathVariable("id") Long id,
 
 			BindingResult bindingResult, HttpServletResponse httpServletResponse) throws FormValidationException,
 			InvalidAuthenticationException, ConsumerApplicationDetailException, DocumentTypeException {
@@ -710,6 +711,7 @@ public class ConsumerApplicationDetailController {
 			MultipartFile docIndividualOrGroup = null;
 			MultipartFile docAdministrative = null;
 			MultipartFile docGst = null;
+			MultipartFile consentletter = null;
 
 //				if (docEnergyBillOptional.isPresent()) {
 //					docEnergyBill = docEnergyBillOptional.get();
@@ -805,6 +807,9 @@ public class ConsumerApplicationDetailController {
 			if (docGstOptional.isPresent()) {
 				docGst = docGstOptional.get();
 			}
+			if (consentletterOptional.isPresent()) {
+				consentletter = consentletterOptional.get();
+			}
 			consumerApplicationDetail = consumerApplicationDetailService.updateConsumerApplicationDetail(
 					consumerApplicationDetailForm, /*
 													 * docAadhar, docPan, docEnergyBill, docRegistoryOrLease,
@@ -814,7 +819,7 @@ public class ConsumerApplicationDetailController {
 					docColonyPrakoshth, docColonyLicence, docLoadSheet, docNoc, docAllPaperNotarized03Set, docCommittee,
 					docDiversion, docNazul, docMap, docKhasraKhatoni, docMapCivilEngineer, docApplicationConsent,
 					docPerforma5A, docPerforma5B, docPlotAreaDetailsWithOwner, docIndividualOrGroup, docAdministrative,
-					id, docGst);
+					id, docGst, consentletter);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -2601,7 +2606,9 @@ public class ConsumerApplicationDetailController {
 			@RequestPart("energyBillDoc") Optional<MultipartFile> energyBillDocOptinal,
 			@RequestPart("docSamagraFile") Optional<MultipartFile> docSamagraFileOptional,
 			@RequestPart("docMap") Optional<MultipartFile> docMapOptional,
-			@RequestPart("docLoadSheet") Optional<MultipartFile> docLoadSheetOptional, @PathVariable("id") Long id,
+			@RequestPart("docLoadSheet") Optional<MultipartFile> docLoadSheetOptional,
+			@RequestPart("docconsentletter") Optional<MultipartFile> docconsentletterOptional,
+			@PathVariable("id") Long id,
 
 			BindingResult bindingResult, HttpServletResponse httpServletResponse) throws FormValidationException,
 			InvalidAuthenticationException, ConsumerApplicationDetailException, DocumentTypeException {
@@ -2639,7 +2646,11 @@ public class ConsumerApplicationDetailController {
 			MultipartFile docSamagraFile = null;
 			MultipartFile docMap = null;
 			MultipartFile docLoadSheet = null;
+			MultipartFile docconsentletter = null;
 
+			if (docconsentletterOptional.isPresent()) {
+				docconsentletter = docconsentletterOptional.get();
+			}
 			if (docRegistryOptional.isPresent()) {
 				docRegistry = docRegistryOptional.get();
 			}
@@ -2683,7 +2694,7 @@ public class ConsumerApplicationDetailController {
 			updateConsumerApplicationDetail = consumerApplicationDetailService
 					.updateConsumerApplicationDetailChangeSchemeType(form, docRegistry, docT$cpPermission,
 							docReraPermission, docNoc, docKhasraKhatoni, docIndividualOrGroup, docAdministrative, id,
-							docGst, docEnergyBill, docSamagraFile, docLoadSheet, docMap);
+							docGst, docEnergyBill, docSamagraFile, docLoadSheet, docMap, docconsentletter);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setList(null);
@@ -3032,9 +3043,7 @@ public class ConsumerApplicationDetailController {
 //						Arrays.asList(dspApplicationPendencyOnDiscomUser)));
 //	}
 //	08-12-2025 commented code bcoz used the dynamic query in below api
-	
-	
-	
+
 	@GetMapping("/getDSPApplicationPendencyOnDiscomUser/{userId}")
 	public ResponseEntity<?> getDSPApplicationPendencyOnDiscomUser(@PathVariable String userId)
 			throws ConsumerApplicationDetailException {
@@ -3043,15 +3052,14 @@ public class ConsumerApplicationDetailController {
 		User userDB = userRepository.findByUserId(userId).orElseThrow(() -> new ConsumerApplicationDetailException(
 				new Response(HttpCode.NULL_OBJECT, "User Id not found in database : " + userId)));
 		if (!Objects.isNull(userDB)) {
-			DynamicQuery financeGstApplicationList = dynamicQueryRepository
-					.findByQueryName("ANIMESH_WFM_QUERY");
+			DynamicQuery financeGstApplicationList = dynamicQueryRepository.findByQueryName("ANIMESH_WFM_QUERY");
 
 			if (Objects.isNull(financeGstApplicationList)) {
 				throw new IllegalArgumentException("No dynamic query found for: ANIMESH_WFM_QUERY");
 			}
 			HashMap<String, String> hashMap = new HashMap<>();
 			hashMap.put("userId", userId);
-			
+
 			dspApplicationPendencyOnDiscomUser = namedParameterJdbcTemplate
 					.queryForList(financeGstApplicationList.getQueryText(), hashMap);
 
@@ -3432,16 +3440,26 @@ public class ConsumerApplicationDetailController {
 								&& !findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(2L))
 						|| (SchemeCode.equals("KMY") && !findByConsumerApplicationNumber.getNatureOfWorkType()
 								.getNatureOfWorkName().equals("MKMY"))
-						|| (SchemeCode.equals("OYT") && !findByConsumerApplicationNumber.getNatureOfWorkType()
+						|| (SchemeCode.equals("OYT") && ((!findByConsumerApplicationNumber.getNatureOfWorkType()
 								.getNatureOfWorkTypeId().equals(5L))
+
+								&& (findByConsumerApplicationNumber.getNatureOfWorkType()
+										.getNatureOfWorkTypeId() != 13l)
+
+								&& (findByConsumerApplicationNumber.getNatureOfWorkType()
+										.getNatureOfWorkTypeId() != 14l)
+
+						))
 						|| (SchemeCode.equals("RRTD") && (findByConsumerApplicationNumber.getSchemeType()
 								.getSchemeTypeId().equals(1L)
 								|| findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(2L)))
 						|| (SchemeCode.equals("DEPOSITE")
 								&& findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8l)
 
-						|| (SchemeCode.equals("SCCW") && findByConsumerApplicationNumber.getNatureOfWorkType()
-								.getNatureOfWorkTypeId() == 5l)) {
+						|| (SchemeCode.equals("SCCW")
+								&& findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 5l)
+
+				) {
 
 					response.setCode(HttpCode.NULL_OBJECT);
 					response.setMessage("Scheme code not match");
@@ -3757,7 +3775,7 @@ public class ConsumerApplicationDetailController {
 		return response;
 	}
 
-	@PostMapping("/punchNamaDoneApi/{consumerApplicatonNO}/{punchNamaReferemceMo}/{punchNamaReferenceDate}")
+	@PostMapping("/punchNamaDoneApi/{consumerApplicatonNO}/{punchNamaReferemceNo}/{punchNamaReferenceDate}")
 	public Response<?> punchNamaDoneApi(@PathVariable String consumerApplicatonNO,
 			@PathVariable String punchNamaReferemceNo, @PathVariable String punchNamaReferenceDate) {
 
@@ -3765,7 +3783,7 @@ public class ConsumerApplicationDetailController {
 
 		try {
 			ConsumerApplicationDetail changeMobileNOByApplicationisGOV = consumerApplicationDetailRepository
-					.findByConsumerApplicationNo(consumerApplicatonNO).get();
+					.findByConsumerApplicationNo_11(consumerApplicatonNO);
 
 			if (changeMobileNOByApplicationisGOV == null) {
 				response.setCode("404");
@@ -3778,7 +3796,7 @@ public class ConsumerApplicationDetailController {
 				ConsumerApplicationDetail save = consumerApplicationDetailRepository
 						.save(changeMobileNOByApplicationisGOV);
 
-				response.setCode("404");
+				response.setCode("200");
 				response.setMessage("data Update");
 				response.setList(Arrays.asList(save));
 
@@ -3825,6 +3843,8 @@ public class ConsumerApplicationDetailController {
 		return response;
 	}
 
+//	 ye api temporary wala code chalega
+
 	@PostMapping("/changCalulationForOyt/{applicationNumber}/{OytTepOrParma}")
 	public Response changCalulationForOyt(@PathVariable String applicationNumber, @PathVariable String OytTepOrParma) {
 
@@ -3833,7 +3853,9 @@ public class ConsumerApplicationDetailController {
 		ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
 				.findByConsumerApplicationNumber(applicationNumber);
 		consumerApplicationDetail.setOytTepOrParma(OytTepOrParma);
-		consumerApplicationDetail.setOytTempApplicationNo(applicationNumber + "T");
+		if (OytTepOrParma.equals("temporary")) {
+			consumerApplicationDetail.setOytTempApplicationNo(applicationNumber + "T");
+		}
 		consumerApplicationDetailRepository.save(consumerApplicationDetail);
 		response.setCode("200");
 		response.setMessage("data update successfully update");
@@ -3877,6 +3899,5 @@ public class ConsumerApplicationDetailController {
 		return ResponseEntity.ok(new Response<>(HttpCode.UPDATED, "Data Updated Successfully",
 				Arrays.asList(saveConsumerApplicationDetail)));
 	}
-
 
 }

@@ -48,6 +48,7 @@ public  class ConsumerApplicationDetailForm implements Serializable {
 //	@ApiModelProperty(notes = "Select valid Consumer", required = true)
 //	private Long consumerId;
 
+	
 	@ApiModelProperty(notes = "consumerName cannot be null", required = true)
 	@NotEmpty(message = "Please enter Consumer Name")
 	private String consumerName;

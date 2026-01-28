@@ -60,6 +60,17 @@ public class ContractorCategoryData {
 	private String selectionDescription;
 	
 	
+	@Column(name="CATEGORY_B")
+	private String categoryB;
+	
+	
+	
+	public String getCategoryB() {
+		return categoryB;
+	}
+	public void setCategoryB(String categoryB) {
+		this.categoryB = categoryB;
+	}
 	public Long getDgmSelectedPreference() {
 		return dgmSelectedPreference;
 	}

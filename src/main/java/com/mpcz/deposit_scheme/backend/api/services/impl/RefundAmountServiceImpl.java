@@ -96,10 +96,10 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 
 	@Autowired
 	private WorkCompletionChangStautsByDgmOAndMServiceIMp workCompletionChangStautsByDgmOAndMServiceIMp;
-	
+
 	@Autowired
 	private RefundRejectedRemarkRepository refundRejectedRemarkRepository;
-	
+
 	@Autowired
 	private PoseMachinePostDataRepository poseMachinePostDataRepository;
 
@@ -186,135 +186,136 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 		return refundAmountRepository.findAll();
 	}
 
-	@Override
-	@Transactional(rollbackFor = Exception.class)
-	public RefundAmount saveConsumerApplicationCancel(RefundAmount refundAmount)
-			throws ConsumerApplicationDetailException {
-
-		BigDecimal refundableAmount = BigDecimal.ZERO;
-		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
-
-		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
-				.findByConsumerApplicationNumber(refundAmount.getConsumerApplicationNo());
-		if (Objects.isNull(consumerApplicationDetail)) {
-			throw new ConsumerApplicationDetailException(
-					new Response(HttpCode.NULL_OBJECT, "Application Not Found In Database"));
-		} else {
-			List<BillDeskPaymentResponse> allPaymentDetails = billPaymentResponseeeeeeeRepository
-					.getAllPaymentDetails(refundAmount.getConsumerApplicationNo());
-
-			for (BillDeskPaymentResponse bill : allPaymentDetails) {
-				ConsumerAppCancellationRefundAmount conAppCancel = new ConsumerAppCancellationRefundAmount();
-				conAppCancel.setApplicationNo(refundAmount.getConsumerApplicationNo());
-				conAppCancel.setMerchantId(bill.getMercid());
-				conAppCancel.setOrderId(bill.getOrderid());
-				conAppCancel.setPaymentType(bill.getAdditionalInfo());
-				conAppCancel.setTxnAmount(new BigDecimal(bill.getAmount()));
-				conAppCancel.setTxnId(bill.getTranId());
-				conAppCancel.setTransactionDate(bill.getTransactionDate());
-				ConsumerAppCancellationRefundAmount byTxnId = consumerAppCancellationRefundAmountRepository
-						.findByTxnIdIsActive(bill.getTranId());
-				if (byTxnId == null) {
-					consumerAppCancellationRefundAmountRepository.save(conAppCancel);
-				}
-
-			}
-
-			if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8l)) {
-				MmkyPayAmount findByConsumerApplicationNumber = mmkyPayAmountRespository
-						.findByConsumerApplicationNumber(refundAmount.getConsumerApplicationNo());
-
-				refundAmount.setRefundAmount(
-						findByConsumerApplicationNumber.getPayableAmount().subtract(new BigDecimal(2500)));
-
-			} else {
-				List<ErpRev> erpRevDB = erpRevRepository.findByConsumerAppNo(refundAmount.getConsumerApplicationNo());
-				if (!erpRevDB.isEmpty()) {
-					for (ErpRev erpRev : erpRevDB) {
-						System.err.println("erp aaaaaa : " + erpRev.getPayAmt());
-
-						ConsumerAppCancellationRefundAmount applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
-								.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
-										erpRev.getPayAmt());
-						if (erpRev.getRemCgst() != null) {
-							BigDecimal remCgst = erpRev.getRemCgst();
-							BigDecimal remSgst = erpRev.getRemSgst();
-							BigDecimal totalCgstSgst = remCgst.add(remSgst);
-
-							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
-						} else {
-							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
-						}
-						applicationNoAndTxnAmountDB.setRefundableAmount(refundableAmount);
-						consumerAppCancellationRefundAmountRepository.save(applicationNoAndTxnAmountDB);
-
-						totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-					}
-				}
-				ErpEstimateAmountData erpEstimateDB = estimateAmountRepository
-						.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-
-				ConsumerAppCancellationRefundAmount applicationNoAndTxnAmountDB = null;
-				if (consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(1L)) {
-					applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
-							.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
-									erpEstimateDB.getTotalBalanceSupervisionAmount());
-				} else {
-					applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
-							.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
-									erpEstimateDB.getTotalBalanceDepositAmount());
-				}
-
-				if (erpEstimateDB.getCgst() != null) {
-
-					BigDecimal cgst = erpEstimateDB.getCgst();
-					BigDecimal sgst = erpEstimateDB.getSgst();
-					BigDecimal totalCgstSgst = cgst.add(sgst);
-					refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
-				} else {
-					refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
-				}
-				applicationNoAndTxnAmountDB.setRefundableAmount(refundableAmount);
-				consumerAppCancellationRefundAmountRepository.save(applicationNoAndTxnAmountDB);
-				totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-				refundAmount.setRefundAmount(totalWapaskrneWalaPaisa);
-			}
-
-		}
-
-		refundAmount.setConsumerApplicationNo(consumerApplicationDetail.getConsumerApplicationNo());
-		refundAmount.setConsumerAppId(consumerApplicationDetail.getConsumerApplicationId());
-		refundAmount.setRefundType("Cancellation_Amount");
-		double digit = Math.random();
-		double digit1 = Math.random();
-		String valueOf = String.valueOf(digit);
-		String valueOf1 = String.valueOf(digit1);
-		String substring = valueOf.substring(2, 8);
-		String substring1 = valueOf1.substring(2, 8);
-		refundAmount.setRefundVoucherNo(substring + substring1);
-
-		RefundAmount refundAmntDB = null;
-		RefundAmount byConsumerApplicationNoDB = refundAmountRepository
-				.findByConsumerApplicationNoIsActive(consumerApplicationDetail.getConsumerApplicationNo());
-		if (byConsumerApplicationNoDB == null) {
-			refundAmntDB = refundAmountRepository.save(refundAmount);
-		} else {
-			throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT,
-					"Refund already initiated for this application no. "
-							+ consumerApplicationDetail.getConsumerApplicationNo() + " for refund Type : "
-							+ byConsumerApplicationNoDB.getRefundType()));
-		}
-		if (Objects.isNull(refundAmntDB)) {
-			throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT, "Data Not Saved"));
-		} else {
-			consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
-					.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_DGM_FOR_REFUND.getId()).get());
-			consumerApplictionDetailRepository.save(consumerApplicationDetail);
-			return refundAmntDB;
-		}
-
-	}
-
+//	@Override
+//	@Transactional(rollbackFor = Exception.class)
+//	public RefundAmount saveConsumerApplicationCancel(RefundAmount refundAmount)
+//			throws ConsumerApplicationDetailException {
+//
+//		BigDecimal refundableAmount = BigDecimal.ZERO;
+//		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
+//
+//		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
+//				.findByConsumerApplicationNumber(refundAmount.getConsumerApplicationNo());
+//		if (Objects.isNull(consumerApplicationDetail)) {
+//			throw new ConsumerApplicationDetailException(
+//					new Response(HttpCode.NULL_OBJECT, "Application Not Found In Database"));
+//		} else {
+//			List<BillDeskPaymentResponse> allPaymentDetails = billPaymentResponseeeeeeeRepository
+//					.getAllPaymentDetails(refundAmount.getConsumerApplicationNo());
+//
+//			for (BillDeskPaymentResponse bill : allPaymentDetails) {
+//				ConsumerAppCancellationRefundAmount conAppCancel = new ConsumerAppCancellationRefundAmount();
+//				conAppCancel.setApplicationNo(refundAmount.getConsumerApplicationNo());
+//				conAppCancel.setMerchantId(bill.getMercid());
+//				conAppCancel.setOrderId(bill.getOrderid());
+//				conAppCancel.setPaymentType(bill.getAdditionalInfo());
+//				conAppCancel.setTxnAmount(new BigDecimal(bill.getAmount()));
+//				conAppCancel.setTxnId(bill.getTranId());
+//				conAppCancel.setTransactionDate(bill.getTransactionDate());
+//				ConsumerAppCancellationRefundAmount byTxnId = consumerAppCancellationRefundAmountRepository
+//						.findByTxnIdIsActive(bill.getTranId());
+//				if (byTxnId == null) {
+//					ConsumerAppCancellationRefundAmount save = consumerAppCancellationRefundAmountRepository.save(conAppCancel);
+//					System.err.println("aaaaaaaaaaa: " +new Gson().toJson(save));
+//				}
+//
+//			}
+//
+//			if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8l)) {
+//				MmkyPayAmount findByConsumerApplicationNumber = mmkyPayAmountRespository
+//						.findByConsumerApplicationNumber(refundAmount.getConsumerApplicationNo());
+//
+//				refundAmount.setRefundAmount(
+//						findByConsumerApplicationNumber.getPayableAmount().subtract(new BigDecimal(2500)));
+//
+//			} else {
+//				List<ErpRev> erpRevDB = erpRevRepository.findByConsumerAppNo(refundAmount.getConsumerApplicationNo());
+//				if (!erpRevDB.isEmpty()) {
+//					for (ErpRev erpRev : erpRevDB) {
+//						System.err.println("erp aaaaaa : " + erpRev.getPayAmt());
+//
+//						ConsumerAppCancellationRefundAmount applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
+//								.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
+//										erpRev.getPayAmt());
+//						if (erpRev.getRemCgst() != null) {
+//							BigDecimal remCgst = erpRev.getRemCgst();
+//							BigDecimal remSgst = erpRev.getRemSgst();
+//							BigDecimal totalCgstSgst = remCgst.add(remSgst);
+//
+//							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
+//						} else {
+//							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
+//						}
+//						applicationNoAndTxnAmountDB.setRefundableAmount(refundableAmount);
+//						consumerAppCancellationRefundAmountRepository.save(applicationNoAndTxnAmountDB);
+//
+//						totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+//					}
+//				}
+//				ErpEstimateAmountData erpEstimateDB = estimateAmountRepository
+//						.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+//
+//				ConsumerAppCancellationRefundAmount applicationNoAndTxnAmountDB = null;
+//				if (consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(1L)) {
+//					applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
+//							.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
+//									erpEstimateDB.getTotalBalanceSupervisionAmount());
+//				} else {
+//					applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
+//							.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
+//									erpEstimateDB.getTotalBalanceDepositAmount());
+//				}
+//
+//				if (erpEstimateDB.getCgst() != null) {
+//
+//					BigDecimal cgst = erpEstimateDB.getCgst();
+//					BigDecimal sgst = erpEstimateDB.getSgst();
+//					BigDecimal totalCgstSgst = cgst.add(sgst);
+//					refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
+//				} else {
+//					refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
+//				}
+//				applicationNoAndTxnAmountDB.setRefundableAmount(refundableAmount);
+//				consumerAppCancellationRefundAmountRepository.save(applicationNoAndTxnAmountDB);
+//				totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+//				refundAmount.setRefundAmount(totalWapaskrneWalaPaisa);
+//			}
+//
+//		}
+//
+//		refundAmount.setConsumerApplicationNo(consumerApplicationDetail.getConsumerApplicationNo());
+//		refundAmount.setConsumerAppId(consumerApplicationDetail.getConsumerApplicationId());
+//		refundAmount.setRefundType("Cancellation_Amount");
+//		double digit = Math.random();
+//		double digit1 = Math.random();
+//		String valueOf = String.valueOf(digit);
+//		String valueOf1 = String.valueOf(digit1);
+//		String substring = valueOf.substring(2, 8);
+//		String substring1 = valueOf1.substring(2, 8);
+//		refundAmount.setRefundVoucherNo(substring + substring1);
+//
+//		RefundAmount refundAmntDB = null;
+//		RefundAmount byConsumerApplicationNoDB = refundAmountRepository
+//				.findByConsumerApplicationNoIsActive(consumerApplicationDetail.getConsumerApplicationNo());
+//		if (byConsumerApplicationNoDB == null) {
+//			refundAmntDB = refundAmountRepository.save(refundAmount);
+//		} else {
+//			throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT,
+//					"Refund already initiated for this application no. "
+//							+ consumerApplicationDetail.getConsumerApplicationNo() + " for refund Type : "
+//							+ byConsumerApplicationNoDB.getRefundType()));
+//		}
+//		if (Objects.isNull(refundAmntDB)) {
+//			throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT, "Data Not Saved"));
+//		} else {
+//			consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
+//					.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_DGM_FOR_REFUND.getId()).get());
+//			consumerApplictionDetailRepository.save(consumerApplicationDetail);
+//			return refundAmntDB;
+//		}
+//
+//	}
+// above code commented because the code is only written for fetching the data from billdesk
 	@Override
 	public RefundAmount dgmApprovalForRefund(String consumerApplicationNo, boolean dgmApproval, String dgmId,
 			String dgmName, String dgmRemark) throws ConsumerApplicationDetailException {
@@ -436,7 +437,8 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //					consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
 //							.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_DGM_FOR_REFUND.getId()).get());
 					consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
-							.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_FINANCE_AO_FOR_REFUND.getId()).get());
+							.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_FINANCE_AO_FOR_REFUND.getId())
+							.get());
 //					above status change for return amount because now the application will directly move to Finance 18-11-2025
 					consumerApplictionDetailRepository.save(consumerApplicationDetail);
 				} else {
@@ -472,124 +474,124 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //	getPaymentDetailForRefund and saveReturnAmntApplication y method comment ki hai kyuki inme Sirf Billdesk payment refund
 //	code hai Sanchay wala nahi isliye updated method neeche likhi hui hai 27-06-2025
 
-	@Override
-	public Map<String, BigDecimal> getPaymentDetailForRefund(String consumerApplicationNo, Long value)
-			throws ConsumerApplicationDetailException {
-		BigDecimal refundableAmount = BigDecimal.ZERO;
-		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
-
-		Map<String, BigDecimal> result = new HashMap<>();
-
-		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
-				.findByConsumerApplicationNumber(consumerApplicationNo);
-		if (Objects.isNull(consumerApplicationDetail)) {
-			throw new ConsumerApplicationDetailException(
-					new Response(HttpCode.NULL_OBJECT, "Application Not Found In Database"));
-		} else {
-			List<BillDeskPaymentResponse> allPaymentDetails = null;
-			try {
-				allPaymentDetails = billPaymentResponseeeeeeeRepository.getAllPaymentDetails(consumerApplicationNo);
-				System.err.println(allPaymentDetails);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-//			value == 1 matlb (application cancle karna hai)
-			if (value == 1L) {
-				for (BillDeskPaymentResponse bill : allPaymentDetails) {
-					// cancellation ka total amount dena hai
-
-					if (bill.getAdditionalInfo().equals("Revised_Demand_fees")) {
-						ErpRev erpRevDB = erpRevRepository.findByConsAppNoAndPayAmt(consumerApplicationNo,
-								new BigDecimal(bill.getAmount()));
-						if (erpRevDB != null) {
-
-							System.err.println("erp aaaaaa : " + erpRevDB.getPayAmt());
-// erpRevDB.getRemCgst() != null y check isliye lagaya h kyuki kabhi kabhi remCgst remSgst me null hota kyuki data remColonyOrSlum me hota hai
-							if (erpRevDB.getRemCgst() != null) {
-								BigDecimal remCgst = erpRevDB.getRemCgst();
-								BigDecimal remSgst = erpRevDB.getRemSgst();
-								BigDecimal totalCgstSgst = remCgst.add(remSgst);
-
-								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
-								refundableAmount = billdeskAmount.subtract(totalCgstSgst);
-							} else {
-								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
-								refundableAmount = billdeskAmount;
-							}
-							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-
-						}
-					} else {
-						if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8l)) {
-							MmkyPayAmount findByConsumerApplicationNumber = mmkyPayAmountRespository
-									.findByConsumerApplicationNumber(consumerApplicationNo);
-
-							BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
-							if (billdeskAmount.compareTo(findByConsumerApplicationNumber.getPayableAmount()) == 0) {
-								totalWapaskrneWalaPaisa = new BigDecimal(bill.getAmount())
-										.subtract(new BigDecimal(2500));
-							}
-
-							else {
-								totalWapaskrneWalaPaisa = new BigDecimal(0.0);
-							}
-						} else {
-
-							ErpEstimateAmountData erpEstimateDB = estimateAmountRepository
-									.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-
-							if (erpEstimateDB.getCgst() != null) {
-
-								BigDecimal cgst = erpEstimateDB.getCgst();
-								BigDecimal sgst = erpEstimateDB.getSgst();
-								BigDecimal totalCgstSgst = cgst.add(sgst);
-								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
-								refundableAmount = billdeskAmount.subtract(totalCgstSgst);
-							} else {
-								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
-								refundableAmount = billdeskAmount;
-							}
-
-							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-
-						}
-					}
-				}
-			} else { // return ka amount dena hai
-				for (BillDeskPaymentResponse bill : allPaymentDetails) {
-
-					if (bill.getAdditionalInfo().equals("Revised_Demand_fees")) {
-						ErpRev erpRev = erpRevRepository.findByConsAppNo(consumerApplicationNo);
-						if (erpRev != null && erpRev.getRemReturnAmt() != null) {
-							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpRev.getRemReturnAmt());
-						}
-					} else {
-						ErpEstimateAmountData erpData = estimateAmountRepository
-								.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-						if (erpData != null && erpData.getJeReturnAmount() != null) {
-							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
-						}
-					}
-
-				}
-			}
-			BeforeRefundAmountCheck byApplicationNo = beforeRefundAmountCheckRepository
-					.findByApplicationNo(consumerApplicationNo);
-			if (byApplicationNo == null) {
-				BeforeRefundAmountCheck check = new BeforeRefundAmountCheck();
-				check.setApplicationNo(consumerApplicationNo);
-				check.setRefundableAmount(totalWapaskrneWalaPaisa);
-				beforeRefundAmountCheckRepository.save(check);
-			} else {
-				byApplicationNo.setRefundableAmount(totalWapaskrneWalaPaisa);
-				beforeRefundAmountCheckRepository.save(byApplicationNo);
-			}
-
-			result.put("totalRefundAmount", totalWapaskrneWalaPaisa);
-			return result;
-		}
-	}
+//	@Override
+//	public Map<String, BigDecimal> getPaymentDetailForRefund(String consumerApplicationNo, Long value)
+//			throws ConsumerApplicationDetailException {
+//		BigDecimal refundableAmount = BigDecimal.ZERO;
+//		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
+//
+//		Map<String, BigDecimal> result = new HashMap<>();
+//
+//		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
+//				.findByConsumerApplicationNumber(consumerApplicationNo);
+//		if (Objects.isNull(consumerApplicationDetail)) {
+//			throw new ConsumerApplicationDetailException(
+//					new Response(HttpCode.NULL_OBJECT, "Application Not Found In Database"));
+//		} else {
+//			List<BillDeskPaymentResponse> allPaymentDetails = null;
+//			try {
+//				allPaymentDetails = billPaymentResponseeeeeeeRepository.getAllPaymentDetails(consumerApplicationNo);
+//				System.err.println(allPaymentDetails);
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//
+////			value == 1 matlb (application cancle karna hai)
+//			if (value == 1L) {
+//				for (BillDeskPaymentResponse bill : allPaymentDetails) {
+//					// cancellation ka total amount dena hai
+//
+//					if (bill.getAdditionalInfo().equals("Revised_Demand_fees")) {
+//						ErpRev erpRevDB = erpRevRepository.findByConsAppNoAndPayAmt(consumerApplicationNo,
+//								new BigDecimal(bill.getAmount()));
+//						if (erpRevDB != null) {
+//
+//							System.err.println("erp aaaaaa : " + erpRevDB.getPayAmt());
+//// erpRevDB.getRemCgst() != null y check isliye lagaya h kyuki kabhi kabhi remCgst remSgst me null hota kyuki data remColonyOrSlum me hota hai
+//							if (erpRevDB.getRemCgst() != null) {
+//								BigDecimal remCgst = erpRevDB.getRemCgst();
+//								BigDecimal remSgst = erpRevDB.getRemSgst();
+//								BigDecimal totalCgstSgst = remCgst.add(remSgst);
+//
+//								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+//								refundableAmount = billdeskAmount.subtract(totalCgstSgst);
+//							} else {
+//								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+//								refundableAmount = billdeskAmount;
+//							}
+//							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+//
+//						}
+//					} else {
+//						if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8l)) {
+//							MmkyPayAmount findByConsumerApplicationNumber = mmkyPayAmountRespository
+//									.findByConsumerApplicationNumber(consumerApplicationNo);
+//
+//							BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+//							if (billdeskAmount.compareTo(findByConsumerApplicationNumber.getPayableAmount()) == 0) {
+//								totalWapaskrneWalaPaisa = new BigDecimal(bill.getAmount())
+//										.subtract(new BigDecimal(2500));
+//							}
+//
+//							else {
+//								totalWapaskrneWalaPaisa = new BigDecimal(0.0);
+//							}
+//						} else {
+//
+//							ErpEstimateAmountData erpEstimateDB = estimateAmountRepository
+//									.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+//
+//							if (erpEstimateDB.getCgst() != null) {
+//
+//								BigDecimal cgst = erpEstimateDB.getCgst();
+//								BigDecimal sgst = erpEstimateDB.getSgst();
+//								BigDecimal totalCgstSgst = cgst.add(sgst);
+//								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+//								refundableAmount = billdeskAmount.subtract(totalCgstSgst);
+//							} else {
+//								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+//								refundableAmount = billdeskAmount;
+//							}
+//
+//							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+//
+//						}
+//					}
+//				}
+//			} else { // return ka amount dena hai
+//				for (BillDeskPaymentResponse bill : allPaymentDetails) {
+//
+//					if (bill.getAdditionalInfo().equals("Revised_Demand_fees")) {
+//						ErpRev erpRev = erpRevRepository.findByConsAppNo(consumerApplicationNo);
+//						if (erpRev != null && erpRev.getRemReturnAmt() != null) {
+//							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpRev.getRemReturnAmt());
+//						}
+//					} else {
+//						ErpEstimateAmountData erpData = estimateAmountRepository
+//								.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+//						if (erpData != null && erpData.getJeReturnAmount() != null) {
+//							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
+//						}
+//					}
+//
+//				}
+//			}
+//			BeforeRefundAmountCheck byApplicationNo = beforeRefundAmountCheckRepository
+//					.findByApplicationNo(consumerApplicationNo);
+//			if (byApplicationNo == null) {
+//				BeforeRefundAmountCheck check = new BeforeRefundAmountCheck();
+//				check.setApplicationNo(consumerApplicationNo);
+//				check.setRefundableAmount(totalWapaskrneWalaPaisa);
+//				beforeRefundAmountCheckRepository.save(check);
+//			} else {
+//				byApplicationNo.setRefundableAmount(totalWapaskrneWalaPaisa);
+//				beforeRefundAmountCheckRepository.save(byApplicationNo);
+//			}
+//
+//			result.put("totalRefundAmount", totalWapaskrneWalaPaisa);
+//			return result;
+//		}
+//	}
 
 	@Override
 	public RefundAmount financeAoRefundReject(String consumerApplicationNo, boolean financeAoRefundReject,
@@ -836,10 +838,6 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 		return consumerApplicationNoIsActiveDB;
 
 	}
-
-	
-
-
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -1117,303 +1115,304 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 		}
 	}
 
+//	public Map<String, Object> getPaymentFromSanchayOrManualPayment(List<PoseMachinePostData> demandDataFromPoseMachine,
+//			ManualPayment demandDataFromManualPayment, Long value, ConsumerApplicationDetail consumerApplicationDetail)
+//			throws ConsumerApplicationDetailException {
+//
+//		BigDecimal refundableAmount = BigDecimal.ZERO;
+//		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
+//		BigDecimal totalZamaKiyaHuaPaisa = BigDecimal.ZERO;
+//		String transactionDate = null;
+//		BigDecimal supervisionAmount = BigDecimal.ZERO;
+//		BigDecimal depositAmount = BigDecimal.ZERO;
+//		BigDecimal kvaAmount = BigDecimal.ZERO;
+//		BigDecimal colonyOrSlumAmount = BigDecimal.ZERO;
+//		BigDecimal returnAmount = BigDecimal.ZERO;
+//		BigDecimal mkmyPaidAmount = BigDecimal.ZERO;
+//		BigDecimal securityDepositAmount = BigDecimal.ZERO;
+//		Map<String, Object> result = new HashMap<>();
+//
+//		boolean hasPoseData = demandDataFromPoseMachine != null && !demandDataFromPoseMachine.isEmpty();
+//		boolean hasManualPayment = demandDataFromManualPayment != null;
+//
+//		if (hasPoseData || hasManualPayment) {
+//
+//			if (value == 1L) {
+//				if (hasPoseData) {
+//					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
+//						String paymentType = pose.getPaymentType();
+//						totalZamaKiyaHuaPaisa = pose.getTxnAmount();
+//						transactionDate = pose.getDateOfPayment().toString();
+//
+//						if ("Revised_Demand_fees".equals(paymentType)) {
+//							ErpRev erpRev = erpRevRepository
+//									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
+//
+//							if (erpRev != null) {
+//
+//								if (totalZamaKiyaHuaPaisa.compareTo(erpRev.getPayAmt()) >= 0) {
+//									BigDecimal cgst = erpRev.getRemCgst();
+//									BigDecimal sgst = erpRev.getRemSgst();
+//									BigDecimal totalReviseTax = (cgst != null && sgst != null) ? cgst.add(sgst)
+//											: BigDecimal.ZERO;
+//									refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalReviseTax);
+//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+//
+//									supervisionAmount = supervisionAmount.add(erpRev.getRemSupervisionAmt());
+//									if (Objects.nonNull(erpRev.getRemmDepositAmt())) {
+//										depositAmount = depositAmount.add(erpRev.getRemmDepositAmt());
+//									}
+//									if (Objects.nonNull(erpRev.getRemKvaAmt())) {
+//										kvaAmount = kvaAmount.add(erpRev.getRemKvaAmt());
+//									}
+//									if (Objects.nonNull(erpRev.getRemColonyOrSlum())) {
+//										colonyOrSlumAmount = colonyOrSlumAmount.add(erpRev.getRemColonyOrSlum());
+//									}
+//									if (Objects.nonNull(erpRev.getRemReturnAmt())) {
+//										returnAmount = returnAmount.add(erpRev.getRemReturnAmt());
+//									}
+//
+//								} else {
+//									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+//											"Revise Payment paid less through sanchay Portal"));
+//								}
+//							}
+//						} else {
+//							if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
+//								MmkyPayAmount mmkyData = mmkyPayAmountRespository.findByConsumerApplicationNumber(
+//										consumerApplicationDetail.getConsumerApplicationNo());
+//
+//								if (mmkyData != null
+//										&& totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
+//
+//									totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
+//									result.put("demandPaymentTransactionDate", transactionDate);
+//									result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
+//									result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
+//									result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
+//									result.put("securityDeposit", mmkyData.getSecurityDeposit());
+//
+//								}
+//							} else {
+//								ErpEstimateAmountData erpData = estimateAmountRepository
+//										.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+//
+//								if (erpData != null) {
+//									Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+//									BigDecimal compareAmount = (schemeId.equals(1L))
+//											? erpData.getTotalBalanceSupervisionAmount()
+//											: erpData.getTotalBalanceDepositAmount();
+//
+//									boolean isValidAmount = (schemeId.equals(1L)
+//											&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
+//											|| (schemeId.equals(2L)
+//													&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
+//
+//									if (isValidAmount) {
+//										if (erpData != null) {
+//											BigDecimal cgst = erpData.getCgst();
+//											BigDecimal sgst = erpData.getSgst();
+//											BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
+//													: BigDecimal.ZERO;
+//											refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
+//
+//											totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+//											supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
+//											if (Objects.nonNull(erpData.getDepositAmount())) {
+//												depositAmount = depositAmount.add(erpData.getDepositAmount());
+//											}
+//											if (Objects.nonNull(erpData.getKvaLoad())) {
+//												kvaAmount = kvaAmount.add(erpData.getKvaLoad());
+//											}
+//											if (Objects.nonNull(erpData.getColonyOrSlum())) {
+//												colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
+//											}
+//											if (Objects.nonNull(erpData.getJeReturnAmount())) {
+//												returnAmount = returnAmount.add(erpData.getJeReturnAmount());
+//											}
+//											if (Objects.nonNull(erpData.getSecurityDeposit())) {
+//												securityDepositAmount = securityDepositAmount
+//														.add(erpData.getSecurityDeposit());
+//											}
+//										}
+//
+//									} else {
+//										throw new ConsumerApplicationDetailException(
+//												new Response(HttpCode.NOT_ACCEPTABLE,
+//														"Demand Payment paid less through sanchay Portal"));
+//									}
+//								}
+//							}
+//						}
+//					}
+//					result.put("securityDeposit", securityDepositAmount);
+//					result.put("returnAmount", returnAmount);
+//					result.put("supervisionAmount", supervisionAmount);
+//					result.put("depositAmount", depositAmount);
+//					result.put("kvaAmount", kvaAmount);
+//					result.put("colonyOrSlumAmount", colonyOrSlumAmount);
+//					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+//				} else if (hasManualPayment) {
+//					totalZamaKiyaHuaPaisa = new BigDecimal(demandDataFromManualPayment.getAmount());
+//					System.err.println("totalZamaKiyaHuaPaisa" + totalZamaKiyaHuaPaisa);
+//					transactionDate = demandDataFromManualPayment.getPaymentDate();
+//					if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
+//						MmkyPayAmount mmkyData = mmkyPayAmountRespository
+//								.findByConsumerApplicationNumber(consumerApplicationDetail.getConsumerApplicationNo());
+//
+//						if (mmkyData != null && totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
+//							totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
+//							result.put("demandPaymentTransactionDate", transactionDate);
+//							result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
+//							result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
+//							result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
+//							result.put("securityDeposit", mmkyData.getSecurityDeposit());
+//						}
+//					} else {
+//						ErpEstimateAmountData erpData = estimateAmountRepository
+//								.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+//
+//						if (erpData != null) {
+//							Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+//							BigDecimal compareAmount = (schemeId.equals(1L))
+//									? erpData.getTotalBalanceSupervisionAmount()
+//									: erpData.getTotalBalanceDepositAmount();
+//
+//							boolean isValidAmount = (schemeId.equals(1L)
+//									&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
+//									|| (schemeId.equals(2L) && totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
+//
+//							if (isValidAmount) {
+//								if (erpData != null) {
+//									BigDecimal cgst = erpData.getCgst();
+//									BigDecimal sgst = erpData.getSgst();
+//									BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
+//											: BigDecimal.ZERO;
+//									refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
+//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+//
+//									supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
+//									if (Objects.nonNull(erpData.getDepositAmount())) {
+//										depositAmount = depositAmount.add(erpData.getDepositAmount());
+//									}
+//									if (Objects.nonNull(erpData.getKvaLoad())) {
+//										kvaAmount = kvaAmount.add(erpData.getKvaLoad());
+//									}
+//									if (Objects.nonNull(erpData.getColonyOrSlum())) {
+//										colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
+//									}
+//									if (Objects.nonNull(erpData.getJeReturnAmount())) {
+//										returnAmount = returnAmount.add(erpData.getJeReturnAmount());
+//									}
+//									if (Objects.nonNull(erpData.getSecurityDeposit())) {
+//										securityDepositAmount = securityDepositAmount.add(erpData.getSecurityDeposit());
+//									}
+//								}
+//
+//								result.put("demandPaymentTransactionDate", transactionDate);
+//								result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
+//								result.put("demandRefundableAmount", refundableAmount);
+//
+//								System.err.println(" demand totalWapaskrneWalaPaisa : " + totalWapaskrneWalaPaisa);
+//							} else {
+//								throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+//										"Demand Payment paid less through Manual Payment"));
+//							}
+//						}
+//
+//						result.put("securityDeposit", securityDepositAmount);
+//						result.put("returnAmount", returnAmount);
+//						result.put("supervisionAmount", supervisionAmount);
+//						result.put("depositAmount", depositAmount);
+//						result.put("kvaAmount", kvaAmount);
+//						result.put("colonyOrSlumAmount", colonyOrSlumAmount);
+//						result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+//					}
+//				}
+//			} else {
+//				// For value != 1
+//				if (hasPoseData) {
+//					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
+//						String paymentType = pose.getPaymentType();
+//						BigDecimal txnAmount = pose.getTxnAmount();
+//						transactionDate = pose.getDateOfPayment().toString();
+//
+//						if ("Revised_Demand_fees".equals(paymentType)) {
+//							ErpRev erpRev = erpRevRepository
+//									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
+//
+//							if (erpRev != null && erpRev.getRemReturnAmt() != null) {
+//								if (txnAmount.compareTo(erpRev.getPayAmt()) >= 0) {
+//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpRev.getRemReturnAmt());
+//									result.put("revisePaymentTransactionDate", transactionDate);
+//									result.put("totalReviseZamaKiyaHuaPaisa", txnAmount);
+//									result.put("reviseReturnAmount", erpRev.getRemReturnAmt());
+//								} else {
+//									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+//											"Revise Payment paid less through sanchay Portal"));
+//								}
+//							}
+//						} else {
+//							ErpEstimateAmountData erpData = estimateAmountRepository
+//									.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+//
+//							if (erpData != null && erpData.getJeReturnAmount() != null) {
+//								Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+//								BigDecimal compareAmount = (schemeId.equals(1L))
+//										? erpData.getTotalBalanceSupervisionAmount()
+//										: erpData.getTotalBalanceDepositAmount();
+//
+//								boolean isValidAmount = (schemeId.equals(1L) && txnAmount.compareTo(compareAmount) >= 0)
+//										|| (schemeId.equals(2L) && txnAmount.compareTo(compareAmount) >= 0);
+//
+//								if (isValidAmount) {
+//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
+//									result.put("demandPaymentTransactionDate", transactionDate);
+//									result.put("totalDemandZamaKiyaHuaPaisa", txnAmount);
+//									result.put("demandReturnAmount", erpData.getJeReturnAmount());
+//								} else {
+//									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+//											"Demand Payment paid less through sanchay Portal"));
+//								}
+//							}
+//						}
+//					}
+//					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+//				} else if (hasManualPayment) {
+//					ErpEstimateAmountData erpData = estimateAmountRepository
+//							.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+//
+//					if (erpData != null && erpData.getJeReturnAmount() != null) {
+//						Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+//						BigDecimal manualAmount = new BigDecimal(demandDataFromManualPayment.getAmount());
+//						BigDecimal compareAmount = (schemeId.equals(1L)) ? erpData.getTotalBalanceSupervisionAmount()
+//								: erpData.getTotalBalanceDepositAmount();
+//
+//						boolean isValidAmount = (schemeId.equals(1L) && manualAmount.compareTo(compareAmount) >= 0)
+//								|| (schemeId.equals(2L) && manualAmount.compareTo(compareAmount) >= 0);
+//
+//						if (isValidAmount) {
+//							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
+//							transactionDate = demandDataFromManualPayment.getPaymentDate();
+//							result.put("demandPaymentTransactionDate", transactionDate);
+//							result.put("totalDemandZamaKiyaHuaPaisa", manualAmount);
+//							result.put("demandReturnAmount", erpData.getJeReturnAmount());
+//							result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+//						} else {
+//							throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+//									"Demand Payment paid less through sanchay Portal"));
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		return result;
+//	}
 
-
-	public Map<String, Object> getPaymentFromSanchayOrManualPayment(List<PoseMachinePostData> demandDataFromPoseMachine,
-			ManualPayment demandDataFromManualPayment, Long value, ConsumerApplicationDetail consumerApplicationDetail)
-			throws ConsumerApplicationDetailException {
-
-		BigDecimal refundableAmount = BigDecimal.ZERO;
-		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
-		BigDecimal totalZamaKiyaHuaPaisa = BigDecimal.ZERO;
-		String transactionDate = null;
-		BigDecimal supervisionAmount = BigDecimal.ZERO;
-		BigDecimal depositAmount = BigDecimal.ZERO;
-		BigDecimal kvaAmount = BigDecimal.ZERO;
-		BigDecimal colonyOrSlumAmount = BigDecimal.ZERO;
-		BigDecimal returnAmount = BigDecimal.ZERO;
-		BigDecimal mkmyPaidAmount = BigDecimal.ZERO;
-		BigDecimal securityDepositAmount = BigDecimal.ZERO;
-		Map<String, Object> result = new HashMap<>();
-
-		boolean hasPoseData = demandDataFromPoseMachine != null && !demandDataFromPoseMachine.isEmpty();
-		boolean hasManualPayment = demandDataFromManualPayment != null;
-
-		if (hasPoseData || hasManualPayment) {
-
-			if (value == 1L) {
-				if (hasPoseData) {
-					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
-						String paymentType = pose.getPaymentType();
-						totalZamaKiyaHuaPaisa = pose.getTxnAmount();
-						transactionDate = pose.getDateOfPayment().toString();
-
-						if ("Revised_Demand_fees".equals(paymentType)) {
-							ErpRev erpRev = erpRevRepository
-									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
-
-							if (erpRev != null) {
-
-								if (totalZamaKiyaHuaPaisa.compareTo(erpRev.getPayAmt()) >= 0) {
-									BigDecimal cgst = erpRev.getRemCgst();
-									BigDecimal sgst = erpRev.getRemSgst();
-									BigDecimal totalReviseTax = (cgst != null && sgst != null) ? cgst.add(sgst)
-											: BigDecimal.ZERO;
-									refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalReviseTax);
-									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-
-									supervisionAmount = supervisionAmount.add(erpRev.getRemSupervisionAmt());
-									if (Objects.nonNull(erpRev.getRemmDepositAmt())) {
-										depositAmount = depositAmount.add(erpRev.getRemmDepositAmt());
-									}
-									if (Objects.nonNull(erpRev.getRemKvaAmt())) {
-										kvaAmount = kvaAmount.add(erpRev.getRemKvaAmt());
-									}
-									if (Objects.nonNull(erpRev.getRemColonyOrSlum())) {
-										colonyOrSlumAmount = colonyOrSlumAmount.add(erpRev.getRemColonyOrSlum());
-									}
-									if (Objects.nonNull(erpRev.getRemReturnAmt())) {
-										returnAmount = returnAmount.add(erpRev.getRemReturnAmt());
-									}
-
-								} else {
-									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-											"Revise Payment paid less through sanchay Portal"));
-								}
-							}
-						} else {
-							if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
-								MmkyPayAmount mmkyData = mmkyPayAmountRespository.findByConsumerApplicationNumber(
-										consumerApplicationDetail.getConsumerApplicationNo());
-
-								if (mmkyData != null
-										&& totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
-
-									totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
-									result.put("demandPaymentTransactionDate", transactionDate);
-									result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
-									result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
-									result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
-									result.put("securityDeposit", mmkyData.getSecurityDeposit());
-
-								}
-							} else {
-								ErpEstimateAmountData erpData = estimateAmountRepository
-										.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-
-								if (erpData != null) {
-									Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-									BigDecimal compareAmount = (schemeId.equals(1L))
-											? erpData.getTotalBalanceSupervisionAmount()
-											: erpData.getTotalBalanceDepositAmount();
-
-									boolean isValidAmount = (schemeId.equals(1L)
-											&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
-											|| (schemeId.equals(2L)
-													&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
-
-									if (isValidAmount) {
-										if (erpData != null) {
-											BigDecimal cgst = erpData.getCgst();
-											BigDecimal sgst = erpData.getSgst();
-											BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
-													: BigDecimal.ZERO;
-											refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
-											totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-											supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
-											if (Objects.nonNull(erpData.getDepositAmount())) {
-												depositAmount = depositAmount.add(erpData.getDepositAmount());
-											}
-											if (Objects.nonNull(erpData.getKvaLoad())) {
-												kvaAmount = kvaAmount.add(erpData.getKvaLoad());
-											}
-											if (Objects.nonNull(erpData.getColonyOrSlum())) {
-												colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
-											}
-											if (Objects.nonNull(erpData.getJeReturnAmount())) {
-												returnAmount = returnAmount.add(erpData.getJeReturnAmount());
-											}
-											if (Objects.nonNull(erpData.getSecurityDeposit())) {
-												securityDepositAmount = securityDepositAmount
-														.add(erpData.getSecurityDeposit());
-											}
-										}
-
-									} else {
-										throw new ConsumerApplicationDetailException(
-												new Response(HttpCode.NOT_ACCEPTABLE,
-														"Demand Payment paid less through sanchay Portal"));
-									}
-								}
-							}
-						}
-					}
-					result.put("securityDeposit", securityDepositAmount);
-					result.put("returnAmount", returnAmount);
-					result.put("supervisionAmount", supervisionAmount);
-					result.put("depositAmount", depositAmount);
-					result.put("kvaAmount", kvaAmount);
-					result.put("colonyOrSlumAmount", colonyOrSlumAmount);
-					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-				} else if (hasManualPayment) {
-					totalZamaKiyaHuaPaisa = new BigDecimal(demandDataFromManualPayment.getAmount());
-					System.err.println("totalZamaKiyaHuaPaisa" + totalZamaKiyaHuaPaisa);
-					transactionDate = demandDataFromManualPayment.getPaymentDate();
-					if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
-						MmkyPayAmount mmkyData = mmkyPayAmountRespository
-								.findByConsumerApplicationNumber(consumerApplicationDetail.getConsumerApplicationNo());
-
-						if (mmkyData != null && totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
-							totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
-							result.put("demandPaymentTransactionDate", transactionDate);
-							result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
-							result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
-							result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
-							result.put("securityDeposit", mmkyData.getSecurityDeposit());
-						}
-					} else {
-						ErpEstimateAmountData erpData = estimateAmountRepository
-								.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-
-						if (erpData != null) {
-							Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-							BigDecimal compareAmount = (schemeId.equals(1L))
-									? erpData.getTotalBalanceSupervisionAmount()
-									: erpData.getTotalBalanceDepositAmount();
-
-							boolean isValidAmount = (schemeId.equals(1L)
-									&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
-									|| (schemeId.equals(2L) && totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
-
-							if (isValidAmount) {
-								if (erpData != null) {
-									BigDecimal cgst = erpData.getCgst();
-									BigDecimal sgst = erpData.getSgst();
-									BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
-											: BigDecimal.ZERO;
-									refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
-									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-
-									supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
-									if (Objects.nonNull(erpData.getDepositAmount())) {
-										depositAmount = depositAmount.add(erpData.getDepositAmount());
-									}
-									if (Objects.nonNull(erpData.getKvaLoad())) {
-										kvaAmount = kvaAmount.add(erpData.getKvaLoad());
-									}
-									if (Objects.nonNull(erpData.getColonyOrSlum())) {
-										colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
-									}
-									if (Objects.nonNull(erpData.getJeReturnAmount())) {
-										returnAmount = returnAmount.add(erpData.getJeReturnAmount());
-									}
-									if (Objects.nonNull(erpData.getSecurityDeposit())) {
-										securityDepositAmount = securityDepositAmount.add(erpData.getSecurityDeposit());
-									}
-								}
-
-								result.put("demandPaymentTransactionDate", transactionDate);
-								result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
-								result.put("demandRefundableAmount", refundableAmount);
-
-								System.err.println(" demand totalWapaskrneWalaPaisa : " + totalWapaskrneWalaPaisa);
-							} else {
-								throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-										"Demand Payment paid less through Manual Payment"));
-							}
-						}
-
-						result.put("securityDeposit", securityDepositAmount);
-						result.put("returnAmount", returnAmount);
-						result.put("supervisionAmount", supervisionAmount);
-						result.put("depositAmount", depositAmount);
-						result.put("kvaAmount", kvaAmount);
-						result.put("colonyOrSlumAmount", colonyOrSlumAmount);
-						result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-					}
-				}
-			} else {
-				// For value != 1
-				if (hasPoseData) {
-					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
-						String paymentType = pose.getPaymentType();
-						BigDecimal txnAmount = pose.getTxnAmount();
-						transactionDate = pose.getDateOfPayment().toString();
-
-						if ("Revised_Demand_fees".equals(paymentType)) {
-							ErpRev erpRev = erpRevRepository
-									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
-
-							if (erpRev != null && erpRev.getRemReturnAmt() != null) {
-								if (txnAmount.compareTo(erpRev.getPayAmt()) >= 0) {
-									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpRev.getRemReturnAmt());
-									result.put("revisePaymentTransactionDate", transactionDate);
-									result.put("totalReviseZamaKiyaHuaPaisa", txnAmount);
-									result.put("reviseReturnAmount", erpRev.getRemReturnAmt());
-								} else {
-									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-											"Revise Payment paid less through sanchay Portal"));
-								}
-							}
-						} else {
-							ErpEstimateAmountData erpData = estimateAmountRepository
-									.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-
-							if (erpData != null && erpData.getJeReturnAmount() != null) {
-								Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-								BigDecimal compareAmount = (schemeId.equals(1L))
-										? erpData.getTotalBalanceSupervisionAmount()
-										: erpData.getTotalBalanceDepositAmount();
-
-								boolean isValidAmount = (schemeId.equals(1L) && txnAmount.compareTo(compareAmount) >= 0)
-										|| (schemeId.equals(2L) && txnAmount.compareTo(compareAmount) >= 0);
-
-								if (isValidAmount) {
-									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
-									result.put("demandPaymentTransactionDate", transactionDate);
-									result.put("totalDemandZamaKiyaHuaPaisa", txnAmount);
-									result.put("demandReturnAmount", erpData.getJeReturnAmount());
-								} else {
-									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-											"Demand Payment paid less through sanchay Portal"));
-								}
-							}
-						}
-					}
-					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-				} else if (hasManualPayment) {
-					ErpEstimateAmountData erpData = estimateAmountRepository
-							.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-
-					if (erpData != null && erpData.getJeReturnAmount() != null) {
-						Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-						BigDecimal manualAmount = new BigDecimal(demandDataFromManualPayment.getAmount());
-						BigDecimal compareAmount = (schemeId.equals(1L)) ? erpData.getTotalBalanceSupervisionAmount()
-								: erpData.getTotalBalanceDepositAmount();
-
-						boolean isValidAmount = (schemeId.equals(1L) && manualAmount.compareTo(compareAmount) >= 0)
-								|| (schemeId.equals(2L) && manualAmount.compareTo(compareAmount) >= 0);
-
-						if (isValidAmount) {
-							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
-							transactionDate = demandDataFromManualPayment.getPaymentDate();
-							result.put("demandPaymentTransactionDate", transactionDate);
-							result.put("totalDemandZamaKiyaHuaPaisa", manualAmount);
-							result.put("demandReturnAmount", erpData.getJeReturnAmount());
-							result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-						} else {
-							throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-									"Demand Payment paid less through sanchay Portal"));
-						}
-					}
-				}
-			}
-		}
-
-		return result;
-	}
-
-
+//	ABOVE getPaymentFromSanchayOrManualPayment CODE COMMENTED KYUKI UAT PR TESTING HOGI 06-01-2026
+	
+	
 	@Override
 	@Transactional
 	public RefundAmount financeRejectRefundApplicationAtDiscomOfficer(String consumerApplicationNo,
@@ -1520,8 +1519,6 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 		return save;
 	}
 
-//	this code is written on 04-11-2025 isme sspTotal amount and sspRegamount ka deduction add kiya hua hai ise test krna hai
-
 //	@Override
 //	@Transactional(rollbackFor = Exception.class)
 //	public RefundAmount saveConsumerApplicationCancel(RefundAmount refundAmount)
@@ -1536,7 +1533,6 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //		BigDecimal colonyOrSlumAmount = BigDecimal.ZERO;
 //		BigDecimal returnAmount = BigDecimal.ZERO;
 //		BigDecimal securityDepositAmount = BigDecimal.ZERO;
-//		BigDecimal totalHeadAmount = BigDecimal.ZERO;
 //
 //		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
 //				.findByConsumerApplicationNumber(refundAmount.getConsumerApplicationNo());
@@ -1662,29 +1658,14 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //										erpEstimateDB.getTotalBalanceDepositAmount());
 //					}
 //
-//					BigDecimal sspRegCharge = erpEstimateDB.getSspRegistrationCharge();
-//
 //					if (erpEstimateDB.getCgst() != null) {
 //
 //						BigDecimal cgst = erpEstimateDB.getCgst();
 //						BigDecimal sgst = erpEstimateDB.getSgst();
 //						BigDecimal totalCgstSgst = cgst.add(sgst);
-//
-//						if(sspRegCharge==null) {
-//							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
-//						}else {
-////							sspRegCharge min. 5 rs to aayega hi 7-11-2025
-//							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst)
-//									.subtract(BigDecimal.valueOf(5));
-//						}
-//
+//						refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
 //					} else {
-//						if(sspRegCharge==null) {
-//							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
-//						}else {
-//							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount()
-//									.subtract(BigDecimal.valueOf(5));
-//						}
+//						refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
 //					}
 //
 //					supervisionAmount = supervisionAmount.add(erpEstimateDB.getSupervisionAmount());
@@ -1704,18 +1685,6 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //						securityDepositAmount = securityDepositAmount.add(erpEstimateDB.getSecurityDeposit());
 //					}
 //
-//					if (Objects.nonNull(sspRegCharge)) {
-//						refundAmount.setSspRegCharge(sspRegCharge.subtract(BigDecimal.valueOf(5)));
-//					}
-//
-//					BigDecimal sspMeterCost = erpEstimateDB.getSspMeterCost() != null ? erpEstimateDB.getSspMeterCost()
-//							: BigDecimal.ZERO;
-//
-//					System.err.println("ssp Reg Charge : " + sspRegCharge);
-//					System.err.println("ssp Meter Cost : " + sspMeterCost);
-//					System.err.println("Total refundable amount : " + sspMeterCost);
-//
-//					refundAmount.setSspMeterCost(sspMeterCost);
 //					refundAmount.setDemandErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
 //					refundAmount.setSecurityDepositAmount(securityDepositAmount);
 //					refundAmount.setSupervisionAmount(supervisionAmount);
@@ -1727,14 +1696,8 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //					totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
 //					refundAmount.setRefundAmount(totalWapaskrneWalaPaisa);
 ////					added this given check on 21-08-2025 Monika Rajpoot 
-//					if (sspRegCharge!=null) {
-//						totalHeadAmount = supervisionAmount.add(depositAmount).add(securityDepositAmount).add(kvaAmount)
-//								.add(colonyOrSlumAmount).add(returnAmount).add(sspMeterCost)
-//								.add(sspRegCharge.subtract(BigDecimal.valueOf(5)));
-//					} else {
-//						totalHeadAmount = supervisionAmount.add(depositAmount).add(securityDepositAmount).add(kvaAmount)
-//								.add(colonyOrSlumAmount).add(returnAmount).add(sspMeterCost);
-//					}
+//					BigDecimal totalHeadAmount = supervisionAmount.add(depositAmount).add(securityDepositAmount)
+//							.add(kvaAmount).add(colonyOrSlumAmount).add(returnAmount);
 //					if (totalWapaskrneWalaPaisa.compareTo(totalHeadAmount) != 0) {
 //						throw new ConsumerApplicationDetailException(
 //								new Response(HttpCode.NOT_ACCEPTABLE, "Amount not matched: Refundalable Amount is : "
@@ -1746,6 +1709,9 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //
 //				}
 //			} else {
+////				demandDataFromPoseMachine = poseMachinePostDataRepository
+////						.getDemandDataFromPoseMachineData(refundAmount.getConsumerApplicationNo());
+//
 //				Map<String, Object> paymentFromSanchayOrManualPayment = getPaymentFromSanchayOrManualPayment(
 //						demandDataFromPoseMachine, demandDataFromManualPayment, 1L, consumerApplicationDetail);
 //				totalReturnKrneWalaPaisa = (BigDecimal) paymentFromSanchayOrManualPayment
@@ -1814,8 +1780,6 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //				refundAmount.setMkmyPaidAmount((BigDecimal) paymentFromSanchayOrManualPayment.get("mkmyPaidAmount"));
 //				refundAmount.setSecurityDepositAmount(
 //						(BigDecimal) paymentFromSanchayOrManualPayment.get("securityDeposit"));
-//				refundAmount.setSspMeterCost((BigDecimal) paymentFromSanchayOrManualPayment.get("sspMeterCost"));
-//				refundAmount.setSspRegCharge((BigDecimal) paymentFromSanchayOrManualPayment.get("sspRegCharge"));
 //				refundAmount.setRefundAmount(totalReturnKrneWalaPaisa);
 //			}
 //
@@ -1853,343 +1817,14 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //		}
 //
 //	}
-//
-////	-----------------------------
-//
-//	public Map<String, Object> getPaymentFromSanchayOrManualPayment(
-//			List<PoseMachinePostData> demandDataFromPoseMachine, ManualPayment demandDataFromManualPayment, Long value,
-//			ConsumerApplicationDetail consumerApplicationDetail) throws ConsumerApplicationDetailException {
-//
-//		BigDecimal refundableAmount = BigDecimal.ZERO;
-//		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
-//		BigDecimal totalZamaKiyaHuaPaisa = BigDecimal.ZERO;
-//		String transactionDate = null;
-//		BigDecimal supervisionAmount = BigDecimal.ZERO;
-//		BigDecimal depositAmount = BigDecimal.ZERO;
-//		BigDecimal kvaAmount = BigDecimal.ZERO;
-//		BigDecimal colonyOrSlumAmount = BigDecimal.ZERO;
-//		BigDecimal returnAmount = BigDecimal.ZERO;
-//		BigDecimal mkmyPaidAmount = BigDecimal.ZERO;
-//		BigDecimal securityDepositAmount = BigDecimal.ZERO;
-//		BigDecimal sspMeterCost = BigDecimal.ZERO;
-//		BigDecimal sspRegCharge = BigDecimal.ZERO;
-//		Map<String, Object> result = new HashMap<>();
-//
-//		boolean hasPoseData = demandDataFromPoseMachine != null && !demandDataFromPoseMachine.isEmpty();
-//		boolean hasManualPayment = demandDataFromManualPayment != null;
-//
-//		if (hasPoseData || hasManualPayment) {
-//// VALUE =1 MEANS CANCELLATION AMOUNT NIKALNA HAI 
-//			
-//			if (value == 1L) {
-//				if (hasPoseData) {
-//					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
-//						String paymentType = pose.getPaymentType();
-//						totalZamaKiyaHuaPaisa = pose.getTxnAmount();
-//						transactionDate = pose.getDateOfPayment().toString();
-//
-//						if ("Revised_Demand_fees".equals(paymentType)) {
-//							ErpRev erpRev = erpRevRepository
-//									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
-//
-//							if (erpRev != null) {
-//
-//								if (totalZamaKiyaHuaPaisa.compareTo(erpRev.getPayAmt()) >= 0) {
-//									BigDecimal cgst = erpRev.getRemCgst();
-//									BigDecimal sgst = erpRev.getRemSgst();
-//									BigDecimal totalReviseTax = (cgst != null && sgst != null) ? cgst.add(sgst)
-//											: BigDecimal.ZERO;
-//									refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalReviseTax);
-//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-//
-//									supervisionAmount = supervisionAmount.add(erpRev.getRemSupervisionAmt());
-//									if (Objects.nonNull(erpRev.getRemmDepositAmt())) {
-//										depositAmount = depositAmount.add(erpRev.getRemmDepositAmt());
-//									}
-//									if (Objects.nonNull(erpRev.getRemKvaAmt())) {
-//										kvaAmount = kvaAmount.add(erpRev.getRemKvaAmt());
-//									}
-//									if (Objects.nonNull(erpRev.getRemColonyOrSlum())) {
-//										colonyOrSlumAmount = colonyOrSlumAmount.add(erpRev.getRemColonyOrSlum());
-//									}
-//									if (Objects.nonNull(erpRev.getRemReturnAmt())) {
-//										returnAmount = returnAmount.add(erpRev.getRemReturnAmt());
-//									}
-//
-//								} else {
-//									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-//											"Revise Payment paid less through sanchay Portal"));
-//								}
-//							}
-//						} else {
-//							if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
-//								MmkyPayAmount mmkyData = mmkyPayAmountRespository.findByConsumerApplicationNumber(
-//										consumerApplicationDetail.getConsumerApplicationNo());
-//
-//								if (mmkyData != null
-//										&& totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
-//
-//									totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
-//									result.put("demandPaymentTransactionDate", transactionDate);
-//									result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
-//									result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
-//									result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
-//									result.put("securityDeposit", mmkyData.getSecurityDeposit());
-//
-//								}
-//							} else {
-//								ErpEstimateAmountData erpData = estimateAmountRepository
-//										.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-//
-//								if (erpData != null) {
-//									Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-//									BigDecimal compareAmount = (schemeId.equals(1L))
-//											? erpData.getTotalBalanceSupervisionAmount()
-//											: erpData.getTotalBalanceDepositAmount();
-//
-//									boolean isValidAmount = (schemeId.equals(1L)
-//											&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
-//											|| (schemeId.equals(2L)
-//													&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
-//
-//									if (isValidAmount) {
-//										if (erpData != null) {
-//											BigDecimal cgst = erpData.getCgst();
-//											BigDecimal sgst = erpData.getSgst();
-//											BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
-//													: BigDecimal.ZERO;
-//											sspRegCharge = erpData.getSspRegistrationCharge();
-//											
-//											if(sspRegCharge==null) {
-//												refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
-//											}else {
-//												refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax)
-//												.subtract(BigDecimal.valueOf(5));
-//											}
-//											totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-//											supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
-//											if (Objects.nonNull(erpData.getDepositAmount())) {
-//												depositAmount = depositAmount.add(erpData.getDepositAmount());
-//											}
-//											if (Objects.nonNull(erpData.getKvaLoad())) {
-//												kvaAmount = kvaAmount.add(erpData.getKvaLoad());
-//											}
-//											if (Objects.nonNull(erpData.getColonyOrSlum())) {
-//												colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
-//											}
-//											if (Objects.nonNull(erpData.getJeReturnAmount())) {
-//												returnAmount = returnAmount.add(erpData.getJeReturnAmount());
-//											}
-//											if (Objects.nonNull(erpData.getSecurityDeposit())) {
-//												securityDepositAmount = securityDepositAmount
-//														.add(erpData.getSecurityDeposit());
-//											}
-//											if (Objects.nonNull(erpData.getSspMeterCost())) {
-//												sspMeterCost = erpData.getSspMeterCost();
-//											}
-//											if (Objects.nonNull(sspRegCharge)) {
-//												sspRegCharge =sspRegCharge
-//														.subtract(BigDecimal.valueOf(5));
-//											}
-//
-//										}
-//
-//									} else {
-//										throw new ConsumerApplicationDetailException(
-//												new Response(HttpCode.NOT_ACCEPTABLE,
-//														"Demand Payment paid less through sanchay Portal"));
-//									}
-//								}
-//							}
-//						}
-//					}
-//					result.put("securityDeposit", securityDepositAmount);
-//					result.put("returnAmount", returnAmount);
-//					result.put("supervisionAmount", supervisionAmount);
-//					result.put("depositAmount", depositAmount);
-//					result.put("kvaAmount", kvaAmount);
-//					result.put("colonyOrSlumAmount", colonyOrSlumAmount);
-//					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-//					result.put("sspMeterCost", sspMeterCost);
-//					result.put("sspRegCharge", sspRegCharge);
-//				} else if (hasManualPayment) {
-//					totalZamaKiyaHuaPaisa = new BigDecimal(demandDataFromManualPayment.getAmount());
-//					System.err.println("totalZamaKiyaHuaPaisa" + totalZamaKiyaHuaPaisa);
-//					transactionDate = demandDataFromManualPayment.getPaymentDate();
-//					if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
-//						MmkyPayAmount mmkyData = mmkyPayAmountRespository
-//								.findByConsumerApplicationNumber(consumerApplicationDetail.getConsumerApplicationNo());
-//
-//						if (mmkyData != null && totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
-//							totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
-//							result.put("demandPaymentTransactionDate", transactionDate);
-//							result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
-//							result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
-//							result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
-//							result.put("securityDeposit", mmkyData.getSecurityDeposit());
-//						}
-//					} else {
-//						ErpEstimateAmountData erpData = estimateAmountRepository
-//								.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-//
-//						if (erpData != null) {
-//							Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-//							BigDecimal compareAmount = (schemeId.equals(1L))
-//									? erpData.getTotalBalanceSupervisionAmount()
-//									: erpData.getTotalBalanceDepositAmount();
-//
-//							boolean isValidAmount = (schemeId.equals(1L)
-//									&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
-//									|| (schemeId.equals(2L) && totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
-//
-//							if (isValidAmount) {
-//								if (erpData != null) {
-//									BigDecimal cgst = erpData.getCgst();
-//									BigDecimal sgst = erpData.getSgst();
-//									BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
-//											: BigDecimal.ZERO;
-//									
-//									sspRegCharge = erpData.getSspRegistrationCharge();
-//									
-//									if(sspRegCharge==null) {
-//										refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
-//									}else {
-//										refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax)
-//										.subtract(BigDecimal.valueOf(5));
-//									}
-//								
-//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
-//
-//									supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
-//									if (Objects.nonNull(erpData.getDepositAmount())) {
-//										depositAmount = depositAmount.add(erpData.getDepositAmount());
-//									}
-//									if (Objects.nonNull(erpData.getKvaLoad())) {
-//										kvaAmount = kvaAmount.add(erpData.getKvaLoad());
-//									}
-//									if (Objects.nonNull(erpData.getColonyOrSlum())) {
-//										colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
-//									}
-//									if (Objects.nonNull(erpData.getJeReturnAmount())) {
-//										returnAmount = returnAmount.add(erpData.getJeReturnAmount());
-//									}
-//									if (Objects.nonNull(erpData.getSecurityDeposit())) {
-//										securityDepositAmount = securityDepositAmount.add(erpData.getSecurityDeposit());
-//									}
-//									if (Objects.nonNull(erpData.getSspMeterCost())) {
-//										sspMeterCost = erpData.getSspMeterCost();
-//									}
-//									if (Objects.nonNull(sspRegCharge)) {
-//										sspRegCharge =sspRegCharge
-//												.subtract(BigDecimal.valueOf(5));
-//									}
-//								}
-//
-//								result.put("demandPaymentTransactionDate", transactionDate);
-//								result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
-//								result.put("demandRefundableAmount", refundableAmount);
-//
-//								System.err.println(" demand totalWapaskrneWalaPaisa : " + totalWapaskrneWalaPaisa);
-//							} else {
-//								throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-//										"Demand Payment paid less through Manual Payment"));
-//							}
-//						}
-//
-//						result.put("securityDeposit", securityDepositAmount);
-//						result.put("returnAmount", returnAmount);
-//						result.put("supervisionAmount", supervisionAmount);
-//						result.put("depositAmount", depositAmount);
-//						result.put("kvaAmount", kvaAmount);
-//						result.put("colonyOrSlumAmount", colonyOrSlumAmount);
-//						result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-//						result.put("sspMeterCost", sspMeterCost);
-//						result.put("sspRegCharge", sspRegCharge);
-//					}
-//				}
-//			} else {
-//				// For value != 1
-//				if (hasPoseData) {
-//					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
-//						String paymentType = pose.getPaymentType();
-//						BigDecimal txnAmount = pose.getTxnAmount();
-//						transactionDate = pose.getDateOfPayment().toString();
-//
-//						if ("Revised_Demand_fees".equals(paymentType)) {
-//							ErpRev erpRev = erpRevRepository
-//									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
-//
-//							if (erpRev != null && erpRev.getRemReturnAmt() != null) {
-//								if (txnAmount.compareTo(erpRev.getPayAmt()) >= 0) {
-//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpRev.getRemReturnAmt());
-//									result.put("revisePaymentTransactionDate", transactionDate);
-//									result.put("totalReviseZamaKiyaHuaPaisa", txnAmount);
-//									result.put("reviseReturnAmount", erpRev.getRemReturnAmt());
-//								} else {
-//									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-//											"Revise Payment paid less through sanchay Portal"));
-//								}
-//							}
-//						} else {
-//							ErpEstimateAmountData erpData = estimateAmountRepository
-//									.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-//
-//							if (erpData != null && erpData.getJeReturnAmount() != null) {
-//								Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-//								BigDecimal compareAmount = (schemeId.equals(1L))
-//										? erpData.getTotalBalanceSupervisionAmount()
-//										: erpData.getTotalBalanceDepositAmount();
-//
-//								boolean isValidAmount = (schemeId.equals(1L) && txnAmount.compareTo(compareAmount) >= 0)
-//										|| (schemeId.equals(2L) && txnAmount.compareTo(compareAmount) >= 0);
-//
-//								if (isValidAmount) {
-//									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
-//									result.put("demandPaymentTransactionDate", transactionDate);
-//									result.put("totalDemandZamaKiyaHuaPaisa", txnAmount);
-//									result.put("demandReturnAmount", erpData.getJeReturnAmount());
-//								} else {
-//									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-//											"Demand Payment paid less through sanchay Portal"));
-//								}
-//							}
-//						}
-//					}
-//					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-//				} else if (hasManualPayment) {
-//					ErpEstimateAmountData erpData = estimateAmountRepository
-//							.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-//
-//					if (erpData != null && erpData.getJeReturnAmount() != null) {
-//						Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
-//						BigDecimal manualAmount = new BigDecimal(demandDataFromManualPayment.getAmount());
-//						BigDecimal compareAmount = (schemeId.equals(1L)) ? erpData.getTotalBalanceSupervisionAmount()
-//								: erpData.getTotalBalanceDepositAmount();
-//
-//						boolean isValidAmount = (schemeId.equals(1L) && manualAmount.compareTo(compareAmount) >= 0)
-//								|| (schemeId.equals(2L) && manualAmount.compareTo(compareAmount) >= 0);
-//
-//						if (isValidAmount) {
-//							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
-//							transactionDate = demandDataFromManualPayment.getPaymentDate();
-//							result.put("demandPaymentTransactionDate", transactionDate);
-//							result.put("totalDemandZamaKiyaHuaPaisa", manualAmount);
-//							result.put("demandReturnAmount", erpData.getJeReturnAmount());
-//							result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
-//						} else {
-//							throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
-//									"Demand Payment paid less through sanchay Portal"));
-//						}
-//					}
-//				}
-//			}
-//		}
-//
-//		return result;
-//	}
-//
-////	---------------------
-//
+	
+//	ABOVE CODE COMMENTED KYUKI GIVEN CODE UAT PR DEPLOY KIYA JAA RHA HAI FOR TESTING 06-01-2026
+	
+	
+	
+//	the above code consist the payment details not included with sspApplication Amount
+// code commented 23-12-2025 kyuki below new code likha hai govt. and NOW 12 ki application k liye
+//	@Override
 //	public Map<String, BigDecimal> getPaymentDetailForRefund(String consumerApplicationNo, Long value)
 //			throws ConsumerApplicationDetailException {
 //		BigDecimal refundableAmount = BigDecimal.ZERO;
@@ -2274,29 +1909,17 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //
 //								ErpEstimateAmountData erpEstimateDB = estimateAmountRepository
 //										.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
-//								BigDecimal sspRegCharge = erpEstimateDB.getSspRegistrationCharge();
+//
 //								if (erpEstimateDB.getCgst() != null) {
 //
 //									BigDecimal cgst = erpEstimateDB.getCgst();
 //									BigDecimal sgst = erpEstimateDB.getSgst();
 //									BigDecimal totalCgstSgst = cgst.add(sgst);
 //									BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
-//									
-//									if(sspRegCharge==null) {
-//										refundableAmount = billdeskAmount.subtract(totalCgstSgst);
-//									}else {
-////										sspRegCharge min. 5 rs to aayega hi 7-11-2025
-//										refundableAmount = billdeskAmount.subtract(totalCgstSgst)
-//												.subtract(new BigDecimal(5));
-//									}
+//									refundableAmount = billdeskAmount.subtract(totalCgstSgst);
 //								} else {
 //									BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
-//									if(sspRegCharge==null) {
-//										refundableAmount = billdeskAmount;
-//									}else {
-//										refundableAmount = billdeskAmount.subtract(new BigDecimal(5));
-//									}
-//									
+//									refundableAmount = billdeskAmount;
 //								}
 //
 //								totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
@@ -2345,5 +1968,857 @@ public class RefundAmountServiceImpl implements RefundAmountService {
 //			return result;
 //		}
 //	}
+//	ABOVE getPaymentFromSanchayOrManualPayment CODE COMMENTED KYUKI UAT PR TESTING HOGI 06-01-2026
+	
+	
+//	========================================================================================
+//	Y poora code uncomment krna hai jab bhi SSP ki payment bhi refund krna hai tab and erp procedure me bhi inhe include krna pdega
+//	this code is written on 04-11-2025 isme sspTotal amount and sspRegamount ka deduction add kiya hua hai ise test krna hai
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public RefundAmount saveConsumerApplicationCancel(RefundAmount refundAmount)
+			throws ConsumerApplicationDetailException {
+		BigDecimal totalReturnKrneWalaPaisa = BigDecimal.ZERO;
+		BigDecimal refundableAmount = BigDecimal.ZERO;
+		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
+
+		BigDecimal supervisionAmount = BigDecimal.ZERO;
+		BigDecimal depositAmount = BigDecimal.ZERO;
+		BigDecimal kvaAmount = BigDecimal.ZERO;
+		BigDecimal colonyOrSlumAmount = BigDecimal.ZERO;
+		BigDecimal returnAmount = BigDecimal.ZERO;
+		BigDecimal securityDepositAmount = BigDecimal.ZERO;
+		BigDecimal totalHeadAmount = BigDecimal.ZERO;
+
+		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
+				.findByConsumerApplicationNumber(refundAmount.getConsumerApplicationNo());
+		if (Objects.isNull(consumerApplicationDetail)) {
+			throw new ConsumerApplicationDetailException(
+					new Response(HttpCode.NULL_OBJECT, "Application Not Found In Database"));
+		} else {
+			List<BillDeskPaymentResponse> allPaymentDetails = null;
+			List<PoseMachinePostData> demandDataFromPoseMachine = null;
+			ManualPayment demandDataFromManualPayment = null;
+			try {
+				allPaymentDetails = billPaymentResponseeeeeeeRepository
+						.getAllPaymentDetails(refundAmount.getConsumerApplicationNo());
+				if (allPaymentDetails.isEmpty()) {
+					demandDataFromPoseMachine = poseMachinePostDataRepository
+							.getDemandDataFromPoseMachineData(refundAmount.getConsumerApplicationNo());
+				}
+				if (demandDataFromPoseMachine.isEmpty() && allPaymentDetails.isEmpty()) {
+					demandDataFromManualPayment = manualPaymentRepository
+							.getDemandDataFromManualPayment(refundAmount.getConsumerApplicationNo());
+				}
+				System.err.println(allPaymentDetails);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			if (allPaymentDetails.isEmpty() && demandDataFromPoseMachine.isEmpty()
+					&& Objects.isNull(demandDataFromManualPayment)) {
+				throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT,
+						"Demand Fees not received for application no. : " + refundAmount.getConsumerApplicationNo()));
+			}
+			if (!allPaymentDetails.isEmpty()) {
+				for (BillDeskPaymentResponse bill : allPaymentDetails) {
+					ConsumerAppCancellationRefundAmount conAppCancel = new ConsumerAppCancellationRefundAmount();
+					conAppCancel.setApplicationNo(refundAmount.getConsumerApplicationNo());
+					conAppCancel.setMerchantId(bill.getMercid());
+					conAppCancel.setOrderId(bill.getOrderid());
+					conAppCancel.setPaymentType(bill.getAdditionalInfo());
+					conAppCancel.setTxnAmount(new BigDecimal(bill.getAmount()));
+					conAppCancel.setTxnId(bill.getTranId());
+					conAppCancel.setTransactionDate(bill.getTransactionDate());
+					ConsumerAppCancellationRefundAmount byTxnId = consumerAppCancellationRefundAmountRepository
+							.findByTxnIdIsActive(bill.getTranId());
+					if (byTxnId == null) {
+						consumerAppCancellationRefundAmountRepository.save(conAppCancel);
+					}
+
+				}
+				BigDecimal billdeskPaidAmount = new BigDecimal(allPaymentDetails.get(0).getAmount());
+				if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8l)) {
+					MmkyPayAmount findByConsumerApplicationNumber = mmkyPayAmountRespository
+							.findByConsumerApplicationNumber(refundAmount.getConsumerApplicationNo());
+
+					refundAmount.setDemandErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+					refundAmount.setMkmyPaidAmount(findByConsumerApplicationNumber.getCarryAmountByApplicant());
+					refundAmount.setSecurityDepositAmount(findByConsumerApplicationNumber.getSecurityDeposit());
+					refundAmount.setRefundAmount(billdeskPaidAmount.subtract(new BigDecimal(2500)));
+//					added this given check on 21-08-2025 Monika Rajpoot 
+					BigDecimal payableMinus2500 = billdeskPaidAmount.subtract(new BigDecimal(2500));
+
+					BigDecimal carryPlusSecurity = findByConsumerApplicationNumber.getCarryAmountByApplicant()
+							.add(findByConsumerApplicationNumber.getSecurityDeposit());
+
+					if (payableMinus2500.compareTo(carryPlusSecurity) != 0) {
+						throw new ConsumerApplicationDetailException(
+								new Response(HttpCode.NOT_ACCEPTABLE, "Amount not matched : Refundalable Amount is : "
+										+ payableMinus2500 + " and Total head amount is : " + carryPlusSecurity));
+					}
+//					check end 21-08-2025 Monika Rajpoot 
+
+				} else {
+					List<ErpRev> erpRevDB = erpRevRepository
+							.findByConsumerAppNo(refundAmount.getConsumerApplicationNo());
+					if (!erpRevDB.isEmpty()) {
+						for (ErpRev erpRev : erpRevDB) {
+							System.err.println("erp aaaaaa : " + erpRev.getPayAmt());
+
+							ConsumerAppCancellationRefundAmount applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
+									.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
+											erpRev.getPayAmt());
+							if (erpRev.getRemCgst() != null) {
+								BigDecimal remCgst = erpRev.getRemCgst();
+								BigDecimal remSgst = erpRev.getRemSgst();
+								BigDecimal totalCgstSgst = remCgst.add(remSgst);
+
+								refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
+							} else {
+								refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
+							}
+
+							supervisionAmount = erpRev.getRemSupervisionAmt();
+							if (Objects.nonNull(erpRev.getRemmDepositAmt())) {
+								depositAmount = erpRev.getRemmDepositAmt();
+							}
+							if (Objects.nonNull(erpRev.getRemKvaAmt())) {
+								kvaAmount = erpRev.getRemKvaAmt();
+							}
+							if (Objects.nonNull(erpRev.getRemColonyOrSlum())) {
+								colonyOrSlumAmount = erpRev.getRemColonyOrSlum();
+							}
+							if (Objects.nonNull(erpRev.getRemReturnAmt())) {
+								returnAmount = erpRev.getRemReturnAmt();
+							}
+
+							applicationNoAndTxnAmountDB.setRefundableAmount(refundableAmount);
+							consumerAppCancellationRefundAmountRepository.save(applicationNoAndTxnAmountDB);
+
+							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+							refundAmount.setReviseErpNo(consumerApplicationDetail.getRevisedErpNumber());
+						}
+					}
+					ErpEstimateAmountData erpEstimateDB = estimateAmountRepository
+							.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+
+					ConsumerAppCancellationRefundAmount applicationNoAndTxnAmountDB = null;
+					if (consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(1L)) {
+						applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
+								.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
+										erpEstimateDB.getTotalBalanceSupervisionAmount());
+					} else {
+						applicationNoAndTxnAmountDB = consumerAppCancellationRefundAmountRepository
+								.findByApplicationNoAndTxnAmountIsActive(refundAmount.getConsumerApplicationNo(),
+										erpEstimateDB.getTotalBalanceDepositAmount());
+					}
+
+					BigDecimal sspRegCharge = erpEstimateDB.getSspRegistrationCharge();
+
+					if (erpEstimateDB.getCgst() != null) {
+
+						BigDecimal cgst = erpEstimateDB.getCgst();
+						BigDecimal sgst = erpEstimateDB.getSgst();
+						BigDecimal totalCgstSgst = cgst.add(sgst);
+
+						if (sspRegCharge == null) {
+							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst);
+						} else {
+//							sspRegCharge min. 5 rs to aayega hi 7-11-2025
+							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount().subtract(totalCgstSgst)
+									.subtract(BigDecimal.valueOf(5));
+						}
+
+					} else {
+						if (sspRegCharge == null) {
+							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount();
+						} else {
+							refundableAmount = applicationNoAndTxnAmountDB.getTxnAmount()
+									.subtract(BigDecimal.valueOf(5));
+						}
+					}
+					
+//					this case is added for govt. application and NOW 12 Date: 23-12-2025
+					if (erpEstimateDB.getRegistrationCharges() != null
+							&& erpEstimateDB.getRegistrationCharges().equals(BigDecimal.valueOf(1180))) {
+						refundableAmount = refundableAmount.subtract(BigDecimal.valueOf(1180));
+					}
+
+					supervisionAmount = supervisionAmount.add(erpEstimateDB.getSupervisionAmount());
+					if (Objects.nonNull(erpEstimateDB.getDepositAmount())) {
+						depositAmount = depositAmount.add(erpEstimateDB.getDepositAmount());
+					}
+					if (Objects.nonNull(erpEstimateDB.getKvaLoad())) {
+						kvaAmount = kvaAmount.add(erpEstimateDB.getKvaLoad());
+					}
+					if (Objects.nonNull(erpEstimateDB.getColonyOrSlum())) {
+						colonyOrSlumAmount = colonyOrSlumAmount.add(erpEstimateDB.getColonyOrSlum());
+					}
+					if (Objects.nonNull(erpEstimateDB.getJeReturnAmount())) {
+						returnAmount = erpEstimateDB.getJeReturnAmount();
+					}
+					if (Objects.nonNull(erpEstimateDB.getSecurityDeposit())) {
+						securityDepositAmount = securityDepositAmount.add(erpEstimateDB.getSecurityDeposit());
+					}
+
+					if (Objects.nonNull(sspRegCharge)) {
+						refundAmount.setSspRegCharge(sspRegCharge.subtract(BigDecimal.valueOf(5)));
+					}
+
+					BigDecimal sspMeterCost = erpEstimateDB.getSspMeterCost() != null ? erpEstimateDB.getSspMeterCost()
+							: BigDecimal.ZERO;
+
+					System.err.println("ssp Reg Charge : " + sspRegCharge);
+					System.err.println("ssp Meter Cost : " + sspMeterCost);
+					System.err.println("Total refundable amount : " + sspMeterCost);
+
+					refundAmount.setSspMeterCost(sspMeterCost);
+					refundAmount.setDemandErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+					refundAmount.setSecurityDepositAmount(securityDepositAmount);
+					refundAmount.setSupervisionAmount(supervisionAmount);
+					refundAmount.setDepositAmount(depositAmount);
+					refundAmount.setKvaAmount(kvaAmount);
+					refundAmount.setColonyOrSlumAmount(colonyOrSlumAmount);
+					refundAmount.setReturnAmount(returnAmount);
+					applicationNoAndTxnAmountDB.setRefundableAmount(refundableAmount);
+					totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+					refundAmount.setRefundAmount(totalWapaskrneWalaPaisa);
+//					added this given check on 21-08-2025 Monika Rajpoot 
+					if (sspRegCharge != null) {
+						totalHeadAmount = supervisionAmount.add(depositAmount).add(securityDepositAmount).add(kvaAmount)
+								.add(colonyOrSlumAmount).add(returnAmount).add(sspMeterCost)
+								.add(sspRegCharge.subtract(BigDecimal.valueOf(5)));
+					} else {
+						totalHeadAmount = supervisionAmount.add(depositAmount).add(securityDepositAmount).add(kvaAmount)
+								.add(colonyOrSlumAmount).add(returnAmount).add(sspMeterCost);
+					}
+					if (totalWapaskrneWalaPaisa.compareTo(totalHeadAmount) != 0) {
+						throw new ConsumerApplicationDetailException(
+								new Response(HttpCode.NOT_ACCEPTABLE, "Amount not matched: Refundalable Amount is : "
+										+ totalWapaskrneWalaPaisa + " and Total head amount is : " + totalHeadAmount));
+					}
+
+//					check end 21-08-2025 Monika Rajpoot 
+					consumerAppCancellationRefundAmountRepository.save(applicationNoAndTxnAmountDB);
+
+				}
+			} else {
+				Map<String, Object> paymentFromSanchayOrManualPayment = getPaymentFromSanchayOrManualPayment(
+						demandDataFromPoseMachine, demandDataFromManualPayment, 1L, consumerApplicationDetail);
+				totalReturnKrneWalaPaisa = (BigDecimal) paymentFromSanchayOrManualPayment
+						.get("totalWapaskrneWalaPaisa");
+				if (paymentFromSanchayOrManualPayment.containsKey("totalDemandZamaKiyaHuaPaisa")) {
+					String amountStr = paymentFromSanchayOrManualPayment.get("totalDemandZamaKiyaHuaPaisa").toString();
+					BigDecimal amount = new BigDecimal(amountStr);
+					ConsumerAppCancellationRefundAmount demandRefund = new ConsumerAppCancellationRefundAmount();
+					demandRefund.setApplicationNo(refundAmount.getConsumerApplicationNo());
+					demandRefund.setPaymentType("Demand_fees (Payment not received on billdesk)");
+					demandRefund.setTransactionDate(
+							(String) paymentFromSanchayOrManualPayment.get("demandPaymentTransactionDate"));
+					demandRefund.setTxnAmount(amount);
+					demandRefund.setRefundableAmount(
+							(BigDecimal) paymentFromSanchayOrManualPayment.get("demandRefundableAmount"));
+
+					ConsumerAppReturnMaterialRefundAmnt check1 = consumerAppReturnMaterialRefundAmntRepository
+							.checkApplicationExistOrNot(refundAmount.getConsumerApplicationNo(), amountStr,
+									(BigDecimal) paymentFromSanchayOrManualPayment.get("demandRefundableAmount"));
+
+					if (check1 == null) {
+						consumerAppCancellationRefundAmountRepository.save(demandRefund);
+					}
+				}
+
+				// Revise Fees Refund
+				if (paymentFromSanchayOrManualPayment.containsKey("totalReviseZamaKiyaHuaPaisa")) {
+					String reviseAmountStr = paymentFromSanchayOrManualPayment.get("totalReviseZamaKiyaHuaPaisa")
+							.toString();
+					BigDecimal amount = new BigDecimal(reviseAmountStr);
+					ConsumerAppCancellationRefundAmount reviseRefund = new ConsumerAppCancellationRefundAmount();
+					reviseRefund.setApplicationNo(refundAmount.getConsumerApplicationNo());
+					reviseRefund.setPaymentType("Revise_fees (Payment not received on billdesk)");
+					reviseRefund.setTransactionDate(
+							(String) paymentFromSanchayOrManualPayment.get("revisePaymentTransactionDate"));
+					reviseRefund.setTxnAmount(amount);
+					reviseRefund.setRefundableAmount(
+							(BigDecimal) paymentFromSanchayOrManualPayment.get("reviseRefundableAmount"));
+
+					ConsumerAppReturnMaterialRefundAmnt check2 = consumerAppReturnMaterialRefundAmntRepository
+							.checkApplicationExistOrNot(refundAmount.getConsumerApplicationNo(), reviseAmountStr,
+									(BigDecimal) paymentFromSanchayOrManualPayment.get("reviseRefundableAmount"));
+
+					if (check2 == null) {
+						consumerAppCancellationRefundAmountRepository.save(reviseRefund);
+					}
+				}
+
+				if (!demandDataFromPoseMachine.isEmpty()) {
+					demandDataFromPoseMachine.stream().forEach(pose -> {
+						if (pose.getPaymentType().equals("Revised_Demand_fees")) {
+							refundAmount.setReviseErpNo(consumerApplicationDetail.getRevisedErpNumber());
+						} else {
+							refundAmount.setDemandErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+						}
+					});
+				}
+
+				refundAmount
+						.setSupervisionAmount((BigDecimal) paymentFromSanchayOrManualPayment.get("supervisionAmount"));
+				refundAmount.setDepositAmount((BigDecimal) paymentFromSanchayOrManualPayment.get("depositAmount"));
+				refundAmount.setKvaAmount((BigDecimal) paymentFromSanchayOrManualPayment.get("kvaAmount"));
+				refundAmount.setColonyOrSlumAmount(
+						(BigDecimal) paymentFromSanchayOrManualPayment.get("colonyOrSlumAmount"));
+				refundAmount.setReturnAmount((BigDecimal) paymentFromSanchayOrManualPayment.get("returnAmount"));
+				refundAmount.setMkmyPaidAmount((BigDecimal) paymentFromSanchayOrManualPayment.get("mkmyPaidAmount"));
+				refundAmount.setSecurityDepositAmount(
+						(BigDecimal) paymentFromSanchayOrManualPayment.get("securityDeposit"));
+				refundAmount.setSspMeterCost((BigDecimal) paymentFromSanchayOrManualPayment.get("sspMeterCost"));
+				refundAmount.setSspRegCharge((BigDecimal) paymentFromSanchayOrManualPayment.get("sspRegCharge"));
+				refundAmount.setRefundAmount(totalReturnKrneWalaPaisa);
+			}
+
+		}
+
+		refundAmount.setConsumerApplicationNo(consumerApplicationDetail.getConsumerApplicationNo());
+		refundAmount.setConsumerAppId(consumerApplicationDetail.getConsumerApplicationId());
+		refundAmount.setRefundType("Cancellation_Amount");
+		double digit = Math.random();
+		double digit1 = Math.random();
+		String valueOf = String.valueOf(digit);
+		String valueOf1 = String.valueOf(digit1);
+		String substring = valueOf.substring(2, 8);
+		String substring1 = valueOf1.substring(2, 8);
+		refundAmount.setRefundVoucherNo(substring + substring1);
+
+		RefundAmount refundAmntDB = null;
+		RefundAmount byConsumerApplicationNoDB = refundAmountRepository
+				.findByConsumerApplicationNoIsActive(consumerApplicationDetail.getConsumerApplicationNo());
+		if (byConsumerApplicationNoDB == null) {
+			refundAmntDB = refundAmountRepository.save(refundAmount);
+		} else {
+			throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT,
+					"Refund already initiated for this application no. "
+							+ consumerApplicationDetail.getConsumerApplicationNo() + " for refund Type : "
+							+ byConsumerApplicationNoDB.getRefundType()));
+		}
+		if (Objects.isNull(refundAmntDB)) {
+			throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT, "Data Not Saved"));
+		} else {
+			consumerApplicationDetail.setApplicationStatus(applicationStatusRepository
+					.findById(ApplicationStatusEnum.APPLICATION_PENDING_AT_DGM_FOR_REFUND.getId()).get());
+			consumerApplictionDetailRepository.save(consumerApplicationDetail);
+			return refundAmntDB;
+		}
+
+	}
+//
+////	-----------------------------   y Code ssp wale amount k liye likha gaya hai jisme ssp amount k registration charge se 5 rs. wapas nahi krna hai
+//
+	public Map<String, Object> getPaymentFromSanchayOrManualPayment(
+			List<PoseMachinePostData> demandDataFromPoseMachine, ManualPayment demandDataFromManualPayment, Long value,
+			ConsumerApplicationDetail consumerApplicationDetail) throws ConsumerApplicationDetailException {
+
+		BigDecimal refundableAmount = BigDecimal.ZERO;
+		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
+		BigDecimal totalZamaKiyaHuaPaisa = BigDecimal.ZERO;
+		String transactionDate = null;
+		BigDecimal supervisionAmount = BigDecimal.ZERO;
+		BigDecimal depositAmount = BigDecimal.ZERO;
+		BigDecimal kvaAmount = BigDecimal.ZERO;
+		BigDecimal colonyOrSlumAmount = BigDecimal.ZERO;
+		BigDecimal returnAmount = BigDecimal.ZERO;
+		BigDecimal mkmyPaidAmount = BigDecimal.ZERO;
+		BigDecimal securityDepositAmount = BigDecimal.ZERO;
+		BigDecimal sspMeterCost = BigDecimal.ZERO;
+		BigDecimal sspRegCharge = BigDecimal.ZERO;
+		Map<String, Object> result = new HashMap<>();
+
+		boolean hasPoseData = demandDataFromPoseMachine != null && !demandDataFromPoseMachine.isEmpty();
+		boolean hasManualPayment = demandDataFromManualPayment != null;
+
+		if (hasPoseData || hasManualPayment) {
+// VALUE =1 MEANS CANCELLATION AMOUNT NIKALNA HAI 
+			
+			if (value == 1L) {
+				if (hasPoseData) {
+					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
+						String paymentType = pose.getPaymentType();
+						totalZamaKiyaHuaPaisa = pose.getTxnAmount();
+						transactionDate = pose.getDateOfPayment().toString();
+
+						if ("Revised_Demand_fees".equals(paymentType)) {
+							ErpRev erpRev = erpRevRepository
+									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
+
+							if (erpRev != null) {
+
+								if (totalZamaKiyaHuaPaisa.compareTo(erpRev.getPayAmt()) >= 0) {
+									BigDecimal cgst = erpRev.getRemCgst();
+									BigDecimal sgst = erpRev.getRemSgst();
+									BigDecimal totalReviseTax = (cgst != null && sgst != null) ? cgst.add(sgst)
+											: BigDecimal.ZERO;
+									refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalReviseTax);
+									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+
+									supervisionAmount = supervisionAmount.add(erpRev.getRemSupervisionAmt());
+									if (Objects.nonNull(erpRev.getRemmDepositAmt())) {
+										depositAmount = depositAmount.add(erpRev.getRemmDepositAmt());
+									}
+									if (Objects.nonNull(erpRev.getRemKvaAmt())) {
+										kvaAmount = kvaAmount.add(erpRev.getRemKvaAmt());
+									}
+									if (Objects.nonNull(erpRev.getRemColonyOrSlum())) {
+										colonyOrSlumAmount = colonyOrSlumAmount.add(erpRev.getRemColonyOrSlum());
+									}
+									if (Objects.nonNull(erpRev.getRemReturnAmt())) {
+										returnAmount = returnAmount.add(erpRev.getRemReturnAmt());
+									}
+
+								} else {
+									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+											"Revise Payment paid less through sanchay Portal"));
+								}
+							}
+						} else {
+							if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
+								MmkyPayAmount mmkyData = mmkyPayAmountRespository.findByConsumerApplicationNumber(
+										consumerApplicationDetail.getConsumerApplicationNo());
+
+								if (mmkyData != null
+										&& totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
+
+									totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
+									result.put("demandPaymentTransactionDate", transactionDate);
+									result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
+									result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
+									result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
+									result.put("securityDeposit", mmkyData.getSecurityDeposit());
+
+								}
+							} else {
+								ErpEstimateAmountData erpData = estimateAmountRepository
+										.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+
+								if (erpData != null) {
+									Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+									BigDecimal compareAmount = (schemeId.equals(1L))
+											? erpData.getTotalBalanceSupervisionAmount()
+											: erpData.getTotalBalanceDepositAmount();
+
+									boolean isValidAmount = (schemeId.equals(1L)
+											&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
+											|| (schemeId.equals(2L)
+													&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
+
+									if (isValidAmount) {
+										if (erpData != null) {
+											BigDecimal cgst = erpData.getCgst();
+											BigDecimal sgst = erpData.getSgst();
+											BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
+													: BigDecimal.ZERO;
+											sspRegCharge = erpData.getSspRegistrationCharge();
+											
+											if(sspRegCharge==null) {
+												refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
+											}else {
+												refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax)
+												.subtract(BigDecimal.valueOf(5));
+											}
+											
+//											this case is added for govt. application and NOW 12 Date: 23-12-2025
+											if (erpData.getRegistrationCharges() != null
+													&& erpData.getRegistrationCharges().equals(BigDecimal.valueOf(1180))) {
+												refundableAmount = refundableAmount.subtract(BigDecimal.valueOf(1180));
+											}
+											totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+											supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
+											if (Objects.nonNull(erpData.getDepositAmount())) {
+												depositAmount = depositAmount.add(erpData.getDepositAmount());
+											}
+											if (Objects.nonNull(erpData.getKvaLoad())) {
+												kvaAmount = kvaAmount.add(erpData.getKvaLoad());
+											}
+											if (Objects.nonNull(erpData.getColonyOrSlum())) {
+												colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
+											}
+											if (Objects.nonNull(erpData.getJeReturnAmount())) {
+												returnAmount = returnAmount.add(erpData.getJeReturnAmount());
+											}
+											if (Objects.nonNull(erpData.getSecurityDeposit())) {
+												securityDepositAmount = securityDepositAmount
+														.add(erpData.getSecurityDeposit());
+											}
+											if (Objects.nonNull(erpData.getSspMeterCost())) {
+												sspMeterCost = erpData.getSspMeterCost();
+											}
+											if (Objects.nonNull(sspRegCharge)) {
+												sspRegCharge =sspRegCharge
+														.subtract(BigDecimal.valueOf(5));
+											}
+
+										}
+
+									} else {
+										throw new ConsumerApplicationDetailException(
+												new Response(HttpCode.NOT_ACCEPTABLE,
+														"Demand Payment paid less through sanchay Portal"));
+									}
+								}
+							}
+						}
+					}
+					result.put("securityDeposit", securityDepositAmount);
+					result.put("returnAmount", returnAmount);
+					result.put("supervisionAmount", supervisionAmount);
+					result.put("depositAmount", depositAmount);
+					result.put("kvaAmount", kvaAmount);
+					result.put("colonyOrSlumAmount", colonyOrSlumAmount);
+					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+					result.put("sspMeterCost", sspMeterCost);
+					result.put("sspRegCharge", sspRegCharge);
+				} else if (hasManualPayment) {
+					totalZamaKiyaHuaPaisa = new BigDecimal(demandDataFromManualPayment.getAmount());
+					System.err.println("totalZamaKiyaHuaPaisa" + totalZamaKiyaHuaPaisa);
+					transactionDate = demandDataFromManualPayment.getPaymentDate();
+					if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)) {
+						MmkyPayAmount mmkyData = mmkyPayAmountRespository
+								.findByConsumerApplicationNumber(consumerApplicationDetail.getConsumerApplicationNo());
+
+						if (mmkyData != null && totalZamaKiyaHuaPaisa.compareTo(mmkyData.getPayableAmount()) == 0) {
+							totalWapaskrneWalaPaisa = totalZamaKiyaHuaPaisa.subtract(BigDecimal.valueOf(2500));
+							result.put("demandPaymentTransactionDate", transactionDate);
+							result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
+							result.put("demandRefundableAmount", totalWapaskrneWalaPaisa);
+							result.put("mkmyPaidAmount", mmkyData.getCarryAmountByApplicant());
+							result.put("securityDeposit", mmkyData.getSecurityDeposit());
+						}
+					} else {
+						ErpEstimateAmountData erpData = estimateAmountRepository
+								.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+
+						if (erpData != null) {
+							Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+							BigDecimal compareAmount = (schemeId.equals(1L))
+									? erpData.getTotalBalanceSupervisionAmount()
+									: erpData.getTotalBalanceDepositAmount();
+
+							boolean isValidAmount = (schemeId.equals(1L)
+									&& totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0)
+									|| (schemeId.equals(2L) && totalZamaKiyaHuaPaisa.compareTo(compareAmount) >= 0);
+
+							if (isValidAmount) {
+								if (erpData != null) {
+									BigDecimal cgst = erpData.getCgst();
+									BigDecimal sgst = erpData.getSgst();
+									BigDecimal totalTax = (cgst != null && sgst != null) ? cgst.add(sgst)
+											: BigDecimal.ZERO;
+									
+									sspRegCharge = erpData.getSspRegistrationCharge();
+									
+									if(sspRegCharge==null) {
+										refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax);
+									}else {
+										refundableAmount = totalZamaKiyaHuaPaisa.subtract(totalTax)
+										.subtract(BigDecimal.valueOf(5));
+									}
+//									this case is added for govt. application and NOW 12 Date: 23-12-2025 Date: 23-12-2025
+									if (erpData.getRegistrationCharges() != null
+											&& erpData.getRegistrationCharges().equals(BigDecimal.valueOf(1180))) {
+										refundableAmount = refundableAmount.subtract(BigDecimal.valueOf(1180));
+									}
+									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+
+									supervisionAmount = supervisionAmount.add(erpData.getSupervisionAmount());
+									if (Objects.nonNull(erpData.getDepositAmount())) {
+										depositAmount = depositAmount.add(erpData.getDepositAmount());
+									}
+									if (Objects.nonNull(erpData.getKvaLoad())) {
+										kvaAmount = kvaAmount.add(erpData.getKvaLoad());
+									}
+									if (Objects.nonNull(erpData.getColonyOrSlum())) {
+										colonyOrSlumAmount = colonyOrSlumAmount.add(erpData.getColonyOrSlum());
+									}
+									if (Objects.nonNull(erpData.getJeReturnAmount())) {
+										returnAmount = returnAmount.add(erpData.getJeReturnAmount());
+									}
+									if (Objects.nonNull(erpData.getSecurityDeposit())) {
+										securityDepositAmount = securityDepositAmount.add(erpData.getSecurityDeposit());
+									}
+									if (Objects.nonNull(erpData.getSspMeterCost())) {
+										sspMeterCost = erpData.getSspMeterCost();
+									}
+									if (Objects.nonNull(sspRegCharge)) {
+										sspRegCharge =sspRegCharge
+												.subtract(BigDecimal.valueOf(5));
+									}
+								}
+
+								result.put("demandPaymentTransactionDate", transactionDate);
+								result.put("totalDemandZamaKiyaHuaPaisa", totalZamaKiyaHuaPaisa);
+								result.put("demandRefundableAmount", refundableAmount);
+
+								System.err.println(" demand totalWapaskrneWalaPaisa : " + totalWapaskrneWalaPaisa);
+							} else {
+								throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+										"Demand Payment paid less through Manual Payment"));
+							}
+						}
+
+						result.put("securityDeposit", securityDepositAmount);
+						result.put("returnAmount", returnAmount);
+						result.put("supervisionAmount", supervisionAmount);
+						result.put("depositAmount", depositAmount);
+						result.put("kvaAmount", kvaAmount);
+						result.put("colonyOrSlumAmount", colonyOrSlumAmount);
+						result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+						result.put("sspMeterCost", sspMeterCost);
+						result.put("sspRegCharge", sspRegCharge);
+					}
+				}
+			} else {
+				// For value != 1
+				if (hasPoseData) {
+					for (PoseMachinePostData pose : demandDataFromPoseMachine) {
+						String paymentType = pose.getPaymentType();
+						BigDecimal txnAmount = pose.getTxnAmount();
+						transactionDate = pose.getDateOfPayment().toString();
+
+						if ("Revised_Demand_fees".equals(paymentType)) {
+							ErpRev erpRev = erpRevRepository
+									.findByConsAppNo(consumerApplicationDetail.getConsumerApplicationNo());
+
+							if (erpRev != null && erpRev.getRemReturnAmt() != null) {
+								if (txnAmount.compareTo(erpRev.getPayAmt()) >= 0) {
+									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpRev.getRemReturnAmt());
+									result.put("revisePaymentTransactionDate", transactionDate);
+									result.put("totalReviseZamaKiyaHuaPaisa", txnAmount);
+									result.put("reviseReturnAmount", erpRev.getRemReturnAmt());
+								} else {
+									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+											"Revise Payment paid less through sanchay Portal"));
+								}
+							}
+						} else {
+							ErpEstimateAmountData erpData = estimateAmountRepository
+									.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+
+							if (erpData != null && erpData.getJeReturnAmount() != null) {
+								Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+								BigDecimal compareAmount = (schemeId.equals(1L))
+										? erpData.getTotalBalanceSupervisionAmount()
+										: erpData.getTotalBalanceDepositAmount();
+
+								boolean isValidAmount = (schemeId.equals(1L) && txnAmount.compareTo(compareAmount) >= 0)
+										|| (schemeId.equals(2L) && txnAmount.compareTo(compareAmount) >= 0);
+
+								if (isValidAmount) {
+									totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
+									result.put("demandPaymentTransactionDate", transactionDate);
+									result.put("totalDemandZamaKiyaHuaPaisa", txnAmount);
+									result.put("demandReturnAmount", erpData.getJeReturnAmount());
+								} else {
+									throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+											"Demand Payment paid less through sanchay Portal"));
+								}
+							}
+						}
+					}
+					result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+				} else if (hasManualPayment) {
+					ErpEstimateAmountData erpData = estimateAmountRepository
+							.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+
+					if (erpData != null && erpData.getJeReturnAmount() != null) {
+						Long schemeId = consumerApplicationDetail.getSchemeType().getSchemeTypeId();
+						BigDecimal manualAmount = new BigDecimal(demandDataFromManualPayment.getAmount());
+						BigDecimal compareAmount = (schemeId.equals(1L)) ? erpData.getTotalBalanceSupervisionAmount()
+								: erpData.getTotalBalanceDepositAmount();
+
+						boolean isValidAmount = (schemeId.equals(1L) && manualAmount.compareTo(compareAmount) >= 0)
+								|| (schemeId.equals(2L) && manualAmount.compareTo(compareAmount) >= 0);
+
+						if (isValidAmount) {
+							totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
+							transactionDate = demandDataFromManualPayment.getPaymentDate();
+							result.put("demandPaymentTransactionDate", transactionDate);
+							result.put("totalDemandZamaKiyaHuaPaisa", manualAmount);
+							result.put("demandReturnAmount", erpData.getJeReturnAmount());
+							result.put("totalWapaskrneWalaPaisa", totalWapaskrneWalaPaisa);
+						} else {
+							throw new ConsumerApplicationDetailException(new Response(HttpCode.NOT_ACCEPTABLE,
+									"Demand Payment paid less through sanchay Portal"));
+						}
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+//
+////	---------------------
+//
+	@Override
+	public Map<String, BigDecimal> getPaymentDetailForRefund(String consumerApplicationNo, Long value)
+			throws ConsumerApplicationDetailException {
+		BigDecimal refundableAmount = BigDecimal.ZERO;
+		BigDecimal totalWapaskrneWalaPaisa = BigDecimal.ZERO;
+
+		Map<String, BigDecimal> result = new HashMap<>();
+
+		ConsumerApplicationDetail consumerApplicationDetail = consumerApplictionDetailRepository
+				.findByConsumerApplicationNumber(consumerApplicationNo);
+		if (Objects.isNull(consumerApplicationDetail)) {
+			throw new ConsumerApplicationDetailException(
+					new Response(HttpCode.NULL_OBJECT, "Application Not Found In Database"));
+		} else {
+			List<BillDeskPaymentResponse> allPaymentDetails = null;
+			List<PoseMachinePostData> demandDataFromPoseMachine = null;
+			ManualPayment demandDataFromManualPayment = null;
+			try {
+				allPaymentDetails = billPaymentResponseeeeeeeRepository.getAllPaymentDetails(consumerApplicationNo);
+				if (allPaymentDetails.isEmpty()) {
+					demandDataFromPoseMachine = poseMachinePostDataRepository
+							.getDemandDataFromPoseMachineData(consumerApplicationNo);
+
+					if (demandDataFromPoseMachine.isEmpty() && allPaymentDetails.isEmpty()) {
+						demandDataFromManualPayment = manualPaymentRepository
+								.getDemandDataFromManualPayment(consumerApplicationNo);
+					}
+				}
+
+				System.err.println(allPaymentDetails);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			if (allPaymentDetails.isEmpty() && demandDataFromPoseMachine.isEmpty()
+					&& Objects.isNull(demandDataFromManualPayment)) {
+				throw new ConsumerApplicationDetailException(new Response(HttpCode.NULL_OBJECT,
+						"Demand Fees not received for application no. : " + consumerApplicationNo));
+			}
+//			y poora case chalna chahiye jab allPaymentDetails list empty na ho 
+//			value == 1 matlb (application cancle karna hai)
+			if (!allPaymentDetails.isEmpty()) {
+				if (value == 1L) {
+					for (BillDeskPaymentResponse bill : allPaymentDetails) {
+						// cancellation ka total amount dena hai
+
+						if (bill.getAdditionalInfo().equals("Revised_Demand_fees")) {
+							ErpRev erpRevDB = erpRevRepository.findByConsAppNoAndPayAmt(consumerApplicationNo,
+									new BigDecimal(bill.getAmount()));
+							if (erpRevDB != null) {
+
+								System.err.println("erp aaaaaa : " + erpRevDB.getPayAmt());
+// erpRevDB.getRemCgst() != null y check isliye lagaya h kyuki kabhi kabhi remCgst remSgst me null hota kyuki data remColonyOrSlum me hota hai
+								if (erpRevDB.getRemCgst() != null) {
+									BigDecimal remCgst = erpRevDB.getRemCgst();
+									BigDecimal remSgst = erpRevDB.getRemSgst();
+									BigDecimal totalCgstSgst = remCgst.add(remSgst);
+
+									BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+									refundableAmount = billdeskAmount.subtract(totalCgstSgst);
+								} else {
+									BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+									refundableAmount = billdeskAmount;
+								}
+								totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+
+							}
+						} else {
+							if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8l)) {
+								MmkyPayAmount findByConsumerApplicationNumber = mmkyPayAmountRespository
+										.findByConsumerApplicationNumber(consumerApplicationNo);
+
+								BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+								if (billdeskAmount.compareTo(findByConsumerApplicationNumber.getPayableAmount()) == 0) {
+									totalWapaskrneWalaPaisa = new BigDecimal(bill.getAmount())
+											.subtract(new BigDecimal(2500));
+								}
+
+								else {
+									totalWapaskrneWalaPaisa = new BigDecimal(0.0);
+								}
+							} else {
+
+								ErpEstimateAmountData erpEstimateDB = estimateAmountRepository
+										.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+								BigDecimal sspRegCharge = erpEstimateDB.getSspRegistrationCharge();
+								if (erpEstimateDB.getCgst() != null) {
+
+									BigDecimal cgst = erpEstimateDB.getCgst();
+									BigDecimal sgst = erpEstimateDB.getSgst();
+									BigDecimal totalCgstSgst = cgst.add(sgst);
+									BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+
+									if (sspRegCharge == null) {
+										refundableAmount = billdeskAmount.subtract(totalCgstSgst);
+									} else {
+//										sspRegCharge min. 5 rs to aayega hi 7-11-2025
+										refundableAmount = billdeskAmount.subtract(totalCgstSgst)
+												.subtract(new BigDecimal(5));
+									}
+								} else {
+									BigDecimal billdeskAmount = new BigDecimal(bill.getAmount());
+									if (sspRegCharge == null) {
+										refundableAmount = billdeskAmount;
+									} else {
+										refundableAmount = billdeskAmount.subtract(new BigDecimal(5));
+									}
+
+								}
+
+//								this case is added for govt. application and NOW 12 Date: 23-12-2025 Date: 23-12-2025
+								if (erpEstimateDB.getRegistrationCharges() != null
+										&& erpEstimateDB.getRegistrationCharges().equals(BigDecimal.valueOf(1180))) {
+									refundableAmount = refundableAmount.subtract(BigDecimal.valueOf(1180));
+								}
+								totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(refundableAmount);
+
+							}
+						}
+					}
+				} else { // return ka amount dena hai
+					for (BillDeskPaymentResponse bill : allPaymentDetails) {
+
+						if (bill.getAdditionalInfo().equals("Revised_Demand_fees")) {
+							ErpRev erpRev = erpRevRepository.findByConsAppNo(consumerApplicationNo);
+							if (erpRev != null && erpRev.getRemReturnAmt() != null) {
+								totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpRev.getRemReturnAmt());
+							}
+						} else {
+							ErpEstimateAmountData erpData = estimateAmountRepository
+									.findByErpNo(consumerApplicationDetail.getErpWorkFlowNumber());
+							if (erpData != null && erpData.getJeReturnAmount() != null) {
+								totalWapaskrneWalaPaisa = totalWapaskrneWalaPaisa.add(erpData.getJeReturnAmount());
+							}
+						}
+
+					}
+				}
+			} else {
+
+				Map<String, Object> paymentFromSanchayOrManualPayment = getPaymentFromSanchayOrManualPayment(
+						demandDataFromPoseMachine, demandDataFromManualPayment, value, consumerApplicationDetail);
+				totalWapaskrneWalaPaisa = (BigDecimal) paymentFromSanchayOrManualPayment.get("totalWapaskrneWalaPaisa");
+			}
+//			yhan tak code chalega billdesk k liye
+			BeforeRefundAmountCheck byApplicationNo = beforeRefundAmountCheckRepository
+					.findByApplicationNo(consumerApplicationNo);
+			if (byApplicationNo == null) {
+				BeforeRefundAmountCheck check = new BeforeRefundAmountCheck();
+				check.setApplicationNo(consumerApplicationNo);
+				check.setRefundableAmount(totalWapaskrneWalaPaisa);
+				beforeRefundAmountCheckRepository.save(check);
+			} else {
+				byApplicationNo.setRefundableAmount(totalWapaskrneWalaPaisa);
+				beforeRefundAmountCheckRepository.save(byApplicationNo);
+			}
+
+			result.put("totalRefundAmount", totalWapaskrneWalaPaisa);
+			return result;
+		}
+	}
 
 }

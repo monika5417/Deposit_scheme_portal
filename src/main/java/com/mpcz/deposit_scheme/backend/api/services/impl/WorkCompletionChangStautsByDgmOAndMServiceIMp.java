@@ -97,52 +97,62 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 					}
 					applicationDetail.setDateOfDgmOandM(workCompletionChangStautsByDgmOAndM.getDateOfDgmOandM());
 					applicationDetail.setApplicationStatus(applicationStatus);
-					ConsumerApplicationDetail saveConsumerApplicationDB = consumerApplicationDetailService
-							.saveConsumerApplication(applicationDetail);
+//					ConsumerApplicationDetail saveConsumerApplicationDB = consumerApplicationDetailService
+//							.saveConsumerApplication(applicationDetail);
 //					02-05-2025
 					ErpEstimateAmountData erpDataDB = estimateAmountRepository
-							.findById(saveConsumerApplicationDB.getErpWorkFlowNumber())
+							.findById(applicationDetail.getErpWorkFlowNumber())
 							.orElseThrow(() -> new ErpEstimateAmountException(
 									new Response(HttpCode.NULL_OBJECT, "Erp data not found in table")));
 
-					securityDeposit = erpDataDB.getSecurityDeposit() != null ? erpDataDB.getSecurityDeposit() :BigDecimal.ZERO;
-//					if (erpDataDB.getSecurityDeposit() != null) {
-////						erpDataDB.setSecurityDeposit(BigDecimal.ZERO);
-//						securityDeposit = erpDataDB.getSecurityDeposit();
-//						
-//					}
+					securityDeposit = erpDataDB.getSecurityDeposit() != null ? erpDataDB.getSecurityDeposit()
+							: BigDecimal.ZERO;
+
 					System.err.println("bbbbbbbbbbbbbbb : " + securityDeposit);
 
-					if (saveConsumerApplicationDB.getNatureOfWorkType().getNatureOfWorkTypeId() == 2L
+					if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 2L
 							&& Objects.nonNull(erpDataDB.getSspTotalAmount())
 							&& erpDataDB.getSspTotalAmount().compareTo(BigDecimal.ZERO) >= 0) {
-						String sendDataToSSp = sendDataToSSp1(saveConsumerApplicationDB);
+						String sendDataToSSp = sendDataToSSp1(applicationDetail);
 						System.err.println("sendDataToSSp : " + sendDataToSSp);
 //			end
 						if ("Success".equals(sendDataToSSp)) {
 							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 							String formattedDate = LocalDateTime.now().format(formatter);
-							saveConsumerApplicationDB.setSspApplicationCompleted("true");
-							saveConsumerApplicationDB.setSspApplicationCompleteDate(formattedDate);
-							consumerApplictionDetailRepository.save(saveConsumerApplicationDB);
+							applicationDetail.setSspApplicationCompleted("true");
+							applicationDetail.setSspApplicationCompleteDate(formattedDate);
+							consumerApplictionDetailRepository.save(applicationDetail);
+						} else {
+							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+							String formattedDate = LocalDateTime.now().format(formatter);
+							applicationDetail.setSspApplicationCompleteDate(formattedDate);
+							applicationDetail.setSspApplicationCompleted(sendDataToSSp);
+							consumerApplictionDetailRepository.save(applicationDetail);
 						}
 					} else {
 //					02-05-2025 added the above check for oyt application
-						if (saveConsumerApplicationDB.getSspApplicationCompleteDate() == null
-								&& securityDeposit.compareTo(BigDecimal.ZERO) <= 0) {
+						if (applicationDetail.getSspApplicationCompleteDate() == null
+								&& securityDeposit.compareTo(BigDecimal.ZERO) <= 0 && !applicationDetail
+										.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
 //				String sendDataToSSp = sendDataToSSp(saveConsumerApplicationDB.getNscApplicationNo(), 32L,
 //								applicationDetail.getConsumerApplicationNo());
 
 //						//		given line is new code 19-05-2025 commented due to production early deployment
-							String sendDataToSSp = sendDataToSSp1(saveConsumerApplicationDB);
+							String sendDataToSSp = sendDataToSSp1(applicationDetail);
 							System.err.println("sendDataToSSp : " + sendDataToSSp);
 //				end
 							if ("Success".equals(sendDataToSSp)) {
 								DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 								String formattedDate = LocalDateTime.now().format(formatter);
-								saveConsumerApplicationDB.setSspApplicationCompleted("true");
-								saveConsumerApplicationDB.setSspApplicationCompleteDate(formattedDate);
-								consumerApplictionDetailRepository.save(saveConsumerApplicationDB);
+								applicationDetail.setSspApplicationCompleted("true");
+								applicationDetail.setSspApplicationCompleteDate(formattedDate);
+								consumerApplictionDetailRepository.save(applicationDetail);
+							} else {
+								DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+								String formattedDate = LocalDateTime.now().format(formatter);
+								applicationDetail.setSspApplicationCompleteDate(formattedDate);
+								applicationDetail.setSspApplicationCompleted(sendDataToSSp);
+								consumerApplictionDetailRepository.save(applicationDetail);
 							}
 						}
 					}
@@ -248,17 +258,15 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 
 		Long workStatus = (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 25L) ? 32L
 				: consumerApplicationDetail.getApplicationStatus().getApplicationStatusId();
-		
+
 		map.put("workStatus", workStatus);
 //		code added for sending the data to ssp for cancel application also 10-10-2025
 		if (workStatus == 29L) {
 			map.put("message", "Application Rejected Before Demand Payment on DSP");
 		} else if (workStatus == 42L) {
-			map.put("message",
-					"Amount Refunded To Applicant Successfully. So Application can not move forward");
-		}else {
-			map.put("message",
-					"Work Completed On DSP");
+			map.put("message", "Amount Refunded To Applicant Successfully. So Application can not move forward");
+		} else {
+			map.put("message", "Work Completed On DSP");
 		}
 //		code added for sending the data to ssp for cancel application also 10-10-2025
 		map.put("dspApplicationNo", consumerApplicationDetail.getConsumerApplicationNo());
@@ -269,7 +277,7 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 		System.err.println("ssp data sending before payment : " + new Gson().toJson(map));
 //		Added this code for sending the data of SSP application for which payment is taken in DSP Portal 11-09-2025 start
 //		|| consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 5L ANKIT SIR SE puch kr ise bhi add krna hai 07-11-2025
-		if ((consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 2L )
+		if ((consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 2L)
 				&& Objects.nonNull(consumerApplicationDetail.getSspTotalAmount()) && workStatus != 29L
 				&& workStatus != 42L) {
 			String transactionDate;
@@ -293,7 +301,7 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 				map.put("tranasactionNumber", transactionId);
 			}
 		}
-		
+
 //		Added this code for sending the data of SSP application for which payment is taken in DSP Portal 11-09-2025 end
 		try {
 			System.err.println("ssp data sending before payment : " + new Gson().toJson(map));
@@ -301,7 +309,6 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 
 			JSONObject responseJson = new JSONObject(postForEntity.getBody());
 
-			
 			// Extract the message and statusCode
 			String message = responseJson.getString("message");
 			int statusCode = responseJson.getInt("statusCode");

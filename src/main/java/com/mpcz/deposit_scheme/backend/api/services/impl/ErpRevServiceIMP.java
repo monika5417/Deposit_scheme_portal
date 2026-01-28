@@ -193,6 +193,31 @@ public class ErpRevServiceIMP implements ErpRevService {
 						erpRev.setSchemeCode(jsonArray.getJSONObject(i).getString("SCHEMECODE"));
 
 					}
+					if (jsonArray.getJSONObject(i).getString("DISMENTALLING_COST") != null) {
+
+						erpRev.setDismentalingCost(
+								new BigDecimal(jsonArray.getJSONObject(i).getString("DISMENTALLING_COST")));
+
+					}
+					if (jsonArray.getJSONObject(i).getString("VERSION_NUMBER") != null) {
+						String string = jsonArray.getJSONObject(i).getString("VERSION_NUMBER");
+						Long valueOf = Long.valueOf(string);
+						erpRev.setVersionNumber(valueOf);
+
+					
+					}
+
+//					if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
+//							.equals(1l)
+//							|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+//									.getNatureOfWorkTypeId().equals(6l)) {
+//						if (erpRev.getDismentalingCost().compareTo(BigDecimal.ZERO) <= 0) {
+//							erpRev.setSchemeCode(
+//									"As per guidelines, dismantling cost cannot be zero or negative hence the estimate is incorrect.");
+//							return erpRev;
+//						}
+//					}
+
 					erpRev.setConsAppNo(applicationNo);
 
 					Optional<ErpEstimateAmountData> erpEstimateAmountData1 = estimateAmountRepository
@@ -200,6 +225,10 @@ public class ErpRevServiceIMP implements ErpRevService {
 
 					if (erpEstimateAmountData1.isPresent()) {
 						erpEstimateAmountData = erpEstimateAmountData1.get();
+
+						if (erpEstimateAmountData.getRegistrationCharges() != null) {
+							erpRev.setRegistrationCharges(erpEstimateAmountData.getRegistrationCharges());
+						}
 
 						oldSupervisionAmount = erpEstimateAmountData.getSupervisionAmount();
 
@@ -253,6 +282,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 										: new BigDecimal(jsonArray.getJSONObject(i).getString("MINUS_COST")).abs());
 						ConsumerApplicationDetailService
 								.saveConsumerApplication(findConsumerApplicationDetailByApplicationNo);
+
 						// code end 6-march-2025
 					} else {
 						findConsumerApplicationDetailByApplicationNo.setoAndMReturnAmount(BigDecimal.ZERO);
@@ -388,8 +418,8 @@ public class ErpRevServiceIMP implements ErpRevService {
 							if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
 									.getNatureOfWorkTypeId().equals(12L)) {
 								erpRev.setPayAmt(roundAmountCgstAndSgst(
-										newEstimateAmnt.add(oAndMReturnAmount).subtract(oldTotalBalanceDepositAmount.subtract(erpEstimateAmountData.getRegistrationCharges()))
-												));
+										newEstimateAmnt.add(oAndMReturnAmount).subtract(oldTotalBalanceDepositAmount
+												.subtract(erpEstimateAmountData.getRegistrationCharges()))));
 							}
 // end 10-12-2025
 
@@ -411,14 +441,32 @@ public class ErpRevServiceIMP implements ErpRevService {
 //									BigDecimal newTotalEstimate = newEstimateAmount.add(remKvaLoad).add(remReturnAmt);
 
 									BigDecimal newTotalEstimate = newEstimateAmnt.add(remKvaLoad).add(remReturnAmt);
+									BigDecimal new_JeReturnAmount = BigDecimal.ZERO;
+
+//									erpRev.setPayAmt(roundAmountCgstAndSgst(
+//											newTotalEstimate.subtract(oldTotalBalanceDepositAmount)));
+
+									erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+											erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+													.add(erpRev.getNewSgst()).add(erpRev.getNewDepositAmt())
+													.add(new_JeReturnAmount).add(erpRev.getNewKvaAmt())));
+
 									erpRev.setPayAmt(roundAmountCgstAndSgst(
-											newTotalEstimate.subtract(oldTotalBalanceDepositAmount)));
+											erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst())
+													.add(erpRev.getRemSgst()).add(erpRev.getRemmDepositAmt())
+													.add(erpRev.getRemReturnAmt()).add(erpRev.getRemKvaAmt())));
 								} else {
 
 //									erpRev.setPayAmt(
 //											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+
+//									erpRev.setPayAmt(roundAmountCgstAndSgst(
+//											newEstimateAmnt.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+//									above line commented due to wrong payamount 08-01-2026
 									erpRev.setPayAmt(roundAmountCgstAndSgst(
-											newEstimateAmnt.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+											erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst())
+													.add(erpRev.getRemSgst()).add(erpRev.getRemmDepositAmt())
+													.add(erpRev.getRemReturnAmt()).add(erpRev.getRemKvaAmt())));
 
 								}
 
@@ -447,8 +495,49 @@ public class ErpRevServiceIMP implements ErpRevService {
 //									erpRev.setPayAmt(
 //											roundAmountCgstAndSgst(newEstimateAmount.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
 
+									BigDecimal old_KvaLoadAmt = BigDecimal.ZERO;
+									BigDecimal new_KvaLoadAmt = BigDecimal.ZERO;
+
+									BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+
+									if ((erpEstimateAmountData.getKvaLoad() != null)
+											&& (erpEstimateAmountData.getKvaLoad().compareTo(new BigDecimal(0)) > 0)) {
+										old_KvaLoadAmt = roundAmountCgstAndSgst(erpEstimateAmountData.getKvaLoad());
+										erpRev.setOldkvaloadAmt(old_KvaLoadAmt);
+									} else {
+										erpRev.setOldkvaloadAmt(BigDecimal.ZERO);
+//	29-09-2025 this line added because code is haulting for null value
+										erpEstimateAmountData.setKvaLoad(BigDecimal.ZERO);
+//	end
+									}
+									if (findConsumerApplicationDetailByApplicationNo.getoAndMLoad()
+											.compareTo(new BigDecimal(1500)) <= 0) {
+
+										new_KvaLoadAmt = roundAmountCgstAndSgst(
+												oAndMLoad.multiply(new BigDecimal(850)));
+
+										old_KvaLoadAmt = roundAmountCgstAndSgst(erpEstimateAmountData.getKvaLoad());
+										erpRev.setNewPayAmt(newEstimateAmnt.add(new_KvaLoadAmt));
+										erpRev.setNewKvaAmt(new_KvaLoadAmt);
+										erpRev.setOldkvaloadAmt(old_KvaLoadAmt);
+										erpRev.setRemKvaAmt(new_KvaLoadAmt.subtract(old_KvaLoadAmt));
+									} else {
+										erpRev.setNewKvaAmt(BigDecimal.ZERO);
+										erpRev.setRemKvaAmt(new_KvaLoadAmt.subtract(old_KvaLoadAmt));
+									}
+									BigDecimal new_JeReturnAmount = BigDecimal.ZERO;
+//									erpRev.setPayAmt(roundAmountCgstAndSgst(newEstimateAmnt.add(remReturnAmt)
+//											.add(erpRev.getRemKvaAmt()).subtract(oldTotalBalanceDepositAmount)));
+									erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+											erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+													.add(erpRev.getNewSgst()).add(erpRev.getNewDepositAmt())
+													.add(new_JeReturnAmount).add(erpRev.getNewKvaAmt())));
+
 									erpRev.setPayAmt(roundAmountCgstAndSgst(
-											newEstimateAmnt.add(remReturnAmt).subtract(oldTotalBalanceDepositAmount)));
+											erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst())
+													.add(erpRev.getRemSgst()).add(erpRev.getRemmDepositAmt())
+													.add(erpRev.getRemReturnAmt()).add(erpRev.getRemKvaAmt())));
+
 								} else if (findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
 										.getIndividualOrGroupId() == 1L) {
 									BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
@@ -580,9 +669,12 @@ public class ErpRevServiceIMP implements ErpRevService {
 								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
 										.getNatureOfWorkTypeId() == 6l
 								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
-										.getNatureOfWorkTypeId() == 7l 
+										.getNatureOfWorkTypeId() == 7l
+								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId() == 12l
 										|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
-										.getNatureOfWorkTypeId() == 12l) {
+										.getNatureOfWorkTypeId() == 11l		
+								) {
 
 							if (newSuperVisionAmt.compareTo(old_SupervisionAmount) < 0) {
 
@@ -865,6 +957,69 @@ public class ErpRevServiceIMP implements ErpRevService {
 
 							}
 
+						} else if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+								.getNatureOfWorkTypeId().equals(10L)) {
+							BigDecimal kvaAmount = BigDecimal.ZERO;
+							BigDecimal multiply = BigDecimal.ZERO;
+							double upperRound = 0.0;
+
+							BigDecimal getoAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+
+							String getoAndMLoadUnit = findConsumerApplicationDetailByApplicationNo.getoAndMLoadUnit();
+
+							if (getoAndMLoadUnit.equalsIgnoreCase("kw")) {
+//								convertion of KVA
+								multiply = getoAndMLoad.multiply(new BigDecimal(1.25));
+
+								upperRound = upperRound(multiply.doubleValue(), 0);
+
+								kvaAmount = new BigDecimal(upperRound).multiply(new BigDecimal(1260));
+							} else {
+								kvaAmount = getoAndMLoad.multiply(new BigDecimal(1260));
+
+							}
+
+							if (newSuperVisionAmt.compareTo(old_SupervisionAmount) < 0) {
+
+//								
+
+								erpRev.setRemSupervisionAmt(newSuperVisionAmt.subtract(old_SupervisionAmount));
+								erpRev.setRemCgst(BigDecimal.ZERO);
+								erpRev.setRemSgst(BigDecimal.ZERO);
+								erpRev.setRemReturnAmt(
+										roundAmountCgstAndSgst(new_JeReturnAmount.subtract(old_JeReturnAmount)));
+
+								erpRev.setNewKvaAmt(kvaAmount);
+								erpRev.setRemKvaAmt(kvaAmount.subtract(old_KvaLoad));
+								erpRev.setNewPayAmt(
+										roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+												.add(erpRev.getNewSgst()).add(new_JeReturnAmount).add(kvaAmount)));
+								erpRev.setPayAmt(roundAmountCgstAndSgst(
+										erpRev.getRemSupervisionAmt().add(erpRev.getRemKvaAmt())));
+
+							} else {
+
+//							
+
+								erpRev.setRemSupervisionAmt(newSuperVisionAmt.subtract(old_SupervisionAmount));
+								erpRev.setRemCgst(newCgst.subtract(oldCgst));
+								erpRev.setRemSgst(newSgst.subtract(oldSgst));
+								erpRev.setRemReturnAmt(
+										roundAmountCgstAndSgst(new_JeReturnAmount.subtract(old_JeReturnAmount)));
+								erpRev.setNewKvaAmt(kvaAmount);
+
+								erpRev.setRemKvaAmt(kvaAmount.subtract(old_KvaLoad));
+
+								erpRev.setNewPayAmt(
+										roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+												.add(erpRev.getNewSgst()).add(new_JeReturnAmount).add(kvaAmount)));
+
+								erpRev.setPayAmt(roundAmountCgstAndSgst(
+										erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+												.add(erpRev.getRemKvaAmt().add(erpRev.getRemReturnAmt()))));
+
+							}
+
 						}
 
 //					    erpRev.setNewPayAmt(newSuperVisionAmt.add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
@@ -906,6 +1061,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 					}
 					findConsumerApplicationDetailByApplicationNo.setApplicationStatus(appStatusDb);
 					findConsumerApplicationDetailByApplicationNo.setErpVersion("V2");
+					findConsumerApplicationDetailByApplicationNo.setErpVersionInApi(erpRev.getVersionNumber());
 					findConsumerApplicationDetailByApplicationNo.setRevisedErpNumber(erpNo);
 					ConsumerApplicationDetail saveConsumerApplication = ConsumerApplicationDetailService
 							.saveConsumerApplication(findConsumerApplicationDetailByApplicationNo);
@@ -984,5 +1140,790 @@ public class ErpRevServiceIMP implements ErpRevService {
 		}
 
 		return roundedAmount;
+	}
+
+	@Override
+	public ErpRev Dynamic(String erpNo, String applicationNo, Long value) {
+
+		ResponseEntity<String> exchange = null;
+
+		BigDecimal jeReturnAmount = new BigDecimal(0.0);
+		BigDecimal colonyOrSlum = new BigDecimal(0.0);
+		RestTemplate rest = new RestTemplate();
+		ErpRev erpRev = new ErpRev();
+		JSONObject json = null;
+		BigDecimal oldSupervisionAmount = new BigDecimal(0.0);
+
+		Long l = null;
+		Long individualOrGroupId = 10L;
+		BigDecimal oldCgst = new BigDecimal(0.0);
+		BigDecimal oldSgst = new BigDecimal(0.0);
+		BigDecimal newColonyOrSlum = new BigDecimal(0.0);
+		BigDecimal newCgst = new BigDecimal(0.0);
+		BigDecimal newSgst = new BigDecimal(0.0);
+		BigDecimal newKvaLoadAmt = new BigDecimal(0.0);
+		BigDecimal newSuperVisionAmt = new BigDecimal(0.0);
+		BigDecimal newEstimateAmount = new BigDecimal(0.0);
+		BigDecimal remReturnAmt = new BigDecimal(0.0);
+		BigDecimal oAndMReturnAmount = new BigDecimal(0.0);
+		BigDecimal minusCost = new BigDecimal(0.0);
+
+		try {
+			ConsumerApplicationDetail findConsumerApplicationDetailByApplicationNo = ConsumerApplicationDetailService
+					.findConsumerApplicationDetailByApplicationNo(applicationNo);
+
+			String url = "https://dsp.mpcz.in:8888/newerp/XXPA_PROJECTS_DSP_V/" + erpNo;
+
+			HttpEntity<ErpRev> httpEntity = new HttpEntity<>(null);
+
+			exchange = rest.exchange(url, HttpMethod.GET, httpEntity, String.class);
+			json = new JSONObject(exchange.getBody());
+			if (json.get("statusCode").toString().equals("404")) {
+				String url1 = "https://dsp.mpcz.in:8888/urjas/XXPA_PROJECTS_DSP_V/" + erpNo;
+				exchange = rest.exchange(url1, HttpMethod.GET, httpEntity, String.class);
+				json = new JSONObject(exchange.getBody());
+			}
+			if (json.get("statusCode").toString().equals("200")) {
+				JSONArray jsonArray = json.getJSONArray("data");
+				for (int i = 0; i < jsonArray.length(); i++) {
+					if (jsonArray.getJSONObject(i).getString("SCHEMECODE") != null
+							&& jsonArray.getJSONObject(i).getString("PROJECT_TYPE") != null) {
+
+						if ((jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("SCCW")
+								&& !findConsumerApplicationDetailByApplicationNo.getSchemeType().getSchemeTypeId()
+										.equals(1L))
+
+								|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("DEPOSITE")
+										&& !findConsumerApplicationDetailByApplicationNo.getSchemeType()
+												.getSchemeTypeId().equals(2L))
+								|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("KMY")
+										&& !findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+												.getNatureOfWorkName().equals("MKMY"))
+								|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("OYT")
+										&& !findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+												.getNatureOfWorkTypeId().equals(5L))
+								|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("RRTD")
+										&& (findConsumerApplicationDetailByApplicationNo.getSchemeType()
+												.getSchemeTypeId().equals(1L)
+												|| findConsumerApplicationDetailByApplicationNo.getSchemeType()
+														.getSchemeTypeId().equals(2L)))
+
+								|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("DEPOSITE")
+										&& findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+												.getNatureOfWorkTypeId() == 8l)
+								|| (jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("SCCW")
+										&& findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+												.getNatureOfWorkTypeId() == 5l)) {
+
+							erpRev.setSchemeCode("Scheme code not match");
+							return erpRev;
+						}
+
+					}
+				}
+			}
+
+			System.out.println(json);
+			if (json.get("statusCode").toString().equals("200")) {
+				JSONArray jsonArray = json.getJSONArray("data");
+				for (int i = 0; i < jsonArray.length(); i++) {
+
+					if (jsonArray.getJSONObject(i).getString("PROJECT_NUMBER") != null)
+						erpRev.setNewErpNo(jsonArray.getJSONObject(i).getString("PROJECT_NUMBER"));
+					if (jsonArray.getJSONObject(i).getString("ORGANIZATION_NAME") != null)
+						erpRev.setLocation(jsonArray.getJSONObject(i).getString("ORGANIZATION_NAME"));
+					if (jsonArray.getJSONObject(i).getString("STATUS") != null)
+						erpRev.setEstimateStatus(jsonArray.getJSONObject(i).getString("STATUS"));
+					if (jsonArray.getJSONObject(i).getString("SUPERVISION_COST") != null) {
+
+						newSuperVisionAmt = roundAmountCgstAndSgst(
+								new BigDecimal(jsonArray.getJSONObject(i).getString("SUPERVISION_COST")));
+
+						newCgst = roundAmountCgstAndSgst(newSuperVisionAmt.multiply(new BigDecimal(.09)));
+						newSgst = roundAmountCgstAndSgst(newSuperVisionAmt.multiply(new BigDecimal(.09)));
+
+						erpRev.setNewSupervisionAmt(newSuperVisionAmt);
+						erpRev.setNewCgst(newCgst);
+						erpRev.setNewSgst(newSgst);
+
+					}
+					if (jsonArray.getJSONObject(i).getString("ESTIMATED_COST") != null) {
+						newEstimateAmount = roundAmountCgstAndSgst(
+								new BigDecimal(jsonArray.getJSONObject(i).getString("ESTIMATED_COST")));
+
+						erpRev.setNewEstimateAmt(newEstimateAmount);
+
+						BigDecimal supCS = erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+								.add(erpRev.getNewSgst());
+
+						erpRev.setNewDepositAmt(erpRev.getNewEstimateAmt().subtract(supCS));
+					}
+
+					if (jsonArray.getJSONObject(i).getString("APPROVED_BY_NAME") != null)
+						erpRev.setApprovedBy(jsonArray.getJSONObject(i).getString("APPROVED_BY_NAME"));
+
+					if (jsonArray.getJSONObject(i).getString("MINUS_COST") != null &&  findConsumerApplicationDetailByApplicationNo.getIsAvedakGovernmentRevise().equals("NO")) {
+						erpRev.setNewMinusCost(roundAmountCgstAndSgst(
+								new BigDecimal(jsonArray.getJSONObject(i).getString("MINUS_COST"))));
+					
+					}
+						
+					
+
+					if (jsonArray.getJSONObject(i).getString("ESTIMATE_NO") != null)
+						erpRev.setEstimatsenctionNo(jsonArray.getJSONObject(i).getString("ESTIMATE_NO"));
+
+					if (jsonArray.getJSONObject(i).getString("LONG_NAME") != null)
+						erpRev.setEstimateName(jsonArray.getJSONObject(i).getString("LONG_NAME"));
+
+					if (jsonArray.getJSONObject(i).getString("ESTIMATE_DATE") != null)
+						erpRev.setEstimateDate(jsonArray.getJSONObject(i).getString("ESTIMATE_DATE"));
+
+					if (jsonArray.getJSONObject(i).getString("DESIG") != null)
+						erpRev.setDesignation(jsonArray.getJSONObject(i).getString("DESIG"));
+
+					if (jsonArray.getJSONObject(i).getString("SCHEMECODE") != null
+							&& jsonArray.getJSONObject(i).getString("PROJECT_TYPE") != null) {
+
+						erpRev.setSchemeCode(jsonArray.getJSONObject(i).getString("SCHEMECODE"));
+
+					}
+
+					erpRev.setConsAppNo(applicationNo);
+
+					 Long erpVersionInApi = findConsumerApplicationDetailByApplicationNo.getErpVersionInApi();
+//					Integer charAt = Integer.valueOf(erpVersion.charAt(1)) - 1;
+//
+//					String olderpVersion = "V" + charAt;
+//
+//					ErpRev oldErpDetailss = erpRevRepository.findByConsAppNoAndNewErpNoAndVersionNumber(applicationNo,
+//							findConsumerApplicationDetailByApplicationNo.getRevisedErpNumber(), erpVersionInApi);
+
+					ErpRev oldErpDetailss = erpRevRepository.findByConsAppNoAndVersionNumber(applicationNo, erpVersionInApi);
+					
+					oldSupervisionAmount = oldErpDetailss.getNewSupervisionAmt();
+
+					erpRev.setOldSupervision(oldSupervisionAmount);
+					erpRev.setRemSupervisionAmt(erpRev.getNewSupervisionAmt().subtract(erpRev.getOldSupervision()));
+
+					if (oldErpDetailss.getNewEstimateAmt() != null) {
+						BigDecimal oldEstimateAmount = oldErpDetailss.getNewEstimateAmt();
+						erpRev.setOldEstimate(oldEstimateAmount);
+					}
+					if (oldErpDetailss.getNewDepositAmt() != null) {
+						BigDecimal oldDepositAmountDb = oldErpDetailss.getNewDepositAmt();
+						erpRev.setOldDeposit(oldDepositAmountDb);
+					}
+
+					if (oldErpDetailss.getNewMinusCost() != null) {
+//								jeReturnAmount = erpEstimateAmountData.getJeReturnAmount();
+						jeReturnAmount = oldErpDetailss.getNewMinusCost();
+						erpRev.setOldJeReturnAmt(jeReturnAmount);
+					}
+					if (oldErpDetailss.getNewColonyOrSlum() != null) {
+						colonyOrSlum = oldErpDetailss.getNewColonyOrSlum();
+						erpRev.setOldColonyOrSlum(colonyOrSlum);
+					}
+					if (oldErpDetailss.getNewKvaAmt() != null) {
+						erpRev.setOldkvaloadAmt(oldErpDetailss.getNewKvaAmt());
+					}
+
+					if (oldErpDetailss.getNewKwAmt() != null) {
+						erpRev.setOldkWloadAmt(oldErpDetailss.getNewKwAmt());
+					}
+					if (oldErpDetailss.getOldColonyOrSlum() != null) {
+						erpRev.setOldColonyOrSlum(oldErpDetailss.getOldColonyOrSlum());
+					}
+
+					erpRev.setOldPayableAmt(oldErpDetailss.getOldPayableAmt());
+
+					if (oldErpDetailss.getNewCgst() != null) {
+						oldCgst = oldErpDetailss.getNewCgst();
+						oldSgst = oldErpDetailss.getNewSgst();
+
+						erpRev.setOldCgst(oldCgst);
+						erpRev.setOldSgst(oldSgst);
+
+						BigDecimal checkAmountNagetiveOrPositive = roundAmountCgstAndSgst(newCgst.subtract(oldCgst));
+
+						if (checkAmountNagetiveOrPositive.compareTo(BigDecimal.ZERO) < 0) {
+							erpRev.setRemCgst(BigDecimal.ZERO);
+							erpRev.setRemSgst(BigDecimal.ZERO);
+							System.out.println("Amount is negative");
+						} else if (checkAmountNagetiveOrPositive.compareTo(BigDecimal.ZERO) >= 0) {
+
+							erpRev.setRemCgst(roundAmountCgstAndSgst(newCgst.subtract(oldCgst)));
+							erpRev.setRemSgst(roundAmountCgstAndSgst(newSgst.subtract(oldSgst)));
+						}
+
+					}
+
+					if ((jsonArray.getJSONObject(i).getString("SCHEMECODE").equals("SCCW")
+							&& findConsumerApplicationDetailByApplicationNo.getSchemeType().getSchemeTypeId()
+									.equals(1L))
+							&& jsonArray.getJSONObject(i).getString("MINUS_COST") != null) {
+
+						findConsumerApplicationDetailByApplicationNo.setoAndMReturnAmount(
+
+								findConsumerApplicationDetailByApplicationNo.getIsAvedakGovernmentRevise().equals("Yes")
+										? BigDecimal.ZERO
+										: new BigDecimal(jsonArray.getJSONObject(i).getString("MINUS_COST")).abs());
+						erpRev.setoAndMReturnAmt(findConsumerApplicationDetailByApplicationNo.getoAndMReturnAmount());
+						ConsumerApplicationDetailService
+								.saveConsumerApplication(findConsumerApplicationDetailByApplicationNo);
+
+					} else {
+						findConsumerApplicationDetailByApplicationNo.setoAndMReturnAmount(BigDecimal.ZERO);
+						ConsumerApplicationDetailService
+								.saveConsumerApplication(findConsumerApplicationDetailByApplicationNo);
+					}
+
+					// These line added for adding remaining return amount
+					if (findConsumerApplicationDetailByApplicationNo.getoAndMReturnAmount() != null) {
+						oAndMReturnAmount = roundAmountCgstAndSgst(
+								findConsumerApplicationDetailByApplicationNo.getoAndMReturnAmount());
+						remReturnAmt = roundAmountCgstAndSgst(oAndMReturnAmount.subtract(jeReturnAmount));
+						erpRev.setoAndMReturnAmt(oAndMReturnAmount);
+						erpRev.setRemReturnAmt(remReturnAmt);
+					}
+
+//					Deposit scheme ke liye
+
+					if (findConsumerApplicationDetailByApplicationNo.getSchemeType().getSchemeTypeId() == 2) {
+						BigDecimal oldKvaLoad = BigDecimal.ZERO;
+
+//						common feild sabke liye same
+						erpRev.setRemEstimateAmt(erpRev.getNewEstimateAmt().subtract(erpRev.getOldEstimate()));
+
+						// Deposit Nature of work 3 Legal case
+						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
+								.equals(3L)) {
+							BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+
+							if (findConsumerApplicationDetailByApplicationNo.getoAndMLoad()
+									.compareTo(new BigDecimal(1500)) <= 0) {
+
+								newKvaLoadAmt = roundAmountCgstAndSgst(oAndMLoad.multiply(new BigDecimal(850))); // ISKO
+																													// SUPPLY
+																													// AFFORDING
+																													// CHARGES
+																													// BOLTE
+																													// HAI
+								erpRev.setNewKvaAmt(newKvaLoadAmt);
+
+								BigDecimal remKvaLoad = roundAmountCgstAndSgst(
+										newKvaLoadAmt.subtract(oldErpDetailss.getNewKvaAmt()));
+								erpRev.setRemKvaAmt(remKvaLoad);
+
+								BigDecimal newTotalEstimate = erpRev.getNewEstimateAmt().add(remKvaLoad)
+										.add(remReturnAmt);
+
+								if (findConsumerApplicationDetailByApplicationNo.getIsAvedakGovernmentRevise()
+										.equals("Yes")) {
+
+									if ((erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision())) <= 0) {
+
+										erpRev.setRemCgst(BigDecimal.ZERO);
+										erpRev.setRemSgst(BigDecimal.ZERO);
+
+										erpRev.setPayAmt(erpRev.getRemmDepositAmt().add(erpRev.getRemSupervisionAmt())
+												.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+												.add(erpRev.getRemKvaAmt()));
+
+										erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getRemColonyOrSlum()));
+									} else {
+										erpRev.setPayAmt(erpRev.getRemmDepositAmt().add(erpRev.getRemSupervisionAmt())
+												.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+												.add(erpRev.getRemKvaAmt()));
+
+										erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getRemColonyOrSlum()));
+									}
+
+								} else {
+									if ((erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision())) <= 0) {
+										erpRev.setRemCgst(BigDecimal.ZERO);
+										erpRev.setRemSgst(BigDecimal.ZERO);
+										erpRev.setPayAmt(erpRev.getRemmDepositAmt().add(erpRev.getRemSupervisionAmt())
+												.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+												.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt()));
+
+										erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getRemColonyOrSlum()));
+									} else {
+										erpRev.setPayAmt(erpRev.getRemmDepositAmt().add(erpRev.getRemSupervisionAmt())
+												.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+												.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt()));
+
+										erpRev.setNewPayAmt(erpRev.getNewDepositAmt().add(erpRev.getNewSupervisionAmt())
+												.add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+												.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost()));
+									}
+
+								}
+
+							} else {
+
+								erpRev.setPayAmt(erpRev.getRemEstimateAmt().add(erpRev.getRemCgst())
+										.add(erpRev.getRemSgst()).add(erpRev.getRemReturnAmt()));
+
+								erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getRemColonyOrSlum()));
+
+							}
+
+						}
+
+						// Deposit Nature of work 4 Illegal case
+						else if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+								.getNatureOfWorkTypeId().equals(4L)) {
+							// 1= Declared and 2= Undeclared
+							if (findConsumerApplicationDetailByApplicationNo.getColonyIllegalSelectionType().equals("1")
+									|| findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+											.getIndividualOrGroupId() == null
+									|| findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+											.getIndividualOrGroupId() == 2L) {
+
+								BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+								BigDecimal newkvaAmt = oAndMLoad.multiply(new BigDecimal(850));
+
+								erpRev.setNewKvaAmt(newkvaAmt);
+
+								BigDecimal remKvaLoad = roundAmountCgstAndSgst(
+										newKvaLoadAmt.subtract(oldErpDetailss.getNewKvaAmt()));
+								erpRev.setRemKvaAmt(remKvaLoad);
+
+								if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
+
+									erpRev.setRemCgst(BigDecimal.ZERO);
+									erpRev.setRemSgst(BigDecimal.ZERO);
+
+									erpRev.setPayAmt(roundAmountCgstAndSgst(
+											erpRev.getNewDepositAmt().add(erpRev.getNewSupervisionAmt())
+													.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+													.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+
+									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemColonyOrSlum()));
+
+								} else {
+
+									erpRev.setPayAmt(roundAmountCgstAndSgst(
+											erpRev.getRemmDepositAmt().add(erpRev.getRemSupervisionAmt())
+													.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+													.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+
+									erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+											erpRev.getNewDepositAmt().add(erpRev.getNewSupervisionAmt())
+													.add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+													.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
+
+								}
+
+							} else if (findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+									.getIndividualOrGroupId() == 1L) {
+								BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+								if (findConsumerApplicationDetailByApplicationNo.getoAndMLoad()
+										.compareTo(new BigDecimal(400)) <= 0) {
+
+									newColonyOrSlum = roundAmountCgstAndSgst(oAndMLoad.multiply(new BigDecimal(15567)));
+
+									erpRev.setNewColonyOrSlum(newColonyOrSlum);
+									erpRev.setOldkvaloadAmt(oldErpDetailss.getNewColonyOrSlum());
+
+									BigDecimal remColonyOrSlum = roundAmountCgstAndSgst(
+											erpRev.getNewColonyOrSlum().subtract(oldErpDetailss.getNewColonyOrSlum()));
+
+									erpRev.setRemColonyOrSlum(remColonyOrSlum);
+
+									erpRev.setNewSupervisionAmt(null);
+									erpRev.setNewCgst(null);
+									erpRev.setNewSgst(null);
+									erpRev.setNewDepositAmt(null);
+									erpRev.setNewEstimateAmt(null);
+									erpRev.setRemSupervisionAmt(null);
+									erpRev.setRemCgst(null);
+									erpRev.setRemSgst(null);
+									erpRev.setRemEstimateAmt(null);
+									erpRev.setRemmDepositAmt(null);
+									erpRev.setOldSupervision(null);
+
+									if (erpRev.getRemColonyOrSlum().compareTo(BigDecimal.ZERO) <= 0) {
+
+									} else {
+										erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+												erpRev.getRemColonyOrSlum().add(erpRev.getRemReturnAmt())));
+										erpRev.setPayAmt(roundAmountCgstAndSgst(
+												erpRev.getRemColonyOrSlum().add(erpRev.getRemReturnAmt())));
+									}
+								}
+							} else {
+//								excetion throw karwana hai	
+							}
+						}
+//						4th case end 
+//						nature of work 1 ,2 or 6 ke liye
+						else if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+								.getNatureOfWorkTypeId().equals(1L)
+								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId().equals(2L)
+										||  findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId().equals(6L)) {
+
+							erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemmDepositAmt()
+									.add(erpRev.getRemSupervisionAmt()).add(erpRev.getRemCgst())
+									.add(erpRev.getRemSgst()).add(erpRev.getRemReturnAmt())));
+
+							erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewDepositAmt()
+									.add(erpRev.getNewSupervisionAmt()).add(erpRev.getNewCgst())
+									.add(erpRev.getNewSgst()).add(erpRev.getNewMinusCost())));
+						}
+
+					} else {
+
+//						scheme type 1 ke liye
+
+//nature of work 1,6,7,12 ke liye
+
+						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+								.getNatureOfWorkTypeId() == 1l
+								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId() == 6l
+								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId() == 7l
+								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId() == 12l) {
+
+							if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
+
+//								
+
+								erpRev.setRemCgst(BigDecimal.ZERO);
+								erpRev.setRemSgst(BigDecimal.ZERO);
+
+								
+
+								erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(
+										erpRev.getNewCgst().add(erpRev.getNewSgst().add(erpRev.getNewMinusCost())))));
+
+								erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt().add(
+										erpRev.getRemCgst().add(erpRev.getRemSgst().add(erpRev.getRemReturnAmt())))));
+
+								
+								erpRev.setOldPayableAmt(roundAmountCgstAndSgst(
+										
+										erpRev.getOldSupervision().add(
+										erpRev.getOldCgst()).add(erpRev.getOldSgst()).add(erpRev.getOldJeReturnAmt())
+										) );
+							} else {
+
+						
+							erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(
+										erpRev.getNewCgst().add(erpRev.getNewSgst().add(erpRev.getoAndMReturnAmt())))));
+
+								erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt().add(
+										erpRev.getRemCgst().add(erpRev.getRemSgst().add(erpRev.getRemReturnAmt())))));
+
+								
+								erpRev.setOldPayableAmt(roundAmountCgstAndSgst(
+										
+										erpRev.getOldSupervision().add(
+										erpRev.getOldCgst()).add(erpRev.getOldSgst()).add(erpRev.getoAndMReturnAmt().abs())
+										) );
+
+							}
+
+						}
+
+						// Supervision Nature of work 3 Legal case
+						else if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+								.getNatureOfWorkTypeId().equals(3L)) {
+
+							BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+
+							if (findConsumerApplicationDetailByApplicationNo.getoAndMLoad()
+									.compareTo(new BigDecimal(1500)) <= 0) {
+
+								erpRev.setNewKvaAmt(roundAmountCgstAndSgst(oAndMLoad.multiply(new BigDecimal(850))));
+
+							} else {
+								erpRev.setNewKvaAmt(new BigDecimal(0.0));
+							}
+							erpRev.setRemKvaAmt(erpRev.getNewKvaAmt().subtract(erpRev.getOldkvaloadAmt()));
+
+							if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
+
+								erpRev.setRemCgst(BigDecimal.ZERO);
+								erpRev.setRemSgst(BigDecimal.ZERO);
+
+								erpRev.setRemReturnAmt(roundAmountCgstAndSgst(erpRev.getRemReturnAmt()));
+
+								erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+										erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+												.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+
+								erpRev.setPayAmt(roundAmountCgstAndSgst(
+										erpRev.getRemSupervisionAmt().add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+												.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
+
+							} else {
+
+								erpRev.setRemReturnAmt(roundAmountCgstAndSgst(erpRev.getRemReturnAmt()));
+
+								erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+										erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+												.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+
+								erpRev.setPayAmt(roundAmountCgstAndSgst(
+										erpRev.getRemSupervisionAmt().add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+												.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
+
+							}
+
+						}
+
+						// Supervision Nature of work 4 colony elictification Illegal case
+						else if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+								.getNatureOfWorkTypeId().equals(4L)) {
+
+							if (findConsumerApplicationDetailByApplicationNo.getColonyIllegalSelectionType().equals("1")
+									|| findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+											.getIndividualOrGroupId() == null
+									|| findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+											.getIndividualOrGroupId() == 2L) {
+								// 1= Declared and 2= Undeclared
+
+								BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+								BigDecimal newkvaAmt = oAndMLoad.multiply(new BigDecimal(850));
+
+								erpRev.setNewKvaAmt(newkvaAmt);
+
+								BigDecimal remKvaLoad = roundAmountCgstAndSgst(
+										newKvaLoadAmt.subtract(oldErpDetailss.getNewKvaAmt()));
+								erpRev.setRemKvaAmt(remKvaLoad);
+
+								if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
+
+									erpRev.setRemCgst(BigDecimal.ZERO);
+									erpRev.setRemSgst(BigDecimal.ZERO);
+
+									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+											.add(erpRev.getNewCgst()).add(erpRev.getNewCgst())
+											.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
+
+									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+											.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+											.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+
+								} else {
+
+									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+											.add(erpRev.getNewCgst()).add(erpRev.getNewCgst())
+											.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
+
+									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+											.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+											.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+
+								}
+
+							} else if (findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+									.getIndividualOrGroupId() == 1L) {
+								BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+								if (findConsumerApplicationDetailByApplicationNo.getoAndMLoad()
+										.compareTo(new BigDecimal(400)) <= 0) {
+
+									newColonyOrSlum = roundAmountCgstAndSgst(oAndMLoad.multiply(new BigDecimal(15567)));
+
+									erpRev.setNewColonyOrSlum(newColonyOrSlum);
+									erpRev.setOldkvaloadAmt(oldErpDetailss.getNewColonyOrSlum());
+
+									BigDecimal remColonyOrSlum = roundAmountCgstAndSgst(
+											erpRev.getNewColonyOrSlum().subtract(oldErpDetailss.getNewColonyOrSlum()));
+
+									erpRev.setRemColonyOrSlum(remColonyOrSlum);
+
+									erpRev.setNewSupervisionAmt(null);
+									erpRev.setNewCgst(null);
+									erpRev.setNewSgst(null);
+									erpRev.setNewDepositAmt(null);
+									erpRev.setNewEstimateAmt(null);
+									erpRev.setRemSupervisionAmt(null);
+									erpRev.setRemCgst(null);
+									erpRev.setRemSgst(null);
+									erpRev.setRemEstimateAmt(null);
+									erpRev.setRemmDepositAmt(null);
+									erpRev.setOldSupervision(null);
+
+									if (erpRev.getRemColonyOrSlum().compareTo(BigDecimal.ZERO) <= 0) {
+
+									} else {
+										erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+												erpRev.getNewColonyOrSlum().add(erpRev.getNewMinusCost())));
+										erpRev.setPayAmt(roundAmountCgstAndSgst(
+												erpRev.getRemColonyOrSlum().add(erpRev.getRemReturnAmt())));
+									}
+								}
+							} else {
+//									excetion throw karwana hai	
+							}
+						} else if (findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+								.getIndividualOrGroupId() == 1L) {
+
+							BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+							if (findConsumerApplicationDetailByApplicationNo.getoAndMLoad()
+									.compareTo(new BigDecimal(400)) <= 0) {
+
+								BigDecimal new_ColonyOrSlum = roundAmountCgstAndSgst(
+										oAndMLoad.multiply(new BigDecimal(15567)));
+
+								BigDecimal rem_ColonyOrSlum = roundAmountCgstAndSgst(
+										new_ColonyOrSlum.subtract(erpRev.getOldColonyOrSlum()));
+
+								erpRev.setNewSupervisionAmt(null);
+								erpRev.setNewCgst(null);
+								erpRev.setNewSgst(null);
+								erpRev.setNewDepositAmt(null);
+								erpRev.setNewEstimateAmt(null);
+								erpRev.setRemSupervisionAmt(null);
+								erpRev.setRemCgst(null);
+								erpRev.setRemSgst(null);
+								erpRev.setRemEstimateAmt(null);
+								erpRev.setRemmDepositAmt(null);
+								erpRev.setOldSupervision(null);
+
+								erpRev.setNewSupervisionAmt(null);
+								erpRev.setNewCgst(null);
+								erpRev.setNewSgst(null);
+
+								erpRev.setNewColonyOrSlum(new_ColonyOrSlum);
+								erpRev.setRemColonyOrSlum(rem_ColonyOrSlum);
+								erpRev.setOldColonyOrSlum(erpRev.getOldColonyOrSlum());
+
+								erpRev.setNewPayAmt(new_ColonyOrSlum.add(erpRev.getNewMinusCost()));
+								erpRev.setPayAmt(erpRev.getRemColonyOrSlum().add(erpRev.getRemReturnAmt()));
+
+							} else {
+
+							}
+						}
+
+						else if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+								.getNatureOfWorkTypeId().equals(5L)) {
+
+							String jeLoadUnitKwYaKva = findConsumerApplicationDetailByApplicationNo
+									.getJeLoadUnitKwYaKva();
+
+							BigDecimal oAndMLoad = findConsumerApplicationDetailByApplicationNo.getoAndMLoad();
+							if (findConsumerApplicationDetailByApplicationNo.getoAndMLoad()
+									.compareTo(new BigDecimal(10)) <= 0) {
+
+								BigDecimal new_securityAmt = oAndMLoad.multiply(new BigDecimal(200));
+
+								erpRev.setNewSecurityAmt(new_securityAmt);
+								erpRev.setRemSecurityAmt(
+										erpRev.getNewSecurityAmt().subtract(erpRev.getOldSecurityAmt()));
+
+							} else {
+								BigDecimal new_securityAmt = oAndMLoad.multiply(new BigDecimal(400));
+
+								erpRev.setNewSecurityAmt(new_securityAmt);
+								erpRev.setRemSecurityAmt(
+										erpRev.getNewSecurityAmt().subtract(erpRev.getOldSecurityAmt()));
+
+							}
+
+							if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
+
+//								
+
+								erpRev.setRemCgst(BigDecimal.ZERO);
+								erpRev.setRemSgst(BigDecimal.ZERO);
+
+								erpRev.setNewPayAmt(
+										roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+												.add(erpRev.getNewSgst()).add(erpRev.getRemSecurityAmt())));
+
+								erpRev.setPayAmt(roundAmountCgstAndSgst(
+										erpRev.getRemSupervisionAmt().add(erpRev.getRemSecurityAmt())));
+
+							} else {
+
+//							
+
+								erpRev.setRemCgst(newCgst.subtract(oldCgst));
+								erpRev.setRemSgst(newSgst.subtract(oldSgst));
+
+								erpRev.setNewPayAmt(
+										roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+												.add(erpRev.getNewSgst()).add(erpRev.getRemReturnAmt())));
+
+								erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt().add(
+										erpRev.getRemCgst().add(erpRev.getRemSgst().add(erpRev.getRemSecurityAmt())))));
+
+							}
+
+						}
+
+//					    erpRev.setNewPayAmt(newSuperVisionAmt.add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+//						.add(oAndMReturnAmount));
+//						erpRev.setNewPayAmt(newSuperVisionAmt.add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+//									.add(newKvaLoad).add(oAndMReturnAmount));
+
+					}
+
+				}
+			}
+//			17-Oct-2024 start
+
+			if (erpRev.getPayAmt() != null && erpRev.getRemCgst() != null
+					&& (erpRev.getPayAmt().compareTo(BigDecimal.ZERO) <= 0)
+					&& (erpRev.getRemCgst().compareTo(BigDecimal.ZERO) <= 0)) {
+
+				erpRev.setConsumerRefundableAmnt(erpRev.getPayAmt());
+			}
+
+//			else {
+//				erpRev.setConsumerRefundableAmnt(payAmt.add(remCgstSgst));
+//			}
+
+//			17-Oct-2024 end	
+			if (value == 2L) {
+
+				ErpRev save = erpRevRepository.save(erpRev);
+
+				if (save != null) {
+					ApplicationStatus appStatusDb = null;
+
+					if (erpRev.getPayAmt().compareTo(BigDecimal.ZERO) < 0) {
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+					} else {
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.REMAING_DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId());
+					}
+					findConsumerApplicationDetailByApplicationNo.setApplicationStatus(appStatusDb);
+					findConsumerApplicationDetailByApplicationNo.setErpVersion("V2");
+					findConsumerApplicationDetailByApplicationNo.setRevisedErpNumber(erpNo);
+					ConsumerApplicationDetail saveConsumerApplication = ConsumerApplicationDetailService
+							.saveConsumerApplication(findConsumerApplicationDetailByApplicationNo);
+					findConsumerApplicationDetailByApplicationNo.setApplicationStatus(appStatusDb);
+
+					return save;
+
+				}
+			} else {
+				return erpRev;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	public static double upperRound(double value, int places) {
+		if (places < 0)
+			throw new IllegalArgumentException();
+
+		double scale = Math.pow(10, places);
+		return Math.ceil(value);
 	}
 }

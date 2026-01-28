@@ -171,7 +171,7 @@ public class GeoLocationServiceImp implements GeoLocationService {
 
 			appStatusDb = applicationStatusService
 					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
-		} else if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 5l) {
+		} else if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 5 ||applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 13 || applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 14) {
 			appStatusDb = applicationStatusService
 					.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 		} else if ("Government".equals(applicationDetail.getAvedakKaPrakar())

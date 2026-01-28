@@ -180,11 +180,13 @@ public class BillPaymentProcessController {
 
 		if (!billDto.getIsTdsTaken()) {
 			String saveBillRequestResponse = saveBillRequest(billDto.getConsumerAppllicationNo());
-			if ("Data cannot be saved in request table".equals(saveBillRequestResponse)) {
-				response.setCode("406");
-				response.setMessage(
-						"Payment cannot be processed as you have already made a request within the last 5 minutes.");
-				return ResponseEntity.badRequest().header(ConstantProperty.APPLICATION_JSON).body(response);
+			if (!"local".equals(envVariable) && !"dev".equals(envVariable)) {
+				if ("Data cannot be saved in request table".equals(saveBillRequestResponse)) {
+					response.setCode("406");
+					response.setMessage(
+							"Payment cannot be processed as you have already made a request within the last 5 minutes.");
+					return ResponseEntity.badRequest().header(ConstantProperty.APPLICATION_JSON).body(response);
+				}
 			}
 		}
 		response = billPaymentService.prePaymentProcessingBillDesk(billDto, list, response, request);
@@ -198,6 +200,7 @@ public class BillPaymentProcessController {
 		final String method = "PaymentGatewayController : billPaymentProcess2() method";
 		Response<Object> response = new Response<Object>();
 		AuthorizationResponseDto authorizationResponseDto = new AuthorizationResponseDto();
+		Map<String, Object> dataForBilldesk;
 		logger.info("/billPaymentsProcess/{id} ", " /billPaymentsProcess/{id} ");
 		try {
 			Optional<BillDeskPaymentRequest1> findById = billDeskPaymentRequestRepository.findById(id);
@@ -284,9 +287,8 @@ public class BillPaymentProcessController {
 			if ("local".equals(envVariable) || "prod".equals(envVariable)) {
 				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
 				clientHttpReq.setProxy(proxy);
-				System.err.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaa : " +proxy);
+				System.err.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaa : " + proxy);
 			}
-
 
 			RestTemplate restTemplate = new RestTemplate(clientHttpReq);
 			HttpHeaders headers = new HttpHeaders();
@@ -336,7 +338,13 @@ public class BillPaymentProcessController {
 
 			authorizationResponseDto.setBdorderid(jobObject.getString("bdorderid"));
 			authorizationResponseDto.setMercid(jobObject.getString("mercid"));
-
+			dataForBilldesk = new LinkedHashMap<>();
+			dataForBilldesk.put("UAT or Production", envVariable);
+			dataForBilldesk.put("MerchantID", clientId);
+			dataForBilldesk.put("CLIENTID", clientKey);
+			dataForBilldesk.put("Full Request Headers for Create Order API", httpEntity);
+			dataForBilldesk.put("URL on which the request was sent", url);
+			dataForBilldesk.put("Encrypted Response", forObject);
 			JSONArray jsonArray = jobObject.getJSONArray("links");
 
 			for (int i = 0; i < jsonArray.length(); i++) {
@@ -361,6 +369,7 @@ public class BillPaymentProcessController {
 		response.setList(Arrays.asList(authorizationResponseDto));
 		response.setMessage("Data found successfully");
 		response.setCode("200");
+		response.setMap2(dataForBilldesk);
 		return response;
 	}
 
@@ -389,7 +398,7 @@ public class BillPaymentProcessController {
 		return message;
 	}
 
-	@PostMapping(value = "/save_payment_response", consumes = { "application/x-www-form-urlencoded;charset=UTF-8" })
+	@PostMapping(value = "/save_payment_response")
 	public void savePaymentResponse(HttpServletRequest request, HttpServletResponse response1) throws IOException {
 
 		System.out.println(request);
@@ -511,13 +520,22 @@ public class BillPaymentProcessController {
 
 			if (jobObject.getString("auth_status").equals("0300")) {
 				if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().equals(5L)) {
-					if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
-						payres.setOytTempAmount(
-								jobObject.getJSONObject("additional_info").getString("additional_info5"));
-					}
+//					if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
+//						payres.setOytTempAmount(
+//								jobObject.getJSONObject("additional_info").getString("additional_info5"));
+//					}
+					if (findByConsumerApplicationNumber.getAdminStatusChangedTo() != null
+							&& findByConsumerApplicationNumber.getAdminStatusChangedTo().equals(5l)) { // added this
+																										// check for
+						// government case
+						// 17-12-2025
 
-					appStatusDb = applicationStatusService
-							.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.PENDING_FOR_DEMAND_NOTE_APPROVAL_AT_DGM.getId());
+					} else {
+						appStatusDb = applicationStatusService
+								.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+					}
 				} else if (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId()
 						.equals(12L)) {
 					if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName().equalsIgnoreCase("Deposit")
@@ -543,8 +561,11 @@ public class BillPaymentProcessController {
 
 					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
 							.equalsIgnoreCase("Supervision")) {
-
-						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
+						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
+							appStatusDb = applicationStatusService
+									.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+						}
+						else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 						}
@@ -650,7 +671,8 @@ public class BillPaymentProcessController {
 						requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
 						requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
 						requestBody.put("is_bid_submitted", "false");
-						requestBody.put("nature_of_work_name", findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
+						requestBody.put("nature_of_work_name",
+								findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
 						if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
 								&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
 							requestBody.put("sspTotalAmount",
@@ -684,6 +706,7 @@ public class BillPaymentProcessController {
 			}
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			response1.sendRedirect("sendReciept?msg=" + paytmParams.get("RESPMSG") + "&isFailed=" + Boolean.TRUE
 					+ "&isFailedParam=" + Boolean.FALSE);
 		}
@@ -1689,8 +1712,11 @@ public class BillPaymentProcessController {
 
 					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
 							.equalsIgnoreCase("Supervision")) {
-
-						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
+						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
+							appStatusDb = applicationStatusService
+									.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+						}
+						else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 						}

@@ -2,9 +2,6 @@ package com.mpcz.deposit_scheme.backend.api.dto;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
-
-import javax.persistence.Column;
 
 import lombok.Data;
 
@@ -78,15 +75,27 @@ public @Data class ErpEstimateCalculatedDto implements Serializable {
 	private BigDecimal sspTotalAmount;
 
 	private BigDecimal registrationCharges;
-	
-	
-	@Column(name = "U_SEC_194C_TDS2")
+
 	private BigDecimal u_sec_194C_tds2;
 
-	@Column(name = "U_194C_TDS2_F_SUP_DEP") // this key will contain supervision and deposit sums 2% tds charge
+	// this key will contain supervision and deposit sums 2% tds charge
 	private BigDecimal u_194C_tds2_fSupDep;
-	
-	
+
+	public BigDecimal getU_sec_194C_tds2() {
+		return u_sec_194C_tds2;
+	}
+
+	public void setU_sec_194C_tds2(BigDecimal u_sec_194C_tds2) {
+		this.u_sec_194C_tds2 = u_sec_194C_tds2;
+	}
+
+	public BigDecimal getU_194C_tds2_fSupDep() {
+		return u_194C_tds2_fSupDep;
+	}
+
+	public void setU_194C_tds2_fSupDep(BigDecimal u_194c_tds2_fSupDep) {
+		u_194C_tds2_fSupDep = u_194c_tds2_fSupDep;
+	}
 
 	public BigDecimal getRegistrationCharges() {
 		return registrationCharges;

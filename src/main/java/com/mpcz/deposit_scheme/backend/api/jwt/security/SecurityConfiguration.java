@@ -48,9 +48,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/user/consumer-application/getAllPaginate/", "/ReSampling/post-resample-data",
 			"/ReSampling/post-resample-data1", "/ReSampling/safling-data-by-autenotication-ID/{authenticationId}",
 			"/ReSampling/safling-data-by-autenotication-ID1/{authenticationId}/{userID}",
-			"/ReSampling/getSampleDataForReSamplingTable/{flagNo}",
-			"/ReSampling/getSampleDataForConsuemrAppliationDetailTable/{flagNo}", "/nistha-lab/testing-report-upload",
+			"/ReSampling/safling-data-by-autenotication-ID1/{authenticationId}/{userID}/{circleId}/{divisionId}",
+//			"/ReSampling/getSampleDataForReSamplingTable/{flagNo}",
+			"/oyt14/save",
+			"/oyt14//getbyapplication-no/{applicationNo}",
+			"/ReSampling/getSampleDataForReSamplingTable/{flagNo}/{circleId}/{divisionId}/{regionId}",
+			"/ReSampling/getSampleDataForConsuemrAppliationDetailTable/{flagNo}", 
+			"/ReSampling/getSampleDataForConsuemrAppliationDetailTable1/{dcid}",
+			"/nistha-lab/testing-report-upload",
 			"/GatePassChallan/save", "/ReSampling/uploadPhotoDtr",
+			"/ReSampling/getSampleDataForConsuemrAppliationDetailTable2",
 			"/ReSampling/getSampleDataForConsuemrAppliationDetailTableByConsumerApplicaionNo/{consumerApplicaionNO}",
 //			charitra
 			"/api/user/dtr/25kvadtr/{dtrQuentity}",
@@ -84,10 +91,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/adminChangable/user/changeConsumerMobileNo/{oldLoginId}/{newMobileNo}",
 			"/api/user/erp/getoytMaterialdataByConsumerapplicationNumber/{consumerApplicationNo}",
 			"/api/consumer/consumer-application/getConsumerApplicationDetailsByApplicationNumber/{consumerApplicationNo}",
+			"/ReSampling/getSampleDataForConsuemrAppliationDetailTableCount",
 			// end
-			"/api/user/erp/erpEstimateAmountDataGetByerp/{consumerApplicationNo}",
-			"/GatePassChallan/save", "/ReSampling/getsempleSelectedAndTestingDoneData",
-			"/ReSampling/getselectTestingData", "/api/user/erp//getoytMaterial/{consumerApplicationNo}",
+			"/ReSampling/getSampleDataForConsuemrAppliationDetailTable/{flagNo}/{circleid}",
+			"/ReSampling/getSampleDataForConsuemrAppliationDetailTableNotNsc/{flagNo}",
+			"/api/user/erp/erpEstimateAmountDataGetByerp/{consumerApplicationNo}", "/GatePassChallan/save",
+			"/ReSampling/getsempleSelectedAndTestingDoneData", "/ReSampling/getselectTestingData",
+			"/api/user/erp//getoytMaterial/{consumerApplicationNo}",
 			"/ReSampling/safling-data-by-Vendor-table-autenotication-ID/{authenticationId}", "/user-tkoen/token",
 			"/api/consumer/payment/response_payment", "/api/consumer/payment/sendReciept",
 			"/api/user/qc-portal/conforbid/{applicationNo}", "/api/master/**",
@@ -168,7 +178,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 			"/api/consumer/consumer-application/punchNamaDoneApi/{consumerApplicatonNO}/{punchNamaReferemceMo}/{punchNamaReferenceDate}",
 			"/api/consumer/consumer-application/changCalulationForOyt/{applicationNumber}/{OytTepOrParma}",
-
+			"/api/user/erp/saveForSupervisionOnlyButNotForOyt/{erpNo}/{consumerApplicationNo}",
 			// Monika API Start
 
 			"/api/consumer/consumer-application/rejectProposalApplication",
@@ -333,9 +343,21 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/consumer/qc-portal/getListOfActualWorkCompletionApplicationForQC",
 			"/api/refundAmount/user/financeAoAcceptanceAfterErpCompletion",
 			"/NgbStagingData/getOytDataForTemporaryConnection/{consumerAppNo}",
+			"/NgbStagingData/pdc//{ivrsNo}",
+			"/api/consumer/dc/getDcDataByNgbDCCode/{ngbDcCode}",
+			"/mis_details/execute-query",
+			"/api/erp-estimate/save",
+			"/api/erp-estimate/getEstimateQty/{consumerApplicationNo}",
+			"/api/user/erp/nonOytMaterialCharges/{erpNo}/{consumerApplicationNo}",
 //			procedure call api
 			"/procedure/createInvoiceProcedure", "/mis_details/getFinancePaymentDataForGSTApplication/{yearMonth}",
 			"/api/consumer/consumer-application/demandNoteApprovalByGM",
+			"/api/consumer/consumer-details/getExcelPdf",
+			"/mis_details/getPaymentDetailsExcel",
+			"/api/hello",
+			"/api/payment",
+			"/api/paymentsss",
+			"/api/data",
 			// Monika API End
 			"/ErpRev/RevErpDataNew/{erpNo}/{applicationNo}/{value}", "/api/consumer/bill-desk/billPaymentProcess/{id}",
 			"/api/user/consumer-application/get/{id}", "/poseMachine/savedata",
@@ -344,6 +366,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/user/application-dc-change/add", "/AmountMatch/supervision", "/poseMachine/savedata",
 			"/api/consumer/consumer-application/getAllNewPaginate/", "/stream/contractorMobileNo",
 			"/api/user/application-survey/get/{id}", "/procedure/send/{appNo}",
+			"/oyt14/updatby",
+			"/api/erp-estimate/user/getKVLineData/{distance}",
+			"/api/consumer/consumer-application/getKVLineData/{distance}",
+		
 
 			"/api/consumer/consumer-application/getAllNewPaginate/",
 			"/api/refundAmount/consumer/saveApplicationCancelletion",

@@ -1,6 +1,7 @@
 package com.mpcz.deposit_scheme.dryprincipalutility;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -11,8 +12,10 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BindingResult;
 
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
+import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.domain.ApplicationDocument;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
@@ -21,11 +24,13 @@ import com.mpcz.deposit_scheme.backend.api.domain.ErpRev;
 import com.mpcz.deposit_scheme.backend.api.domain.MmkyPayAmount;
 import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
 import com.mpcz.deposit_scheme.backend.api.exception.ErpEstimateAmountException;
+import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.repository.ApplicationDocumentRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ErpRevRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.MmkyPayAmountRespository;
+import com.mpcz.deposit_scheme.backend.api.request.ErrorDetails;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.ErpEstimateAmountService;
 
@@ -177,7 +182,13 @@ public class DryUtility {
 		Set<String> applicationNumbers = new HashSet<>();
 
 		// 1. ERP Demand Table check
-		ErpEstimateAmountData erpDemandDB = erpEstimateAmountService.findByEstimateNumber(erpNumber);
+		ErpEstimateAmountData erpDemandDB = null;
+		try {
+			 erpDemandDB = erpEstimateAmountService.findByEstimateNumber(erpNumber);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		if (erpDemandDB != null) {
 			consumerApplictionDetailRepository.findByerpWorkFlowNumber(erpNumber).forEach(erp -> {
 				applicationNumbers.add(erp.getConsumerApplicationNo());
@@ -359,4 +370,20 @@ public class DryUtility {
 		}
 	}
 
+	public void checkValidationError(BindingResult bindingResult) throws FormValidationException {
+		if (bindingResult.hasErrors()) {
+			List<ErrorDetails> errorList = new ArrayList<ErrorDetails>();
+
+			bindingResult.getFieldErrors().stream().forEach(f -> {
+				ErrorDetails error = new ErrorDetails(new Date(), f.getDefaultMessage(),
+						f.getField() + ":" + f.getDefaultMessage());
+				errorList.add(error);
+			});
+			throw new FormValidationException(
+					new Response<>(ResponseCode.FORM_VALIDATION_ERROR, ResponseMessage.FORM_VALIDATION_ERROR, errorList));
+		}
+	}
+
+	
+	
 }

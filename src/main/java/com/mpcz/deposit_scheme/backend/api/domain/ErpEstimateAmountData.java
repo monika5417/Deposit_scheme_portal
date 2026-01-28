@@ -177,8 +177,22 @@ public class ErpEstimateAmountData extends Auditable<Long> {
 
 	
 	
+	@Column(name = "VERSION_NUMBER")
+	private Long versionNumber;
 	
 	
+	
+	
+	
+	
+	public Long getVersionNumber() {
+		return versionNumber;
+	}
+
+	public void setVersionNumber(Long versionNumber) {
+		this.versionNumber = versionNumber;
+	}
+
 	public BigDecimal getRegistrationCharges() {
 		return registrationCharges;
 	}

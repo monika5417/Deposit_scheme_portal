@@ -293,7 +293,7 @@ public class ConsumerServiceImpl implements ConsumerService {
 
 		String consumerLoginId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-//		consumerLoginId = "9806204737";
+//		String consumerLoginId = "9340302532";
 		System.out.println("consumerLoginId-------->" + consumerLoginId);
 		return this.consumerRepository.findByConsumerLoginId(consumerLoginId)
 				.orElseThrow(() -> new DataNotFoundException(

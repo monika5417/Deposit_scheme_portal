@@ -1,13 +1,16 @@
 package com.mpcz.deposit_scheme.backend.api.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,13 +18,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mpcz.deposit_scheme.backend.api.constant.ApiResponseCode;
+import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.constant.RestApiUrl;
 import com.mpcz.deposit_scheme.backend.api.domain.DistributionCenter;
+import com.mpcz.deposit_scheme.backend.api.domain.DynamicQuery;
 import com.mpcz.deposit_scheme.backend.api.exception.DistributionCenterException;
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.exception.InvalidAuthenticationException;
+import com.mpcz.deposit_scheme.backend.api.repository.DynamicQueryRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.DistributionCenterService;
 
@@ -35,15 +41,19 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @RequestMapping(RestApiUrl.DC_API)
 public class DistributionCenterController {
-	
+
 	Logger LOG = LoggerFactory.getLogger(DistributionCenterController.class);
-	
+
 	@Autowired
 	private DistributionCenterService dcService;
+
+	@Autowired
+	private DynamicQueryRepository dynamicQueryRepository;
+
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 //	@Autowired
 //	private SubDivisionService subDivisionService;
-
- 
 
 //	@ApiOperation(value = "Save distribution center detaiils", notes = "Pass sub-division id, dc name &  code", response = Response.class, responseContainer = "List", tags = RestApiUrl.DC_TAGS)
 //	@ApiResponses(value = {
@@ -228,7 +238,7 @@ public class DistributionCenterController {
 		response.setCode(ResponseCode.OK);
 		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 	}
-	
+
 	@ApiOperation(value = "Retrieve all Dc by District Id", notes = "Pass district id", response = Response.class, responseContainer = "List", tags = RestApiUrl.DC_TAGS)
 	@ApiResponses(value = {
 			@ApiResponse(code = ApiResponseCode.SUCCESS_CODE, message = ResponseMessage.RECORD_FETCH_ALL_MESSAGE),
@@ -253,7 +263,7 @@ public class DistributionCenterController {
 		response.setCode(ResponseCode.OK);
 		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 	}
-	
+
 	@ApiOperation(value = "Retrieve all Dc by division Id", notes = "Pass division  id", response = Response.class, responseContainer = "List", tags = RestApiUrl.DC_TAGS)
 	@ApiResponses(value = {
 			@ApiResponse(code = ApiResponseCode.SUCCESS_CODE, message = ResponseMessage.RECORD_FETCH_ALL_MESSAGE),
@@ -264,17 +274,37 @@ public class DistributionCenterController {
 			@ApiResponse(code = ApiResponseCode.UNAUTHORIZED_CODE, message = ResponseMessage.UNAUTHORIZED),
 			@ApiResponse(code = ApiResponseCode.INTERNAL_SERVER_ERROR_CODE, message = ResponseMessage.INTERNAL_SERVER_ERROR) })
 	@GetMapping("/findAllDistributionCentersBydcIdAnddcSubdivision_subDivisionIdAndSubdivisionDivision_divisionId/{id}")
-	public ResponseEntity<Response<?>> findAllDistributionCentersBydcIdAnddcSubdivision_subDivisionIdAndSubdivisionDivision_divisionId(@PathVariable long id,
-			HttpServletResponse httpServletResponse)
+	public ResponseEntity<Response<?>> findAllDistributionCentersBydcIdAnddcSubdivision_subDivisionIdAndSubdivisionDivision_divisionId(
+			@PathVariable long id, HttpServletResponse httpServletResponse)
 			throws FormValidationException, InvalidAuthenticationException, DistributionCenterException {
 
-		final String method = RestApiUrl.DC_API + "/findAllDistributionCentersBydcIdAnddcSubdivision_subDivisionIdAndSubdivisionDivision_divisionId";
+		final String method = RestApiUrl.DC_API
+				+ "/findAllDistributionCentersBydcIdAnddcSubdivision_subDivisionIdAndSubdivisionDivision_divisionId";
 		LOG.info(method);
 		Response<DistributionCenter> response = new Response<DistributionCenter>();
-		List<DistributionCenter> distributionCenters = dcService.findAllDistributionCentersBydcIdAnddcSubdivision_subDivisionIdAndSubdivisionDivision_divisionId(id);
+		List<DistributionCenter> distributionCenters = dcService
+				.findAllDistributionCentersBydcIdAnddcSubdivision_subDivisionIdAndSubdivisionDivision_divisionId(id);
 		response.setList(distributionCenters);
 		response.setMessage(ResponseMessage.RECORD_FETCH_BY_ID_MESSAGE);
-		response.setCode(ResponseCode.OK);             
+		response.setCode(ResponseCode.OK);
 		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 	}
+
+	@GetMapping("/getDcDataByNgbDCCode/{ngbDcCode}")
+	public ResponseEntity<?> getDcDataByNgbDCCode(@PathVariable String ngbDcCode) {
+
+		DynamicQuery byQueryName = dynamicQueryRepository.findByQueryName("DC_DATA_BY_NGB_DC_CODE");
+		if (byQueryName == null) {
+			return ResponseEntity.ok(new Response<>(HttpCode.NULL_OBJECT, "Query Not Found In Database"));
+		}
+
+		String queryText = byQueryName.getQueryText();
+		Map<String, String> map = new HashedMap();
+		map.put("ngbDcCode", ngbDcCode);
+		List<Map<String, Object>> queryForList = namedParameterJdbcTemplate.queryForList(queryText, map);
+		return ResponseEntity.ok(queryForList == null || queryForList.isEmpty()
+				? new Response<>(HttpCode.NULL_OBJECT, "Data Not Found For this Ngb Id : " + ngbDcCode)
+				: new Response<>(HttpCode.OK, "Data Retrieved Successfully", queryForList));
+	}
+
 }

@@ -9,9 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
@@ -871,12 +873,21 @@ public class TestingController {
 ////		treeset.stream().forEach(x->System.out.println(x.getName()));
 //	}
 
+//	@GetMapping("/redirect-to-frontend")
+//	public ResponseEntity<Void> redirectToFrontend() {
+//		URI redirectUri = URI.create("https://saralsanyojan.mpcz.in:8888/fill_connection_details/CZNSC1818155");
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.setLocation(redirectUri);
+//		return new ResponseEntity<>(headers, HttpStatus.FOUND); // HTTP 302 Redirect
+//	}
+
 	@GetMapping("/redirect-to-frontend")
-	public ResponseEntity<Void> redirectToFrontend() {
-		URI redirectUri = URI.create("https://saralsanyojan.mpcz.in:8888/fill_connection_details/CZNSC1818155");
+	public ResponseEntity<Void> redirectToDSPFrontendForLogin() {
+		URI redirectUri = URI.create("https://rooftop-uat.mpcz.in:8888/deposit-scheme/#/consumer/login");
 		HttpHeaders headers = new HttpHeaders();
 		headers.setLocation(redirectUri);
-		return new ResponseEntity<>(headers, HttpStatus.FOUND); // HTTP 302 Redirect
+		return new ResponseEntity<>(headers, HttpStatus.FOUND);
+
 	}
 
 //	public static void main(String[] args) {
@@ -893,6 +904,47 @@ public class TestingController {
 		return localDateTime;
 	}
 
-	
-	
+
+	public static void main(String[] args) {
+//	nput: S = { “the”, “quick”, “brown”, “fox”, “quick”}, word1 = “the”, word2 = “fox”
+//		Output: 3
+//		String[] str = { "the", "quick","the", "brown", "fox", "quick" };
+//		int i = 0;
+//		int j = 0;
+//		int l;
+//		for (int k = 0; k < str.length; k++) {
+//			System.out.println("Index " + k + " -> " + str[k]);
+//			if (str[k].equals("the")) {
+//				i = k;
+//				System.err.println("the value of i = " + i);
+//			}
+//			if (str[k].equals("fox")) {
+//				j = k;
+//				System.err.println("the value of j = " + j);
+//			}
+//
+//		}
+//		l = j - i;
+//		System.err.println("the minimum distance is  : " + l);
+
+//		Remove duplicate from int array
+		int[] intArray = { 1, 9, 3, 5, 3, 6, 4, 2, 8, 9, 5, 8 };
+//		Set<Integer> uniqueData = new HashSet<>();
+//		Set<Integer> notAddedData = new HashSet<>();
+//		for (int i : intArray) {
+//			if (!uniqueData.add(i)) {
+//				notAddedData.add(i); // duplicate element
+//			}
+//		}
+//
+//		System.out.println("Unique Data: " + uniqueData);
+//		System.out.println("Not Added Data (Duplicates): " + notAddedData);
+
+		int[] tempArray = {};
+		for (int i = 0; i < intArray.length; i++) {
+			System.err.println(intArray[i]);
+		}
+	}
+
+
 }

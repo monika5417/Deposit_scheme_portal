@@ -181,7 +181,29 @@ public class VendorServiceImpl implements VendorService {
 
 				consumerApplicationDetail.setApplicationStatus(appStatusDb);
 
-			} else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22) {
+			} else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22 && (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) ||consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l))) {
+//			charitra Prajapati
+				ContractorForBidWorkStatus contractorForBidWorkStatus = new ContractorForBidWorkStatus();
+				contractorForBidWorkStatus.setConsumerApplicationNumber(vendorRejectionForm.getConsumerApplicationNo());
+				contractorForBidWorkStatus
+						.setMaterialHandoverSiteDate(vendorRejectionForm.getMaterialHandoverSiteDate());
+				contractorForBidWorkStatus
+						.setMaterialInstallFinishDate(vendorRejectionForm.getMaterialInstallFinishDate());
+				contractorForBidWorkStatus
+						.setMaterialInstallStartDate(vendorRejectionForm.getMaterialInstallStartDate());
+				contractorForBidWorkStatus.setConWorkStartedDate(vendorRejectionForm.getConWorkStartedDate());
+				contractorForBidWorkStatus.setConWorkCompleteDate(vendorRejectionForm.getConWorkCompleteDate());
+				contractorForBidWorkStatus.setUserId(vendorRejectionForm.getContractorId());
+				ContractorForBidWorkStatus save = contractorForBidWorkStatusRepository.save(contractorForBidWorkStatus);
+
+				// Monika code end
+
+				// consumerApplicationDetail.setIsRejected(Boolean.FALSE);
+
+				appStatusDb = applicationStatusService.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+				consumerApplicationDetail.setApplicationStatus(appStatusDb);
+			}
+			else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22) {
 
 				// Monika code start
 				ContractorForBidWorkStatus contractorForBidWorkStatus = new ContractorForBidWorkStatus();

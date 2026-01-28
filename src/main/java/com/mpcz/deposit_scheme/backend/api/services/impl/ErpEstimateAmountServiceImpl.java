@@ -18,16 +18,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
+import com.mpcz.deposit_scheme.backend.api.domain.BillDeskPaymentResponse;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountData;
 import com.mpcz.deposit_scheme.backend.api.domain.OytProjectDetails;
+import com.mpcz.deposit_scheme.backend.api.domain.PoseMachinePostData;
 import com.mpcz.deposit_scheme.backend.api.domain.SchemeType;
 import com.mpcz.deposit_scheme.backend.api.dto.ErpEstimateCalculatedDto;
 import com.mpcz.deposit_scheme.backend.api.dto.SanchayPortalDto;
 import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
 import com.mpcz.deposit_scheme.backend.api.exception.ErpEstimateAmountException;
+import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.OytProjectDetailsRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.PoseMachinePostDataRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.ConsumerApplicationDetailService;
 import com.mpcz.deposit_scheme.backend.api.services.ErpEstimateAmountService;
@@ -47,6 +51,12 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 	@Autowired
 	private SchemeTypeService schemeTypeService;
+
+	@Autowired
+	private BillPaymentResponseeeeeeeRepository billPaymentResponseeeeeeeRepository;
+
+	@Autowired
+	private PoseMachinePostDataRepository poseMachinePostDataRepository;
 
 	@Override
 	public List<ErpEstimateAmountData> saveAllEstimateAmount(List<ErpEstimateAmountData> saveAllEstimateAmountList)
@@ -156,6 +166,31 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 			}
 
 		}
+
+		List<BillDeskPaymentResponse> totalPaymentOfRegistration = billPaymentResponseeeeeeeRepository
+				.getTotalPaymentOfRegistration(consumerapplication.getConsumerApplicationNo());
+
+		List<PoseMachinePostData> registrationPaymentDetail = null;
+
+		if (totalPaymentOfRegistration == null || totalPaymentOfRegistration.isEmpty()) {
+			registrationPaymentDetail = poseMachinePostDataRepository
+					.getRegistrationPaymentDetail(consumerapplication.getConsumerApplicationNo());
+		}
+
+		boolean billDeskEmpty = (totalPaymentOfRegistration == null || totalPaymentOfRegistration.isEmpty());
+
+		boolean posEmpty = (registrationPaymentDetail == null || registrationPaymentDetail.isEmpty());
+		String isAvedakGovernmentErp = null;
+		if (billDeskEmpty && posEmpty) {
+			isAvedakGovernmentErp = "Yes";
+		} else {
+			isAvedakGovernmentErp = "No";
+		}
+		System.err.println("isAvedakGovernmentErp : " + isAvedakGovernmentErp);
+
+//		consumerapplication.setIsAvedakGovernmentErp(billPaymentResponseeeeeeeRepository
+//				.getTotalPaymentOfRegistration(consumerapplication.getConsumerApplicationNo()).isEmpty() ? "Yes"
+//						: "No");
 
 		BigDecimal cgst = roundAmountCgstAndSgst(superVisionDouble.multiply(new BigDecimal(.09)));
 		BigDecimal sgst = roundAmountCgstAndSgst(superVisionDouble.multiply(new BigDecimal(.09)));
@@ -406,11 +441,14 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 					}
 
-					// Nature of work id 1,6 and 7 k liye
-					if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(1l)
+					// Nature of work id 1,6 and 7 , 11 k liye  
+					// charitra start code 16-12-2025	nature of work 13 , 14 
+					else if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(1l)
 							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(6l)
 							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(7l)
-							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(11l)) {
+							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(11l)
+							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+							|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l)) {
 //						BigDecimal jeReturnAmt = round111(consumerapplication.getJeReturnAmount(), 0);
 						BigDecimal jeReturnAmt = null;
 						if (consumerapplication.getJeReturnAmount() != null) {
@@ -468,7 +506,7 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 						}
 					}
 // code start 02-12-2025 Monika Rajpoot
-					if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 12L) {
+					else if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 12L) {
 
 						BigDecimal jeReturnAmt = consumerapplication.getJeReturnAmount() != null
 								? round111(consumerapplication.getJeReturnAmount(), 0)
@@ -486,7 +524,12 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 						erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
 						estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
+						isAvedakGovernmentErp = "No";
 					}
+					
+				
+
+					
 
 					// code end 02-12-2025
 				}
@@ -494,11 +537,12 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 			erpEstimateAmount.setU_sec_194J_tds2(null);
 			erpEstimateAmount.setU_sec_194C_tds2(null);
 			erpEstimateAmount.setU_194C_tds2_fSupDep(null);
-			if ("Yes".equals(consumerapplication.getIsAvedakGovernmentErp())) {
+			System.err.println("aaaaaaaaaaaaaaaaaa : " + isAvedakGovernmentErp);
+			if ("Yes".equals(isAvedakGovernmentErp)) {
 				estimateAmountDto.setTotalamountOfSupervision(
-						roundAmountCgstAndSgst(totalSupervisionAmount).add(new BigDecimal(1180)));
+						estimateAmountDto.getTotalamountOfSupervision().add(new BigDecimal(1180)));
 				erpEstimateAmount.setTotalBalanceSupervisionAmount(
-						roundAmountCgstAndSgst(totalSupervisionAmount).add(new BigDecimal(1180)));
+						erpEstimateAmount.getTotalBalanceSupervisionAmount().add(new BigDecimal(1180)));
 				erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
 				estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
 
@@ -511,6 +555,17 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 		{
 
+			minusCost = roundAmountCgstAndSgst(
+					erpEstimateAmountDataOptional.get().getMinusCost().multiply(new BigDecimal(-1)));
+			if (Objects.equals(consumerapplication.getIsAvedakGovernmentErp(), "Yes") && consumerapplication.getGoodMaterialOrnot().equals("0")) {
+			
+				erpEstimateAmount.setJeReturnAmount(minusCost);
+			} else if(Objects.equals(consumerapplication.getIsAvedakGovernmentErp(), "No")) {
+				erpEstimateAmount.setJeReturnAmount(minusCost);
+			}
+
+		
+			
 			BigDecimal supervisionAmountDouble = roundAmountCgstAndSgst(erpEstimateAmount.getSupervisionAmount());
 
 			BigDecimal depositAmount = BigDecimal.ZERO;
@@ -532,7 +587,10 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 6
 					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 7
 					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 2
-					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 11) {
+					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 11
+					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 13
+					|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 14
+					) {
 
 				// added this code for taking the amount charges of SSP portal in DSP for NOW 2
 				// 11-09-2025 start
@@ -862,16 +920,21 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 					estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
 
 				}
+				isAvedakGovernmentErp = "No";
 			}
+			
+			// charitra start code 16-12-2025					
+		
+			
 //			end
 			erpEstimateAmount.setU_sec_194J_tds2(null);
 			erpEstimateAmount.setU_sec_194C_tds2(null);
 			erpEstimateAmount.setU_194C_tds2_fSupDep(null);
-			if ("Yes".equals(consumerapplication.getIsAvedakGovernmentErp())) {
+			if ("Yes".equals(isAvedakGovernmentErp)) {
 				erpEstimateAmount.setTotalBalanceDepositAmount(
 						erpEstimateAmount.getTotalBalanceDepositAmount().add(new BigDecimal(1180)));
-				estimateAmountDto.setTotaldepositAmount(
-						estimateAmountDto.getTotaldepositAmount().add(new BigDecimal(1180)));
+				estimateAmountDto
+						.setTotaldepositAmount(estimateAmountDto.getTotaldepositAmount().add(new BigDecimal(1180)));
 				erpEstimateAmount.setRegistrationCharges(new BigDecimal(1180));
 				estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
 
@@ -1518,6 +1581,17 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 						estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
 					}
 
+					// charitra start code 16-12-2025					
+					if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 13|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 14) {
+
+						
+
+						estimateAmountDto.setTotalamountOfSupervision(roundAmountCgstAndSgst(estimateAmountDto.getSuperVisionAmount().add(cgst).add(sgst)));
+						erpEstimateAmount
+								.setTotalBalanceSupervisionAmount(roundAmountCgstAndSgst(estimateAmountDto.getSuperVisionAmount().add(cgst).add(sgst)));
+
+			
+					}
 					// code end 02-12-2025
 
 					erpEstimateAmount.setU_sec_194J_tds2(null);
@@ -1751,6 +1825,7 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 						erpEstimateAmount.setColonyOrSlum(kwloads);
 						erpEstimateAmount.setSgst(null);
 						erpEstimateAmount.setCgst(null);
+						erpEstimateAmount.setDepositAmount(null);
 
 						estimateAmountDto.setColonyOrSlum(kwloads);
 						estimateAmountDto.setCgst(null);
@@ -1939,6 +2014,18 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 					estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
 
 				}
+			}
+			
+			// charitra start code 16-12-2025					
+			if (consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 13|| consumerapplication.getNatureOfWorkType().getNatureOfWorkTypeId() == 14) {
+
+				
+
+				estimateAmountDto.setTotalamountOfSupervision(roundAmountCgstAndSgst(estimateAmountDto.getSuperVisionAmount().add(cgst).add(sgst)));
+				erpEstimateAmount
+						.setTotalBalanceSupervisionAmount(roundAmountCgstAndSgst(estimateAmountDto.getSuperVisionAmount().add(cgst).add(sgst)));
+
+	
 			}
 //			end
 			erpEstimateAmount.setU_sec_194J_tds2(null);

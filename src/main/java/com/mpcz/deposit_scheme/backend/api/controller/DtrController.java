@@ -28,11 +28,13 @@ import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.constant.RestApiUrl;
 import com.mpcz.deposit_scheme.backend.api.domain.CheckBoxDtr;
 import com.mpcz.deposit_scheme.backend.api.domain.Kva25Dtr;
+import com.mpcz.deposit_scheme.backend.api.domain.Kva63Dtr;
 import com.mpcz.deposit_scheme.backend.api.dto.CheckBoxDtrDTO;
 import com.mpcz.deposit_scheme.backend.api.exception.FeederException;
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.exception.InvalidAuthenticationException;
 import com.mpcz.deposit_scheme.backend.api.repository.Kva25DtrRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.Kva63DtrRepository;
 import com.mpcz.deposit_scheme.backend.api.request.ErrorDetails;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.DtrService;
@@ -52,6 +54,10 @@ public class DtrController {
 	
 	@Autowired
 	private Kva25DtrRepository kva25DtrRepository;
+	
+	
+	@Autowired
+	private Kva63DtrRepository kva63DtrRepository;
 	
 	Logger LOG = LoggerFactory.getLogger(DtrController.class);
 	
@@ -138,7 +144,7 @@ public class DtrController {
 	
 	
 	@GetMapping("/25kvadtr/{dtrQuentity}")
-	public ArrayList<Kva25Dtr> getdata(@PathVariable int dtrQuentity) {
+	public ArrayList<Kva25Dtr> getdata25(@PathVariable int dtrQuentity) {
 		
 		ArrayList<Kva25Dtr> l = new ArrayList<Kva25Dtr>();
 		
@@ -164,15 +170,55 @@ public class DtrController {
 		BigDecimal cost = list.getCost().multiply(new BigDecimal(dtrQuentity));
 		d.setCost(cost);
 		
-		d.setId(list.getId());
+		d.setId(list.getId());	
+	
 		d.setItemcode(list.getItemcode());
 		d.setItemName( list.getItemName());
 		
 		l.add(d);
 	});
 	
+
+	return l;
+	}
 	
 	
+	@GetMapping("/63kvadtr/{dtrQuentity}")
+	public ArrayList<Kva25Dtr> getdata63(@PathVariable int dtrQuentity) {
+		
+		ArrayList<Kva25Dtr> l = new ArrayList<Kva25Dtr>();
+		
+	List<Kva63Dtr> findAll = kva63DtrRepository.findAll();
+	findAll.stream().forEach(list->{
+		
+		Kva25Dtr d = new Kva25Dtr();
+		
+		
+		
+		int qty = list.getQty() *  dtrQuentity ;
+		d.setQty(qty);
+		
+		BigDecimal rate = list.getRATE().multiply(new BigDecimal(dtrQuentity));
+		d.setRATE(rate);
+		
+		BigDecimal amt = list.getAmount().multiply(new BigDecimal(dtrQuentity));
+		d.setAmount(amt);
+		
+		BigDecimal erectionRate = list.getErectionRate().multiply(new BigDecimal(dtrQuentity));
+		d.setErectionRate(erectionRate);
+		
+		BigDecimal cost = list.getCost().multiply(new BigDecimal(dtrQuentity));
+		d.setCost(cost);
+		
+		d.setId(list.getId());	
+	
+		d.setItemcode(list.getItemcode());
+		d.setItemName( list.getItemName());
+		
+		l.add(d);
+	});
+	
+
 	return l;
 	}
 }

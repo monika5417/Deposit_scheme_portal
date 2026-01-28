@@ -3,9 +3,11 @@ package com.mpcz.deposit_scheme.backend.api.controller;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -331,23 +333,23 @@ public class ReSamplinController {
 //	-------------------------------------------------------------------------------------------------
 //	-------------------------------------------------------------------------------------------------
 
-	@GetMapping("/getSampleDataForConsuemrAppliationDetailTable/{flagNo}")
-	public ResponseEntity<?> getSampleDataForConsuemrAppliationDetailTable(@PathVariable Long flagNo) {
+//	@GetMapping("/getSampleDataForConsuemrAppliationDetailTable/{flagNo}")
+//	public ResponseEntity<?> getSampleDataForConsuemrAppliationDetailTable(@PathVariable Long flagNo) {
+//
+//		ArrayList<Long> l = new ArrayList<Long>();
+//		l.add(1l);
+//		l.add(2l);
+//
+//		List<Map<String, ?>> reSampleData = consumerApplicationDetailRepository
+//				.getReSampleDataForConsuemrApplicationDetails(l);
+//
+//		return ResponseEntity.ok(Objects.isNull(reSampleData)
+//				? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
+//				: new Response<>(HttpCode.OK, "Data Retrived successfully ", reSampleData));
+//
+//	}
 
-		ArrayList<Long> l = new ArrayList<Long>();
-		l.add(1l);
-		l.add(2l);
-
-		List<Map<String, ?>> reSampleData = consumerApplicationDetailRepository
-				.getReSampleDataForConsuemrApplicationDetails(l);
-
-		return ResponseEntity.ok(Objects.isNull(reSampleData)
-				? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
-				: new Response<>(HttpCode.OK, "Data Retrived successfully ", reSampleData));
-
-	}
-
-//	applicaiton ke againts me post data
+////	applicaiton ke againts me post data
 	@PostMapping("/post-resample-data1")
 	public ResponseEntity<?> postResampleData1(@RequestBody List<ReSampling> sample) {
 
@@ -374,7 +376,10 @@ public class ReSamplinController {
 			findByConAppNo.setDC_NAME(consumerDetails.getDistributionCenter().getDcName());
 			findByConAppNo.setConsumerName(consumerDetails.getConsumerName());
 			findByConAppNo.setAddress(consumerDetails.getAddress());
+			findByConAppNo.setDivisionId(consumerDetails.getDistributionCenter()
+					.getDcSubdivision().getSubdivisionDivision().getDivisionId());
 			reSamplingRepository.save(findByConAppNo);
+			
 		});
 		consumerDetails.setReSamplingFlag(1l);
 		ConsumerApplicationDetail save = consumerApplicationDetailRepository.save(consumerDetails);
@@ -386,175 +391,175 @@ public class ReSamplinController {
 	}
 
 //	 suffing hui api
-	@GetMapping("/safling-data-by-autenotication-ID1/{authenticationId}/{userID}")
-	public ResponseEntity<?> getSaflingData1(@PathVariable String authenticationId,@PathVariable String userID) {
-
-		Response res = new Response<>();
-		List<ReSampling> reSamplinglistDb = reSamplingRepository.findByAuticationIdAndShufflingFlag(authenticationId,
-				0L);
-
-		if (reSamplinglistDb.size() < 4) {
-			res.setCode("400");
-			res.setMessage("data suffling is not possible because contractor doesn't have applicaion greaterthan 4");
-			return ResponseEntity.ok(res);
-		}
-
-		long uniqueCurrentTimeMS = uniqueCurrentTimeMS();
-		String applictionfullname = "PC" + uniqueCurrentTimeMS;
-
-		int totalSize = reSamplinglistDb.size(); // 6
-		int groupSize = 5; // 5 items per group
-
-		for (int outer = 0; outer < totalSize; outer += groupSize) {
-
-			for (int inner = outer; inner < outer + groupSize && inner < totalSize; inner++) {
-
-				if (inner == 0 || inner == 5) {
-					ReSampling reSampling1 = reSamplinglistDb.get(inner);
-					ReSampling findByConAppNoDB = reSamplingRepository.findByConAppNoAndId(reSampling1.getConAppNo(),
-							reSampling1.getId());
-
-					findByConAppNoDB.setShuffling("Data Suffling");
-					findByConAppNoDB.setParantApplicationNo(applictionfullname);
-					findByConAppNoDB.setShufflingFlag(Long.valueOf(1));
-			
-
-					ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
-							.findByConsumerApplicationNo(reSampling1.getConAppNo()).get();
-					consumerApplicationDetail.setReSamplingFlag(2l);
-					consumerApplicationDetailRepository.save(consumerApplicationDetail);
-					
-
-					Circle circleDb = consumerApplicationDetail.getDistributionCenter().getDcSubdivision()
-							.getSubdivisionDivision().getDivisionCircle();
-					
-
-					findByConAppNoDB.setCircleName(circleDb.getCircle());
-					findByConAppNoDB.setCircleId(circleDb.getCircleId());
-
-					findByConAppNoDB.setDivisionName(consumerApplicationDetail.getDistributionCenter()
-							.getDcSubdivision().getSubdivisionDivision().getDivision());
-					findByConAppNoDB.setDC_NAME(consumerApplicationDetail.getDistributionCenter().getDcName());
-					findByConAppNoDB.setConsumerName(consumerApplicationDetail.getConsumerName());
-					findByConAppNoDB.setAddress(consumerApplicationDetail.getAddress());
-
-					VendorWorkOrder findByApplicationNo = vendorWorkOrderRepository
-							.findByApplicationNo(reSampling1.getConAppNo());
-					findByConAppNoDB.setRegionId(circleDb.getCircleRegion().getRegionId());
-					findByConAppNoDB.setRegionName(circleDb.getCircleRegion().getRegion());
-					findByConAppNoDB.setWorkOrderNumber(findByApplicationNo.getWorkOrderNo());
-					findByConAppNoDB.setApplicationId(consumerApplicationDetail.getConsumerApplicationId());
-					
-					
-					ReSampling save = reSamplingRepository.save(findByConAppNoDB);
-
-					System.out.println(save);
-					
-					User user = userRepository.findByUserId(userID).get();
-					final SMSRequest smsRequest = new SMSRequest();
-
-
-					String message = "";
-
-					
-					message = MessageFormat.format(messageProperties.getSendMsgReSamplingForAe(),
-							new Object[] { reSampling1.getConAppNo(), save.getDtrLeftingDate().toString() });
-
-					smsRequest.setTemplateId(messageProperties.getSendMsgReSamplingForAeTamplateId());
-					smsRequest.setText(message);
-					smsRequest.setHinglish(1l);
-					smsRequest.setMobileNo(user.getMobileNo());
-					
-					try {
-						String sendMessage = smsDirectService.sendMessage(smsRequest);
-						System.err.println("sendMessage" + sendMessage);
-					} catch (Exception e) {
-					
-						e.printStackTrace();
-					}
-				
-
-				} else {
-
-					ReSampling reSampling1 = reSamplinglistDb.get(inner);
-					ReSampling findByConAppNoDB = reSamplingRepository.findByConAppNoAndId(reSampling1.getConAppNo(),
-							reSampling1.getId());
-
-					findByConAppNoDB.setShuffling("Data Suffling");
-					findByConAppNoDB.setChildApplicationNo(applictionfullname);
-					findByConAppNoDB.setShufflingFlag(Long.valueOf(2));
-
-					ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
-							.findByConsumerApplicationNo(reSampling1.getConAppNo()).get();
-					consumerApplicationDetail.setReSamplingFlag(2l);
-					consumerApplicationDetailRepository.save(consumerApplicationDetail);
-
-					Circle circleDb = consumerApplicationDetail.getDistributionCenter().getDcSubdivision()
-							.getSubdivisionDivision().getDivisionCircle();
-
-					findByConAppNoDB.setCircleName(circleDb.getCircle());
-					findByConAppNoDB.setCircleId(circleDb.getCircleId());
-
-					findByConAppNoDB.setDivisionName(consumerApplicationDetail.getDistributionCenter()
-							.getDcSubdivision().getSubdivisionDivision().getDivision());
-					findByConAppNoDB.setDC_NAME(consumerApplicationDetail.getDistributionCenter().getDcName());
-					findByConAppNoDB.setConsumerName(consumerApplicationDetail.getConsumerName());
-					findByConAppNoDB.setAddress(consumerApplicationDetail.getAddress());
-					findByConAppNoDB.setRegionId(circleDb.getCircleRegion().getRegionId());
-					findByConAppNoDB.setRegionName(circleDb.getCircleRegion().getRegion());
-					VendorWorkOrder findByApplicationNo = vendorWorkOrderRepository
-							.findByApplicationNo(reSampling1.getConAppNo());
-
-					findByConAppNoDB.setWorkOrderNumber(findByApplicationNo.getWorkOrderNo());
-					findByConAppNoDB.setApplicationId(consumerApplicationDetail.getConsumerApplicationId());
-
-					reSamplingRepository.save(findByConAppNoDB);
-
-				}
-
-			}
-
-		}
-//		User user = userRepository.findByUserId(userID).get();
-//		final SMSRequest smsRequest = new SMSRequest();
+//	@GetMapping("/safling-data-by-autenotication-ID1/{authenticationId}/{userID}")
+//	public ResponseEntity<?> getSaflingData1(@PathVariable String authenticationId,@PathVariable String userID) {
 //
+//		Response res = new Response<>();
+//		List<ReSampling> reSamplinglistDb = reSamplingRepository.findByAuticationIdAndShufflingFlag(authenticationId,
+//				0L);
 //
-//		String message = "";
-//
-//		
-//		message = MessageFormat.format(messageProperties.getSendMsgReSamplingForAe(),
-//				new Object[] { "SV989898", "03-11-2025"});
-//
-//		smsRequest.setTemplateId(messageProperties.getSendMsgReSamplingForAeTamplateId());
-//		smsRequest.setText(message);
-//		smsRequest.setHinglish(1l);
-//		smsRequest.setMobileNo("9340302532");
-//		
-//		try {
-//			String sendMessage = smsDirectService.sendMessage(smsRequest);
-//			System.err.println("sendMessage" + sendMessage);
-//		} catch (Exception e) {
-//		
-//			e.printStackTrace();
+//		if (reSamplinglistDb.size() < 4) {
+//			res.setCode("400");
+//			res.setMessage("data suffling is not possible because contractor doesn't have applicaion greaterthan 4");
+//			return ResponseEntity.ok(res);
 //		}
-	
-		res.setCode("200");
-		res.setMessage("data update");
-		res.setList(reSamplinglistDb);
-		return ResponseEntity.ok(res);
-
-	}
+//
+//		long uniqueCurrentTimeMS = uniqueCurrentTimeMS();
+//		String applictionfullname = "PC" + uniqueCurrentTimeMS;
+//
+//		int totalSize = reSamplinglistDb.size(); // 6
+//		int groupSize = 5; // 5 items per group
+//
+//		for (int outer = 0; outer < totalSize; outer += groupSize) {
+//
+//			for (int inner = outer; inner < outer + groupSize && inner < totalSize; inner++) {
+//
+//				if (inner == 0 || inner == 5) {
+//					ReSampling reSampling1 = reSamplinglistDb.get(inner);
+//					ReSampling findByConAppNoDB = reSamplingRepository.findByConAppNoAndId(reSampling1.getConAppNo(),
+//							reSampling1.getId());
+//
+//					findByConAppNoDB.setShuffling("Data Suffling");
+//					findByConAppNoDB.setParantApplicationNo(applictionfullname);
+//					findByConAppNoDB.setShufflingFlag(Long.valueOf(1));
+//			
+//
+//					ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
+//							.findByConsumerApplicationNo(reSampling1.getConAppNo()).get();
+//					consumerApplicationDetail.setReSamplingFlag(2l);
+//					consumerApplicationDetailRepository.save(consumerApplicationDetail);
+//					
+//
+//					Circle circleDb = consumerApplicationDetail.getDistributionCenter().getDcSubdivision()
+//							.getSubdivisionDivision().getDivisionCircle();
+//					
+//
+//					findByConAppNoDB.setCircleName(circleDb.getCircle());
+//					findByConAppNoDB.setCircleId(circleDb.getCircleId());
+//
+//					findByConAppNoDB.setDivisionName(consumerApplicationDetail.getDistributionCenter()
+//							.getDcSubdivision().getSubdivisionDivision().getDivision());
+//					findByConAppNoDB.setDC_NAME(consumerApplicationDetail.getDistributionCenter().getDcName());
+//					findByConAppNoDB.setConsumerName(consumerApplicationDetail.getConsumerName());
+//					findByConAppNoDB.setAddress(consumerApplicationDetail.getAddress());
+//
+//					VendorWorkOrder findByApplicationNo = vendorWorkOrderRepository
+//							.findByApplicationNo(reSampling1.getConAppNo());
+//					findByConAppNoDB.setRegionId(circleDb.getCircleRegion().getRegionId());
+//					findByConAppNoDB.setRegionName(circleDb.getCircleRegion().getRegion());
+//					findByConAppNoDB.setWorkOrderNumber(findByApplicationNo.getWorkOrderNo());
+//					findByConAppNoDB.setApplicationId(consumerApplicationDetail.getConsumerApplicationId());
+//					
+//					
+//					ReSampling save = reSamplingRepository.save(findByConAppNoDB);
+//
+//					System.out.println(save);
+//					
+//					User user = userRepository.findByUserId(userID).get();
+//					final SMSRequest smsRequest = new SMSRequest();
+//
+//
+//					String message = "";
+//
+//					
+//					message = MessageFormat.format(messageProperties.getSendMsgReSamplingForAe(),
+//							new Object[] { reSampling1.getConAppNo(), save.getDtrLeftingDate().toString() });
+//
+//					smsRequest.setTemplateId(messageProperties.getSendMsgReSamplingForAeTamplateId());
+//					smsRequest.setText(message);
+//					smsRequest.setHinglish(1l);
+//					smsRequest.setMobileNo(user.getMobileNo());
+//					
+//					try {
+//						String sendMessage = smsDirectService.sendMessage(smsRequest);
+//						System.err.println("sendMessage" + sendMessage);
+//					} catch (Exception e) {
+//					
+//						e.printStackTrace();
+//					}
+//				
+//
+//				} else {
+//
+//					ReSampling reSampling1 = reSamplinglistDb.get(inner);
+//					ReSampling findByConAppNoDB = reSamplingRepository.findByConAppNoAndId(reSampling1.getConAppNo(),
+//							reSampling1.getId());
+//
+//					findByConAppNoDB.setShuffling("Data Suffling");
+//					findByConAppNoDB.setChildApplicationNo(applictionfullname);
+//					findByConAppNoDB.setShufflingFlag(Long.valueOf(2));
+//
+//					ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
+//							.findByConsumerApplicationNo(reSampling1.getConAppNo()).get();
+//					consumerApplicationDetail.setReSamplingFlag(2l);
+//					consumerApplicationDetailRepository.save(consumerApplicationDetail);
+//
+//					Circle circleDb = consumerApplicationDetail.getDistributionCenter().getDcSubdivision()
+//							.getSubdivisionDivision().getDivisionCircle();
+//
+//					findByConAppNoDB.setCircleName(circleDb.getCircle());
+//					findByConAppNoDB.setCircleId(circleDb.getCircleId());
+//
+//					findByConAppNoDB.setDivisionName(consumerApplicationDetail.getDistributionCenter()
+//							.getDcSubdivision().getSubdivisionDivision().getDivision());
+//					findByConAppNoDB.setDC_NAME(consumerApplicationDetail.getDistributionCenter().getDcName());
+//					findByConAppNoDB.setConsumerName(consumerApplicationDetail.getConsumerName());
+//					findByConAppNoDB.setAddress(consumerApplicationDetail.getAddress());
+//					findByConAppNoDB.setRegionId(circleDb.getCircleRegion().getRegionId());
+//					findByConAppNoDB.setRegionName(circleDb.getCircleRegion().getRegion());
+//					VendorWorkOrder findByApplicationNo = vendorWorkOrderRepository
+//							.findByApplicationNo(reSampling1.getConAppNo());
+//
+//					findByConAppNoDB.setWorkOrderNumber(findByApplicationNo.getWorkOrderNo());
+//					findByConAppNoDB.setApplicationId(consumerApplicationDetail.getConsumerApplicationId());
+//
+//					reSamplingRepository.save(findByConAppNoDB);
+//
+//				}
+//
+//			}
+//
+//		}
+////		User user = userRepository.findByUserId(userID).get();
+////		final SMSRequest smsRequest = new SMSRequest();
+////
+////
+////		String message = "";
+////
+////		
+////		message = MessageFormat.format(messageProperties.getSendMsgReSamplingForAe(),
+////				new Object[] { "SV989898", "03-11-2025"});
+////
+////		smsRequest.setTemplateId(messageProperties.getSendMsgReSamplingForAeTamplateId());
+////		smsRequest.setText(message);
+////		smsRequest.setHinglish(1l);
+////		smsRequest.setMobileNo("9340302532");
+////		
+////		try {
+////			String sendMessage = smsDirectService.sendMessage(smsRequest);
+////			System.err.println("sendMessage" + sendMessage);
+////		} catch (Exception e) {
+////		
+////			e.printStackTrace();
+////		}
+//	
+//		res.setCode("200");
+//		res.setMessage("data update");
+//		res.setList(reSamplinglistDb);
+//		return ResponseEntity.ok(res);
+//
+//	}
 
 //	suffling hone ke bad de hui api 
-	@GetMapping("/getSampleDataForReSamplingTable/{flagNo}")
-	public ResponseEntity<?> getSampleDataForReSamplingTable(@PathVariable Long flagNo) {
-
-		List<ReSampling> findByShufflingFlag = reSamplingRepository.findByShufflingFlag(flagNo);
-
-		return ResponseEntity.ok(findByShufflingFlag.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found")
-				: new Response<>(HttpCode.OK, "Data Retrived successfully ", findByShufflingFlag));
-
-	}
+//	@GetMapping("/getSampleDataForReSamplingTable/{flagNo}")
+//	public ResponseEntity<?> getSampleDataForReSamplingTable(@PathVariable Long flagNo) {
+//
+//		List<ReSampling> findByShufflingFlag = reSamplingRepository.findByShufflingFlag(flagNo);
+//
+//		return ResponseEntity.ok(findByShufflingFlag.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found")
+//				: new Response<>(HttpCode.OK, "Data Retrived successfully ", findByShufflingFlag));
+//
+//	}
 
 // dtr ke photo upload karga (jo seel kiye hai)
 	@PostMapping("/uploadPhotoDtr")
@@ -691,5 +696,332 @@ public class ReSamplinController {
 		res.setMessage("Data updated successfully ");
 		res.setList(a);
 		return ResponseEntity.ok(res);	
+	}
+	
+	@GetMapping("/getSampleDataForConsuemrAppliationDetailTableNotNsc/{flagNo}")
+	public ResponseEntity<?> getSampleDataForConsuemrAppliationDetailTableNotNsc(@PathVariable Long flagNo) {
+
+		ArrayList<Long> l = new ArrayList<Long>();
+		l.add(1l);
+		l.add(2l);
+
+		List<Map<String, ?>> reSampleData = consumerApplicationDetailRepository
+				.getReSampleDataForConsuemrApplicationDetailsNotNsc(l);
+
+		return ResponseEntity.ok(Objects.isNull(reSampleData)
+				? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
+				: new Response<>(HttpCode.OK, "Data Retrived successfully ", reSampleData));
+
+	}
+	
+	//==========================================================================
+//	multipal dtr ke liye
+	
+//	applicaiton ke againts me post data
+//	@PostMapping("/post-resample-data1")
+//	public ResponseEntity<?> postResampleData1(@RequestBody List<ReSampling> sample) {
+//
+//		List<ReSampling> saveAll = reSamplingRepository.saveAll(sample);
+//
+//
+//
+//		ConsumerApplicationDetail consumerDetails = consumerApplicationDetailRepository
+//				.findByConsumerApplicationNo(sample.get(0).getConAppNo()).get();
+//		
+//		List<ReSampling> findByConApp= null;
+//		try {
+//			 findByConApp = reSamplingRepository.findByConAppNo_1(sample.get(0).getConAppNo());
+//
+//		}catch (Exception e) {
+//			e.printStackTrace();b
+//		}
+//			
+//			findByConApp.stream().forEach(s->{
+//				
+//				ReSampling findByConAppNo = reSamplingRepository.findByConAppNoAndId(s.getConAppNo(),s.getId());
+//				
+//				
+//			Circle circleDb = consumerDetails.getDistributionCenter().getDcSubdivision()
+//					.getSubdivisionDivision().getDivisionCircle();
+//			
+//
+//			findByConAppNo.setCircleName(circleDb.getCircle());
+//			findByConAppNo.setCircleId(circleDb.getCircleId());
+//
+//			findByConAppNo.setDivisionName(consumerDetails.getDistributionCenter()
+//					.getDcSubdivision().getSubdivisionDivision().getDivision());
+//			findByConAppNo.setDC_NAME(consumerDetails.getDistributionCenter().getDcName());
+//			findByConAppNo.setConsumerName(consumerDetails.getConsumerName());
+//			findByConAppNo.setAddress(consumerDetails.getAddress());
+//			reSamplingRepository.save(findByConAppNo);
+//		});
+//		consumerDetails.setReSamplingFlag(1l);
+//		ConsumerApplicationDetail save = consumerApplicationDetailRepository.save(consumerDetails);
+//
+//		return ResponseEntity
+//				.ok(saveAll.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
+//						: new Response<>(HttpCode.OK, "Data Retrived successfully ", Arrays.asList(saveAll)));
+//
+//	}
+//	
+	
+	
+//	first api working
+	@PostMapping("/getSampleDataForConsuemrAppliationDetailTable2")
+	public ResponseEntity<?> getSampleDataForConsuemrAppliationDetailTable(@RequestBody HashMap<String,Integer> l)  {
+
+//		{
+//		    "discom" : 0,
+//		    "region" : 0,
+//		    "circle" : 0,
+//		    "division" : 0,
+//		    "subDivision" : 0,
+//		    "distributionCenter" :3 
+//
+//		}
+
+		ArrayList<Integer> dcid = new ArrayList<>();
+		Integer discomId = l.get("discom");	
+		Integer regionId = l.get("region");	
+		Integer circleId = l.get("circle");	
+		Integer divisionId = l.get("division");
+		Integer subDivisionId = l.get("subDivision");
+		Integer distributionCenterId = l.get("distributionCenter");
+		ArrayList<Integer> dcIdByDiscomId =null;
+		if(discomId>0) {
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByDiscomId(discomId);
+		}else if (regionId>0) {
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByRegionId(regionId);
+		}else if(circleId>0){
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByCircleId(circleId);
+		}else if(divisionId>0) {
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByDivisionId(divisionId);
+		}else if(subDivisionId>0) {
+			dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdBysubDivisionId(subDivisionId);
+		}else if(distributionCenterId>0) {
+			dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByDcId(distributionCenterId);
+		}
+		else {
+			return ResponseEntity.ok(Objects.isNull(null)
+					? new Response(HttpCode.NULL_OBJECT, "Data not found for this user id.")
+					: new Response<>(HttpCode.OK, "Data Retrived successfully ", null));
+		}
+		
+		List<Map<String, ?>> reSampleData = consumerApplicationDetailRepository
+				.getReSampleDataForConsuemrApplicationDetailsByDcId(dcIdByDiscomId);
+
+		return ResponseEntity.ok(reSampleData.isEmpty()
+				? new Response(HttpCode.NULL_OBJECT, "Data not found for this user id.")
+				: new Response<>(HttpCode.OK, "Data Retrived successfully ", reSampleData));
+
+	}
+	
+//	thired api  for resampling
+	@GetMapping("/safling-data-by-autenotication-ID1/{authenticationId}/{userID}/{circleId}/{divisionId}")
+	public ResponseEntity<?> getSaflingData1(@PathVariable String authenticationId, @PathVariable String userID,
+			@PathVariable Long circleId,@PathVariable Long divisionId) {
+		
+		
+		Response res = new Response<>();
+//		List<ReSampling> reSamplinglistDb = reSamplingRepository.findByAuticationIdAndShufflingFlag(authenticationId,
+//				0L);
+		List<ReSampling> reSamplinglistDb = null;
+		if(circleId>0) {
+		 reSamplinglistDb = reSamplingRepository
+				.findByAuticationIdAndShufflingFlagAndCircleId(authenticationId, 0l, circleId);
+		}else {
+			 reSamplinglistDb = reSamplingRepository
+						.findByAuticationIdAndShufflingFlagAndDivisionId(authenticationId, 0l, divisionId);
+		}
+		
+		
+		if (reSamplinglistDb.size() < 4) {
+			res.setCode("400");
+			res.setMessage("data suffling is not possible because contractor doesn't have applicaion greaterthan 4");
+			return ResponseEntity.ok(res);
+		}
+
+		long uniqueCurrentTimeMS = uniqueCurrentTimeMS();
+		String applictionfullname = "PC" + uniqueCurrentTimeMS;
+
+		int totalSize = reSamplinglistDb.size(); // 6
+		int groupSize = 5; // 5 items per group
+
+		for (int outer = 0; outer < totalSize; outer += groupSize) {
+
+			for (int inner = outer; inner < outer + groupSize && inner < totalSize; inner++) {
+
+				if (inner == 0 || inner == 5) {
+					ReSampling reSampling1 = reSamplinglistDb.get(inner);
+					ReSampling findByConAppNoDB = reSamplingRepository.findByConAppNoAndId(reSampling1.getConAppNo(),
+							reSampling1.getId());
+
+					findByConAppNoDB.setShuffling("Data Suffling");
+					findByConAppNoDB.setParantApplicationNo(applictionfullname);
+					findByConAppNoDB.setShufflingFlag(Long.valueOf(1));
+
+					ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
+							.findByConsumerApplicationNo(reSampling1.getConAppNo()).get();
+					consumerApplicationDetail.setReSamplingFlag(2l);
+					consumerApplicationDetailRepository.save(consumerApplicationDetail);
+
+					Circle circleDb = consumerApplicationDetail.getDistributionCenter().getDcSubdivision()
+							.getSubdivisionDivision().getDivisionCircle();
+
+					findByConAppNoDB.setCircleName(circleDb.getCircle());
+					findByConAppNoDB.setCircleId(circleDb.getCircleId());
+
+					findByConAppNoDB.setDivisionName(consumerApplicationDetail.getDistributionCenter()
+							.getDcSubdivision().getSubdivisionDivision().getDivision());
+					findByConAppNoDB.setDC_NAME(consumerApplicationDetail.getDistributionCenter().getDcName());
+					findByConAppNoDB.setConsumerName(consumerApplicationDetail.getConsumerName());
+					findByConAppNoDB.setAddress(consumerApplicationDetail.getAddress());
+
+					VendorWorkOrder findByApplicationNo = vendorWorkOrderRepository
+							.findByApplicationNo(reSampling1.getConAppNo());
+					findByConAppNoDB.setRegionId(circleDb.getCircleRegion().getRegionId());
+					findByConAppNoDB.setRegionName(circleDb.getCircleRegion().getRegion());
+					findByConAppNoDB.setWorkOrderNumber(findByApplicationNo.getWorkOrderNo());
+					findByConAppNoDB.setApplicationId(consumerApplicationDetail.getConsumerApplicationId());
+
+					ReSampling save = reSamplingRepository.save(findByConAppNoDB);
+
+					System.out.println(save);
+
+					User user = userRepository.findByUserId(userID).get();
+					final SMSRequest smsRequest = new SMSRequest();
+
+					String message = "";
+
+					message = MessageFormat.format(messageProperties.getSendMsgReSamplingForAe(),
+							new Object[] { reSampling1.getConAppNo(), save.getDtrLeftingDate().toString() });
+
+					smsRequest.setTemplateId(messageProperties.getSendMsgReSamplingForAeTamplateId());
+					smsRequest.setText(message);
+					smsRequest.setHinglish(1l);
+					smsRequest.setMobileNo(user.getMobileNo());
+
+					try {
+						String sendMessage = smsDirectService.sendMessage(smsRequest);
+						System.err.println("sendMessage" + sendMessage);
+					} catch (Exception e) {
+
+						e.printStackTrace();
+					}
+
+				} else {
+
+					ReSampling reSampling1 = reSamplinglistDb.get(inner);
+					ReSampling findByConAppNoDB = reSamplingRepository.findByConAppNoAndId(reSampling1.getConAppNo(),
+							reSampling1.getId());
+
+					findByConAppNoDB.setShuffling("Data Suffling");
+					findByConAppNoDB.setChildApplicationNo(applictionfullname);
+					findByConAppNoDB.setShufflingFlag(Long.valueOf(2));
+
+					ConsumerApplicationDetail consumerApplicationDetail = consumerApplicationDetailRepository
+							.findByConsumerApplicationNo(reSampling1.getConAppNo()).get();
+					consumerApplicationDetail.setReSamplingFlag(2l);
+					consumerApplicationDetailRepository.save(consumerApplicationDetail);
+
+					Circle circleDb = consumerApplicationDetail.getDistributionCenter().getDcSubdivision()
+							.getSubdivisionDivision().getDivisionCircle();
+
+					findByConAppNoDB.setCircleName(circleDb.getCircle());
+					findByConAppNoDB.setCircleId(circleDb.getCircleId());
+
+					findByConAppNoDB.setDivisionName(consumerApplicationDetail.getDistributionCenter()
+							.getDcSubdivision().getSubdivisionDivision().getDivision());
+					findByConAppNoDB.setDC_NAME(consumerApplicationDetail.getDistributionCenter().getDcName());
+					findByConAppNoDB.setConsumerName(consumerApplicationDetail.getConsumerName());
+					findByConAppNoDB.setAddress(consumerApplicationDetail.getAddress());
+					findByConAppNoDB.setRegionId(circleDb.getCircleRegion().getRegionId());
+					findByConAppNoDB.setRegionName(circleDb.getCircleRegion().getRegion());
+					VendorWorkOrder findByApplicationNo = vendorWorkOrderRepository
+							.findByApplicationNo(reSampling1.getConAppNo());
+
+					findByConAppNoDB.setWorkOrderNumber(findByApplicationNo.getWorkOrderNo());
+					findByConAppNoDB.setApplicationId(consumerApplicationDetail.getConsumerApplicationId());
+
+					reSamplingRepository.save(findByConAppNoDB);
+
+				}
+
+			}
+
+		}
+
+
+		res.setCode("200");
+		res.setList(reSamplinglistDb);
+		return ResponseEntity.ok(res);
+
+	}
+
+	@GetMapping("/getSampleDataForReSamplingTable/{flagNo}/{circleId}/{divisionId}/{regionId}")
+	public ResponseEntity<?> getSampleDataForReSamplingTable(@PathVariable Long flagNo,@PathVariable Long circleId,@PathVariable Long divisionId,@PathVariable Long regionId) {
+		List<ReSampling> findByShufflingFlag = null;
+		if(circleId>0) {
+			findByShufflingFlag = reSamplingRepository.findByShufflingFlagAndCircleId(flagNo,circleId);
+		}else if(divisionId>0) {
+			findByShufflingFlag = reSamplingRepository.findByShufflingFlagAndDivisionId(flagNo,divisionId);
+
+		}else {
+			findByShufflingFlag = reSamplingRepository.findByShufflingFlagAndRegionId(flagNo,regionId);
+
+		}
+
+		return ResponseEntity.ok(findByShufflingFlag.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found")
+				: new Response<>(HttpCode.OK, "Data Retrived successfully ", findByShufflingFlag));
+
+	}
+	
+	@PostMapping("/getSampleDataForConsuemrAppliationDetailTableCount")
+	public ResponseEntity<?> getSampleDataForConsuemrAppliationDetailTableCount(@RequestBody HashMap<String,Integer> l)  {
+
+//		{
+//		    "discom" : 0,
+//		    "region" : 0,
+//		    "circle" : 0,
+//		    "division" : 0,
+//		    "subDivision" : 0,
+//		    "distributionCenter" :3 
+//
+//		}
+
+		ArrayList<Integer> dcid = new ArrayList<>();
+		Integer discomId = l.get("discom");	
+		Integer regionId = l.get("region");	
+		Integer circleId = l.get("circle");	
+		Integer divisionId = l.get("division");
+		Integer subDivisionId = l.get("subDivision");
+		Integer distributionCenterId = l.get("distributionCenter");
+		ArrayList<Integer> dcIdByDiscomId =null;
+		if(discomId>0) {
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByDiscomId(discomId);
+		}else if (regionId>0) {
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByRegionId(regionId);
+		}else if(circleId>0){
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByCircleId(circleId);
+		}else if(divisionId>0) {
+			 dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByDivisionId(divisionId);
+		}else if(subDivisionId>0) {
+			dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdBysubDivisionId(subDivisionId);
+		}else if(distributionCenterId>0) {
+			dcIdByDiscomId = consumerApplicationDetailRepository.getDcIdByDcId(distributionCenterId);
+		}
+		else {
+			return ResponseEntity.ok(Objects.isNull(null)
+					? new Response(HttpCode.NULL_OBJECT, "Data not found for this user id.")
+					: new Response<>(HttpCode.OK, "Data Retrived successfully ", null));
+		}
+		
+		List<Map<String, ?>> reSampleData = consumerApplicationDetailRepository
+				.getReSampleDataForConsuemrApplicationDetailsByDcIdgroupBy(dcIdByDiscomId);
+
+		return ResponseEntity.ok(reSampleData.isEmpty()
+				? new Response(HttpCode.NULL_OBJECT, "Data not found for this user id.")
+				: new Response<>(HttpCode.OK, "Data Retrived successfully ", reSampleData));
+
 	}
 }

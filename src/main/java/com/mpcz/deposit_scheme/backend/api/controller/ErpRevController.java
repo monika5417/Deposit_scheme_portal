@@ -151,13 +151,27 @@ public class ErpRevController {
 				}
 
 			}
-			ErpRev erp = erpRevService.save(erpNo, applicationNo, value);
+			ErpRev erp  =null;
+//			if(findConsumerApplicationDetailByApplicationNo.getErpVersionInApi()==1) {
+//				 erp 	= erpRevService.save(erpNo, applicationNo, value);
+//			}else {
+//				erp 	= erpRevService.Dynamic(erpNo, applicationNo, value);
+//			}
+			
+			
+				erp 	= erpRevService.save(erpNo, applicationNo, value);
+			
 			if (erp.getSchemeCode().equals("Scheme code not match")) {
 				res.setCode("404");
 				res.setMessage("Scheme code not match");
 				res.setList(Arrays.asList(erp));
 				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
 			}
+//			if(erp.getSchemeCode().equals("As per guidelines, dismantling cost cannot be zero or negative hence the estimate is incorrect.")){
+//				res.setMessage(erp.getSchemeCode());
+//				res.setCode("404");
+//				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
+//			}
 			if (!erp.getSchemeCode().equals("not data show")) {
 				res.setCode("200");
 				res.setMessage("data save successfully");

@@ -235,28 +235,29 @@ public class BillDeskPaymentServiceImpl1 implements BillDeskPaymentService {
 			// BigDecimal.doubleValue(payment);
 			payRequest.setTxnAmount(registration);
 
-//			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
-//					&& findByConsumerApplicationNumber.getOytTepOrParma().equals("temporary")) {
-////				htrewertvg
-//				try {
-//					
-//					
-//					
-//					CalculationOytTempOrParmanent findByTarifAndPhaseAndLoad = calculatiocOytTempOrParmanentRepository
-//							.findByTarifAndPhaseAndLoad(findByConsumerApplicationNumber.getPremiseAreaType(),
-//									findByConsumerApplicationNumber.getPhase(),
-//									findByConsumerApplicationNumber.getLoadRequested().toString());
-//					if (findByTarifAndPhaseAndLoad != null) {
-//
-//						payRequest
-//								.setTxnAmount(registration.add(new BigDecimal(findByTarifAndPhaseAndLoad.getAmount())));
-//						payRequest.setAdditionalInfo5(new BigDecimal(findByTarifAndPhaseAndLoad.getAmount()) + "");
-//					}
-//
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
+//         ye code ankit sir ke khene pr band kiya gya hai
+			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
+					&& findByConsumerApplicationNumber.getOytTepOrParma().equals("temporary")) {
+//				htrewertvg
+				try {
+					
+					
+					
+					CalculationOytTempOrParmanent findByTarifAndPhaseAndLoad = calculatiocOytTempOrParmanentRepository
+							.findByTarifAndPhaseAndLoad(findByConsumerApplicationNumber.getPremiseAreaType(),
+									findByConsumerApplicationNumber.getPhase(),
+									findByConsumerApplicationNumber.getLoadRequested().toString());
+					if (findByTarifAndPhaseAndLoad != null) {
+
+						payRequest
+								.setTxnAmount(registration.add(new BigDecimal(findByTarifAndPhaseAndLoad.getAmount())));
+						payRequest.setAdditionalInfo5(new BigDecimal(findByTarifAndPhaseAndLoad.getAmount()) + "");
+					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 			
 			
 			

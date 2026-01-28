@@ -25,5 +25,12 @@ public interface ErpRevRepository extends JpaRepository<ErpRev, Long> {
 	ErpRev findByNewErpNo(String erpNo);
 	
 	ErpRev findByConsAppNoAndNewErpNo(String consumerApplicationNumber,String erpNo);
+	
+	ErpRev findByConsAppNoAndNewErpNoAndErpVersion(String consumerApplicationNumber,String erpNo,String erpVersion);
+	
+	ErpRev findByConsAppNoAndNewErpNoAndVersionNumber(String consumerApplicationNumber,String erpNo,Long erpVersion);
+	
+	ErpRev findByConsAppNoAndVersionNumber(String consumerApplicationNumber,Long erpVersion);
+
 
 }
