@@ -152,14 +152,14 @@ public class ErpRevController {
 
 			}
 			ErpRev erp  =null;
-//			if(findConsumerApplicationDetailByApplicationNo.getErpVersionInApi()==1) {
-//				 erp 	= erpRevService.save(erpNo, applicationNo, value);
-//			}else {
-//				erp 	= erpRevService.Dynamic(erpNo, applicationNo, value);
-//			}
+			if(findConsumerApplicationDetailByApplicationNo.getErpVersionInApi()==1) {
+				 erp 	= erpRevService.save(erpNo, applicationNo, value);
+			}else {
+				erp 	= erpRevService.Dynamic(erpNo, applicationNo, value);
+			}
 			
 			
-				erp 	= erpRevService.save(erpNo, applicationNo, value);
+//				erp 	= erpRevService.save(erpNo, applicationNo, value);
 			
 			if (erp.getSchemeCode().equals("Scheme code not match")) {
 				res.setCode("404");
