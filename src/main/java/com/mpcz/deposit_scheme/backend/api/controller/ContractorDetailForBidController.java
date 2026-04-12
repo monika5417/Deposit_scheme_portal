@@ -1,6 +1,8 @@
 package com.mpcz.deposit_scheme.backend.api.controller;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.validation.BindingResult;
@@ -39,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,6 +72,7 @@ import com.mpcz.deposit_scheme.backend.api.exception.ConsumerNotFoundByApplicati
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.exception.InvalidAuthenticationException;
 import com.mpcz.deposit_scheme.backend.api.exception.VendorException;
+import com.mpcz.deposit_scheme.backend.api.repository.ApplicationDocumentRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ApplicationStatusRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
@@ -156,6 +161,9 @@ public class ContractorDetailForBidController {
 	@Autowired
 	private ContractorCategoryDataRepository contractorCategoryDataRepository;
 
+	@Autowired
+	private ApplicationDocumentRepository applicationDocumentRepository;
+
 	@GetMapping("/getQcConsumerbid/{consumerAppNo}")
 	// ParticipantAndNotParticipantDto getQcConsumerbid() throws Exception {
 	ResponseEntity<Response<?>> getQcConsumerbid(@PathVariable String consumerAppNo) throws Exception {
@@ -211,29 +219,10 @@ public class ContractorDetailForBidController {
 											.setBigAmount(jsonArray.getJSONObject(i).getDouble("bid_amount"));
 								ContractorParticipateAndNotPartiDto
 										.setBigOrderAt(jsonArray.getJSONObject(i).getString("bid_order_at"));
-//								ContractorParticipateAndNotPartiDto.setCompanyAdd1(jsonArray.getJSONObject(i)
-//										.getJSONObject("User_Id").getJSONArray("user_company_data").getJSONObject(0)
-//										.getString("Company_add_1"));
-//								ContractorParticipateAndNotPartiDto.setCompanyAdd2(jsonArray.getJSONObject(i)
-//										.getJSONObject("User_Id").getJSONArray("user_company_data").getJSONObject(0)
-//										.getString("Company_add_2"));
-//								ContractorParticipateAndNotPartiDto.setCompanyCity(jsonArray.getJSONObject(i)
-//										.getJSONObject("User_Id").getJSONArray("user_company_data").getJSONObject(0)
-//										.getString("Company_city"));
-//								ContractorParticipateAndNotPartiDto.setCompanyDist(jsonArray.getJSONObject(i)
-//										.getJSONObject("User_Id").getJSONArray("user_company_data").getJSONObject(0)
-//										.getString("Company_dist"));
-//								ContractorParticipateAndNotPartiDto.setCompanyId(jsonArray.getJSONObject(i)
-//										.getJSONObject("User_Id").getJSONArray("user_company_data").getJSONObject(0)
-//										.getLong("Company_Id"));
+
 								ContractorParticipateAndNotPartiDto.setCompanyNameE(
 										jsonArray.getJSONObject(i).getJSONObject("User_Id").getString("CompanyName_E"));
-//								ContractorParticipateAndNotPartiDto.setCompanyPinCode(jsonArray.getJSONObject(i)
-//										.getJSONObject("User_Id").getJSONArray("user_company_data").getJSONObject(0)
-//										.getLong("Company_pin_code"));
-//								ContractorParticipateAndNotPartiDto.setCompanyState(jsonArray.getJSONObject(i)
-//										.getJSONObject("User_Id").getJSONArray("user_company_data").getJSONObject(0)
-//										.getString("Company_state"));
+
 								consumerAppliNo = jsonArray.getJSONObject(i).getJSONObject("consumers")
 										.getString("consumerApplicationNo");
 								ContractorParticipateAndNotPartiDto.setConsumerApplicationNo(jsonArray.getJSONObject(i)
@@ -363,73 +352,77 @@ public class ContractorDetailForBidController {
 				if (!findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
 //					if (valueOf == 3 || valueOf == 10) {
 
-						ErpEstimateAmountData findByErpNo = estimateAmountRepository
-								.findByErpNo(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+					ErpEstimateAmountData findByErpNo = estimateAmountRepository
+							.findByErpNo(findByConsumerApplicationNumber.getErpWorkFlowNumber());
 
 //			
-						if (findByErpNo != null) {
-							if (findByErpNo.getSortContratoreListByKvLine() != null) {
-								BigDecimal payableAmount = findByErpNo.getEstimateAmount();
+					if (findByErpNo != null) {
+						if (findByErpNo.getSortContratoreListByKvLine() != null) {
+							BigDecimal payableAmount = findByErpNo.getEstimateAmount();
 //					BigDecimal payableAmount = new BigDecimal(999999);
 
-								ContractorCategoryData findByDgmSelectedPreference = null;
-								if (findByErpNo.getSortContratoreListByKvLine() == 1l) {
-									findByDgmSelectedPreference = contractorCategoryDataRepository.findCategoryByRange(
-											findByErpNo.getSortContratoreListByKvLine(), payableAmount);
-								}
-								if (findByErpNo.getSortContratoreListByKvLine() == 2l
-										|| findByErpNo.getSortContratoreListByKvLine() == 3l
-										|| findByErpNo.getSortContratoreListByKvLine() == 4l) {
-									findByDgmSelectedPreference = contractorCategoryDataRepository
-											.findByDgmSelectedPreference(findByErpNo.getSortContratoreListByKvLine());
-								}
-								
-								System.out.println(findByDgmSelectedPreference + " findByDgmSelectedPreference");
-
-								// पहले सिर्फ non-null categories collect करो
-								List<String> categories = new ArrayList<>();
-								if (findByDgmSelectedPreference.getCategoryA1() != null
-										&& !findByDgmSelectedPreference.getCategoryA1().trim().isEmpty()) {
-									categories.add(findByDgmSelectedPreference.getCategoryA1());
-								}
-								if (findByDgmSelectedPreference.getCategoryA2() != null
-										&& !findByDgmSelectedPreference.getCategoryA2().trim().isEmpty()) {
-									categories.add(findByDgmSelectedPreference.getCategoryA2());
-								}
-								if (findByDgmSelectedPreference.getCategoryA3() != null
-										&& !findByDgmSelectedPreference.getCategoryA3().trim().isEmpty()) {
-									categories.add(findByDgmSelectedPreference.getCategoryA3());
-								}
-								if (findByDgmSelectedPreference.getCategoryA4() != null
-										&& !findByDgmSelectedPreference.getCategoryA4().trim().isEmpty()) {
-									categories.add(findByDgmSelectedPreference.getCategoryA4());
-								}
-								if (findByDgmSelectedPreference.getCategoryA5() != null
-										&& !findByDgmSelectedPreference.getCategoryA5().trim().isEmpty()) {
-									categories.add(findByDgmSelectedPreference.getCategoryA5());
-								}
-								if (findByDgmSelectedPreference.getCategoryB() != null
-										&& !findByDgmSelectedPreference.getCategoryB().trim().isEmpty()) {
-									categories.add(findByDgmSelectedPreference.getCategoryB());
-								}
-								// अब सिर्फ वही filter होगा जो exact match है
-								List<ContractorParticipateAndNotPartiDto> filteredList = mergeList.stream()
-										.filter(m -> categories.contains(m.getContractorCategory()))
-										.collect(Collectors.toList());
-
-								filteredList.stream().forEach(System.out::println);
-								participantAndNotParticipantDto.setListOfParticipantedAndNotParticipated(filteredList);
-
+							ContractorCategoryData findByDgmSelectedPreference = null;
+							if (findByErpNo.getSortContratoreListByKvLine() == 1l) {
+								findByDgmSelectedPreference = contractorCategoryDataRepository.findCategoryByRange(
+										findByErpNo.getSortContratoreListByKvLine(), payableAmount);
 							}
+							if (findByErpNo.getSortContratoreListByKvLine() == 2l
+									|| findByErpNo.getSortContratoreListByKvLine() == 3l
+									|| findByErpNo.getSortContratoreListByKvLine() == 4l) {
+								findByDgmSelectedPreference = contractorCategoryDataRepository
+										.findByDgmSelectedPreference(findByErpNo.getSortContratoreListByKvLine());
+							}
+
+							System.out.println(findByDgmSelectedPreference + " findByDgmSelectedPreference");
+
+							// पहले सिर्फ non-null categories collect करो
+							List<String> categories = new ArrayList<>();
+							if (findByDgmSelectedPreference.getCategoryA1() != null
+									&& !findByDgmSelectedPreference.getCategoryA1().trim().isEmpty()) {
+								categories.add(findByDgmSelectedPreference.getCategoryA1());
+							}
+							if (findByDgmSelectedPreference.getCategoryA2() != null
+									&& !findByDgmSelectedPreference.getCategoryA2().trim().isEmpty()) {
+								categories.add(findByDgmSelectedPreference.getCategoryA2());
+							}
+							if (findByDgmSelectedPreference.getCategoryA3() != null
+									&& !findByDgmSelectedPreference.getCategoryA3().trim().isEmpty()) {
+								categories.add(findByDgmSelectedPreference.getCategoryA3());
+							}
+							if (findByDgmSelectedPreference.getCategoryA4() != null
+									&& !findByDgmSelectedPreference.getCategoryA4().trim().isEmpty()) {
+								categories.add(findByDgmSelectedPreference.getCategoryA4());
+							}
+							if (findByDgmSelectedPreference.getCategoryA5() != null
+									&& !findByDgmSelectedPreference.getCategoryA5().trim().isEmpty()) {
+								categories.add(findByDgmSelectedPreference.getCategoryA5());
+							}
+							if (findByDgmSelectedPreference.getCategoryB() != null
+									&& !findByDgmSelectedPreference.getCategoryB().trim().isEmpty()) {
+								categories.add(findByDgmSelectedPreference.getCategoryB());
+							}
+							// अब सिर्फ वही filter होगा जो exact match है
+							List<ContractorParticipateAndNotPartiDto> filteredList = mergeList.stream()
+									.filter(m -> categories.contains(m.getContractorCategory()))
+									.collect(Collectors.toList());
+
+							filteredList.stream().forEach(System.out::println);
+							participantAndNotParticipantDto.setListOfParticipantedAndNotParticipated(filteredList);
+
 						}
+					}
 
 //					}
 				}
 
-				if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l)) {
-					
-					List<ContractorParticipateAndNotPartiDto> listOfParticipantedAndNotParticipated = participantAndNotParticipantDto.getListOfParticipantedAndNotParticipated();
-					List<ContractorParticipateAndNotPartiDto> collect = listOfParticipantedAndNotParticipated.stream().filter(a->!a.getContractorCategory().equalsIgnoreCase("B")).collect(Collectors.toList()) ;
+				if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
+						|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+						|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l)) {
+
+					List<ContractorParticipateAndNotPartiDto> listOfParticipantedAndNotParticipated = participantAndNotParticipantDto
+							.getListOfParticipantedAndNotParticipated();
+					List<ContractorParticipateAndNotPartiDto> collect = listOfParticipantedAndNotParticipated.stream()
+							.filter(a -> !a.getContractorCategory().equalsIgnoreCase("B")).collect(Collectors.toList());
 					participantAndNotParticipantDto.setListOfParticipantedAndNotParticipated(collect);
 				}
 			}
@@ -543,6 +536,15 @@ public class ContractorDetailForBidController {
 		map.put("subDivisionName", mapData.get("subdivName").toString());
 		map.put("dcName", mapData.get("dcName").toString());
 
+//		added this path sharing code 24-04-2026
+		String demandFilePath = applicationDocumentRepository
+				.findLatestDocument(findByConsumerApplicationId.getConsumerApplicationId());
+		System.err.println("aaaaaaaaaaaaa :  " +demandFilePath);
+		if (demandFilePath!=null) {
+			Path path = Paths.get("D:", "UploadDocsNew", demandFilePath);
+			System.out.println("aaaaaaaaaaaaaa " + path.toString());
+			map.put("demandEstimatePath", path.toString());
+		}
 //		*************this is url based on properties file ****************
 		System.err.println("tttttttttttt url : " + RavindraSendDataForContractorSelection);
 
@@ -874,6 +876,16 @@ public class ContractorDetailForBidController {
 			response.setMessage("Pending for Registration Fees");
 			response.setList(Arrays.asList(consumerApplicationDetail));
 			return ResponseEntity.ok().body(response);
+		} else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 6
+				|| consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 7
+				|| consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 9
+				|| consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 12) {
+			response.setCode(HttpCode.OK);
+			response.setMessage(ApplicationStatusEnum
+					.getEnumByValue(consumerApplicationDetail.getApplicationStatus().getApplicationStatusId())
+					.toString());
+			response.setList(Arrays.asList(consumerApplicationDetail));
+			return ResponseEntity.ok().body(response);
 		} else {
 			response.setCode(HttpCode.NOT_ACCEPTABLE);
 			response.setMessage(
@@ -1041,20 +1053,50 @@ public class ContractorDetailForBidController {
 		requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
 		requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
 		requestBody.put("is_bid_submitted", "false");
-		requestBody.put("nature_of_work_name", findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
+		requestBody.put("nature_of_work_name",
+				findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
 		if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
 				&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
 			requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
 			requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
 
 		}
-		RestTemplate restTemplate = new RestTemplate();
 
 		// Production Code
-		ResponseEntity<Map> postForEntity = restTemplate.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/",
-				requestBody, Map.class);
-		System.out.println("The result of Post api is :" + postForEntity.getBody());
-		return null;
+		RestTemplate restTemplate = new RestTemplate();
+		String responseData = "";
+		try {
+			ResponseEntity<Map> response = restTemplate.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/",
+					requestBody, Map.class);
+
+			System.out.println("Response: " + response.getBody());
+			JSONObject json = new JSONObject(response.getBody());
+			if (json.get("status").equals("201") && json.get("message").equals("Consumercreatedsuccessfully")) {
+				findByConsumerApplicationNumber.setContractorSelectionData("Data Send");
+				consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
+				responseData = "Data Send Successfully";
+			}
+		} catch (HttpServerErrorException ex) {
+
+			if (ex.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+
+				String errorBody = ex.getResponseBodyAsString();
+
+				if (errorBody.contains("duplicate key value")) {
+					findByConsumerApplicationNumber.setContractorSelectionData("Data Already exist");
+					consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
+					System.out.println("Consumer already exists in QC Portal");
+					responseData = "Consumer already exists in QC Portal";
+				} else {
+					throw ex;
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return new Response(HttpCode.OK, responseData);
 
 	}
 
@@ -1111,7 +1153,8 @@ public class ContractorDetailForBidController {
 		requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
 		requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
 		requestBody.put("is_bid_submitted", "false");
-		requestBody.put("nature_of_work_name", findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
+		requestBody.put("nature_of_work_name",
+				findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkName());
 		if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
 				&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
 			requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
@@ -1463,6 +1506,83 @@ public class ContractorDetailForBidController {
 				.ok(Objects.isNull(resultList) ? new Response<>(HttpCode.NULL_OBJECT, "No data found for refund mis")
 						: new Response<>(HttpCode.OK, "Data Retrieved Successfully", resultList));
 
+	}
+
+	@GetMapping("/getRcaFromThirdParty/{circleId}/{consumerApplicationNumber}")
+	public ResponseEntity<?> getRcaFromThirdParty(@PathVariable Long circleId,
+			@PathVariable String consumerApplicationNumber) {
+		ParticipantAndNotParticipantDto participantAndNotParticipantDto = new ParticipantAndNotParticipantDto();
+		List<ContractorParticipateAndNotPartiDto> listOfContractorParticipateAndNotPartiDto = new ArrayList<>();
+
+		try {
+			// 🔹 3rd Party API URL
+			String url = "https://qualitycheckuat.mpcz.in:8080/api/get_rca_by_circle/?circle_id=" + circleId;
+
+			// 🔹 RestTemplate Object
+			RestTemplate restTemplate = new RestTemplate();
+
+			// 🔹 Call 3rd Party API
+			ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+
+			Map<String, Object> body = response.getBody();
+
+			List<Map<String, Object>> dataList = (List<Map<String, Object>>) body.get("data");
+			for (int i = 0; i < dataList.size(); i++) {
+				ContractorParticipateAndNotPartiDto ContractorParticipateAndNotPartiDto = new ContractorParticipateAndNotPartiDto();
+
+				Map<String, Object> item = dataList.get(i);
+
+				Long id = ((Number) item.get("id")).longValue();
+				String rcaNo = (String) item.get("rca_no");
+				String contractorName = (String) item.get("contractor_name");
+				String authorisedPerson = (String) item.get("authorised_person");
+				String mobile = (String) item.get("mobile");
+				String zone = (String) item.get("zone");
+				String circle = (String) item.get("circle");
+				String date = (String) item.get("date");
+				String document = (String) item.get("document");
+
+				String add1 = (String) item.get("Company_add_1");
+				String add2 = (String) item.get("Company_add_2");
+				String district = (String) item.get("Company_dist");
+				String state = (String) item.get("Company_state");
+				String pinCode = (String) item.get("Company_pin_code");
+
+				String registrationNo = (String) item.get("registration_no");
+				String contractorClass = (String) item.get("tkc_class_contractor");
+				String userZoneCert = (String) item.get("User_Zone_cert");
+
+				String issueDate = (String) item.get("issue_date");
+				String expiryDate = (String) item.get("expairy_date");
+				ContractorParticipateAndNotPartiDto.setAuthenticationId(registrationNo);
+				ContractorParticipateAndNotPartiDto.setCompanyAdd1(add1);
+				ContractorParticipateAndNotPartiDto.setCompanyAdd2(add2);
+				ContractorParticipateAndNotPartiDto.setContractorCategory(contractorClass);
+				ContractorParticipateAndNotPartiDto.setAuthorisedPersonE(authorisedPerson);
+				ContractorParticipateAndNotPartiDto.setCompanyNameE(contractorName);
+				ContractorParticipateAndNotPartiDto.setCompanyCity(circle);
+				ContractorParticipateAndNotPartiDto.setConsumerApplicationNo(consumerApplicationNumber);
+				ContractorParticipateAndNotPartiDto.setCompanyState(state);
+				ContractorParticipateAndNotPartiDto.setCompanyDist(district);
+				listOfContractorParticipateAndNotPartiDto.add(ContractorParticipateAndNotPartiDto);
+			}
+			Response<ContractorParticipateAndNotPartiDto> a = new Response();
+			a.setCode("200");
+			a.setMessage("Data Retrieved Successfully");
+			a.setList(listOfContractorParticipateAndNotPartiDto);
+
+			return ResponseEntity.ok(a);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("status", false);
+			errorResponse.put("message", "Failed to fetch data from third-party API");
+			errorResponse.put("error", e.getMessage());
+
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+		}
 	}
 
 }

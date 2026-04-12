@@ -13,10 +13,14 @@ import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 public class ResilienceRateLimiterConfiguration {
 
 	@Bean
-	public RateLimiterRegistry rateLimiterRegistry() {
-		RateLimiterConfig config = RateLimiterConfig.custom().limitForPeriod(5)
-				.limitRefreshPeriod(Duration.ofMinutes(1)).timeoutDuration(Duration.ZERO).build();
-
-		return RateLimiterRegistry.of(config);
-	}
+    public RateLimiterRegistry rateLimiterRegistry() {
+        // Default config (fallback)
+        RateLimiterConfig defaultConfig = RateLimiterConfig.custom()
+                .limitForPeriod(5)
+                .limitRefreshPeriod(Duration.ofMinutes(1))
+                .timeoutDuration(Duration.ZERO)
+                .build();
+        
+        return RateLimiterRegistry.of(defaultConfig);
+    }
 }

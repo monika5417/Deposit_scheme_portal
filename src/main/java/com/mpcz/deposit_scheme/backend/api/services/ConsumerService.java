@@ -33,5 +33,8 @@ public interface ConsumerService {
 	public Consumer getCurrentLoginConsumerByLoginId() throws DataNotFoundException;
 
 	public String isConsumerRecordExist(DataStatusDTO dataStatusDTO) throws ConsumerException;
+	
+//	25-02-2026
+	public Consumer consumerSignUpForMutipleConsumer(ConsumerSignUpForm consumerSignUpForm) throws ConsumerException, DocumentTypeException;
 
 }

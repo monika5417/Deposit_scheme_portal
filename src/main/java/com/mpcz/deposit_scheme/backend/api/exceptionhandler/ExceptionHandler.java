@@ -41,6 +41,7 @@ import com.mpcz.deposit_scheme.backend.api.exception.DesignationException;
 import com.mpcz.deposit_scheme.backend.api.exception.DistributionCenterException;
 import com.mpcz.deposit_scheme.backend.api.exception.DistrictException;
 import com.mpcz.deposit_scheme.backend.api.exception.DivisionException;
+import com.mpcz.deposit_scheme.backend.api.exception.DynamicQueryException;
 import com.mpcz.deposit_scheme.backend.api.exception.ErpEstimateAmountException;
 import com.mpcz.deposit_scheme.backend.api.exception.ErpEstimateException;
 import com.mpcz.deposit_scheme.backend.api.exception.ErpSurveyEstimationDetailException;
@@ -487,10 +488,10 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	@org.springframework.web.bind.annotation.ExceptionHandler(NatureOfWorkException.class)
-	public final ResponseEntity<Response<?>> handleNatureOfWorkException(PaymentTypeException ex, WebRequest request) {
+	public final ResponseEntity<Response<?>> handleNatureOfWorkException(NatureOfWorkException ex, WebRequest request) {
 		logger.error(">>>>>>>>>>>>>>>Inside NatureOfWorkException : " + ex.getMessage());
 		logger.error(" ", ex);
-		return new ResponseEntity<>(ex.getResponse(), HttpStatus.OK);
+		return ResponseEntity.ok(new Response<>(ex.getResponse().getCode(), ex.getResponse().getMessage()));
 	}
 
 	@org.springframework.web.bind.annotation.ExceptionHandler(DistrictException.class)
@@ -581,10 +582,10 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 	@org.springframework.web.bind.annotation.ExceptionHandler(RequestNotPermitted.class)
 	public ResponseEntity<?> handleRateLimit(RequestNotPermitted ex) {
 
-		return ResponseEntity.status(429).body(new Response<>(HttpCode.OK, "Too many requests from your system. Please try later."));
+		return ResponseEntity.status(429)
+				.body(new Response<>(HttpCode.OK, "Too many requests from your system. Please try later."));
 	}
 
-	
 	@org.springframework.web.bind.annotation.ExceptionHandler(com.mpcz.deposit_scheme.backend.api.exception.ErpSurveyEstimationDetailException.class)
 	public final ResponseEntity<Response<T>> ErpSurveyEstimationDetailException(ErpSurveyEstimationDetailException ex) {
 		Response r = new Response();
@@ -593,5 +594,20 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 
 		return ResponseEntity.ok(r);
 	}
-	
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
+	public ResponseEntity<Response<?>> handleAllException(Exception ex) {
+
+		Response<?> r = new Response<>();
+		r.setCode("303");
+		r.setMessage("Custom Error: " + ex.getMessage());
+
+		return new ResponseEntity<>(r, HttpStatus.BAD_REQUEST);
+	}
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(DynamicQueryException.class)
+	public ResponseEntity<Response<?>> DynamicQueryExceptionHandler(DynamicQueryException ex) {
+		return ResponseEntity.ok(new Response(ex.getResponse().getCode(), ex.getResponse().getMessage()));
+	}
+
 }

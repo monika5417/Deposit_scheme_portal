@@ -1598,4 +1598,79 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 	public List<Map<String, ?>> getReSampleDataForConsuemrApplicationDetailsByDcIdgroupBy(ArrayList<Integer> dcId);
 
 	
+	
+	
+//	code changed for multiple user login 26-02-2025
+	
+	@Query(value = "SELECT cad.* from CONSUMER_APPLICATION_DETAIL cad "
+	        + "left join distribution_center dc on dc.dc_id = cad.dc_id "
+	        + "left join sub_division sub_div on sub_div.SUBDIV_ID = dc.subdiv_id "
+	        + "left join division div on div.div_id = sub_div.division_id "
+	        + "left join circle cir on cir.circle_id = div.circle_id "
+	        + "left join region reg on reg.region_id = cir.region_id "
+	        + "left join discom disc on disc.discom_id = reg.discom_id "
+	        + "where "
+	        + "(:discomId = 0 or disc.discom_id = :discomId) "
+	        + "and (:regionId = 0 or reg.region_id = :regionId) "
+	        + "and (:circleId = 0 or cir.circle_id = :circleId) "
+	        + "and (:divisionId = 0 or div.div_id = :divisionId) "
+	        + "and (:subDivisionId = 0 or sub_div.SUBDIV_ID = :subDivisionId) "
+	        + "and (:dcId = 0 or dc.dc_id = :dcId) "
+	        // ✅ Alag flag use karo — list expand nahi hogi yahan
+	        + "and (:skipConsumer = 1 OR cad.CONSUMER_ID IN (:consumerIds)) "
+	        + "and (cad.is_active = 1) "
+	        + "ORDER BY cad.CONSUMER_APPLICATION_ID DESC ",
+
+	        countQuery = "SELECT COUNT(*) from CONSUMER_APPLICATION_DETAIL cad "
+	        + "left join distribution_center dc on dc.dc_id = cad.dc_id "
+	        + "left join sub_division sub_div on sub_div.SUBDIV_ID = dc.subdiv_id "
+	        + "left join division div on div.div_id = sub_div.division_id "
+	        + "left join circle cir on cir.circle_id = div.circle_id "
+	        + "left join region reg on reg.region_id = cir.region_id "
+	        + "left join discom disc on disc.discom_id = reg.discom_id "
+	        + "where "
+	        + "(:discomId = 0 or disc.discom_id = :discomId) "
+	        + "and (:regionId = 0 or reg.region_id = :regionId) "
+	        + "and (:circleId = 0 or cir.circle_id = :circleId) "
+	        + "and (:divisionId = 0 or div.div_id = :divisionId) "
+	        + "and (:subDivisionId = 0 or sub_div.SUBDIV_ID = :subDivisionId) "
+	        + "and (:dcId = 0 or dc.dc_id = :dcId) "
+	        + "and (:skipConsumer = 1 OR cad.CONSUMER_ID IN (:consumerIds)) "
+	        + "and (cad.is_active = 1) ",
+
+	        nativeQuery = true)
+	public Page<ConsumerApplicationDetail> findByConsumerApplicationDetailsUserWisePaginate1(
+	        @Param("discomId") Long discomId,
+	        @Param("regionId") Long regionId,
+	        @Param("circleId") Long circleId,
+	        @Param("divisionId") Long divisionId,
+	        @Param("subDivisionId") Long subDivisionId,
+	        @Param("dcId") Long dcId,
+	        @Param("skipConsumer") Integer skipConsumer,   // ✅ Naya flag
+	        @Param("consumerIds") List<Long> consumerIds,  // ✅ List<Long>
+	        Pageable pageable);
+	
+	
+//	@Query(value = "select * from main_data\r\n" + "where\r\n"
+//			+ "(:discomid =0 or \"discomid\" =:discomid ) AND (:regionid =0 or \"regionid\" =:regionid ) and  \r\n"
+//			+ "(:CIR_ID =0 or \"CIR_ID\" =:CIR_ID ) and  (:DIV_ID =0 or \"DIV_ID\" =:DIV_ID )\r\n"
+//			+ "and  (:subdivid =0 or \"subdivid\" =:subdivid ) \r\n" + "and  (:dcId =0 or \"dcId\" =:dcId )\r\n"
+//			+ "and  (\"applicationStatusId\" IN(:applicationStatusIds))", nativeQuery = true)
+	
+	
+	@Query(value="SELECT *\r\n"
+			+ "FROM main_data\r\n"
+			+ "WHERE (:discomid = 0 OR \"discomid\" = :discomid)\r\n"
+			+ "  AND (:regionid = 0 OR \"regionid\" = :regionid)\r\n"
+			+ "  AND (:CIR_ID = 0 OR \"CIR_ID\" = :CIR_ID)\r\n"
+			+ "  AND (:DIV_ID = 0 OR \"DIV_ID\" = :DIV_ID)\r\n"
+			+ "  AND (:subdivid = 0 OR \"subdivid\" = :subdivid)\r\n"
+			+ "  AND (:dcId = 0 OR \"dcId\" = :dcId)\r\n"
+			+ "  AND \"applicationStatusId\" IN (:applicationStatusIds) and \"schemeTypeId\" in (:schemeTypeId)",nativeQuery = true)
+	public List<Map<String, Object>> getAllApplicationByApplicationStatusWithSchemeTypeId(
+			@Param("applicationStatusIds") List<String> applicationStatusIds, @Param("discomid") Long discomId,
+			@Param("regionid") Long regionId, @Param("CIR_ID") Long circleId, @Param("DIV_ID") Long divisionId,
+			@Param("subdivid") Long subDivisionId, @Param("dcId") Long dcId, @Param("schemeTypeId") List<String> schemeTypeId);
+	
+	
 }

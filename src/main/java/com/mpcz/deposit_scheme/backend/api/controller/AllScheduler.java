@@ -1,7 +1,6 @@
 //
 //package com.mpcz.deposit_scheme.backend.api.controller;
 //
-//
 //import java.math.BigDecimal;
 //import java.net.InetAddress;
 //import java.net.InetSocketAddress;
@@ -14,6 +13,7 @@
 //import java.time.LocalDateTime;
 //import java.time.YearMonth;
 //import java.time.format.DateTimeFormatter;
+//import java.util.ArrayList;
 //import java.util.Date;
 //import java.util.HashMap;
 //import java.util.LinkedList;
@@ -21,23 +21,27 @@
 //import java.util.Map;
 //import java.util.Objects;
 //import java.util.Optional;
+//import java.util.concurrent.atomic.AtomicLong;
 //
 //import org.json.JSONArray;
 //import org.json.JSONObject;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.context.annotation.Profile;
 //import org.springframework.http.HttpEntity;
 //import org.springframework.http.HttpHeaders;
 //import org.springframework.http.ResponseEntity;
 //import org.springframework.http.client.SimpleClientHttpRequestFactory;
+//import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 //import org.springframework.scheduling.annotation.Scheduled;
 //import org.springframework.web.bind.annotation.GetMapping;
 //import org.springframework.web.bind.annotation.PathVariable;
 //import org.springframework.web.bind.annotation.RequestMapping;
 //import org.springframework.web.bind.annotation.RestController;
 //import org.springframework.web.client.HttpClientErrorException;
+//import org.springframework.web.client.HttpServerErrorException;
 //import org.springframework.web.client.RestTemplate;
 //
 //import com.google.gson.Gson;
@@ -45,16 +49,19 @@
 //import com.mpcz.deposit_scheme.backend.api.domain.BillDeskPaymentResponse;
 //import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
 //import com.mpcz.deposit_scheme.backend.api.domain.ContractorForBidWorkStatus;
+//import com.mpcz.deposit_scheme.backend.api.domain.DynamicQuery;
 //import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountData;
 //import com.mpcz.deposit_scheme.backend.api.domain.MmkyPayAmount;
 //import com.mpcz.deposit_scheme.backend.api.domain.PoseMachinePostData;
 //import com.mpcz.deposit_scheme.backend.api.enums.ApplicationStatusEnum;
+//import com.mpcz.deposit_scheme.backend.api.exception.DynamicQueryException;
 //import com.mpcz.deposit_scheme.backend.api.jose.JoseHelper;
 //import com.mpcz.deposit_scheme.backend.api.jose.VerifyJWS;
 //import com.mpcz.deposit_scheme.backend.api.repository.ApplicationStatusRepository;
 //import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 //import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
 //import com.mpcz.deposit_scheme.backend.api.repository.ContractorForBidWorkStatusRepository;
+//import com.mpcz.deposit_scheme.backend.api.repository.DynamicQueryRepository;
 //import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 //import com.mpcz.deposit_scheme.backend.api.repository.MmkyPayAmountRespository;
 //import com.mpcz.deposit_scheme.backend.api.repository.PoseMachinePostDataRepository;
@@ -67,6 +74,10 @@
 //@RestController
 //@Profile("prod")
 //public class AllScheduler {
+//	
+//	
+//	@Value("${ravindra.send.data.after.payment}")
+//	private String ravinraSendDataAfterPayment;
 //
 //	@Autowired
 //	private BillPaymentResponseeeeeeeRepository billPaymentResponseeeeeeeRepository;
@@ -1064,6 +1075,124 @@
 //		} catch (Exception e) {
 //			e.printStackTrace();
 //		}
+//	}
+//
+//	@Autowired
+//	private DynamicQueryRepository dynamicQueryRepository;
+//
+//	@Autowired
+//	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+//
+//
+//	@Scheduled(cron = "0 0 * * * *") // everHour run hoga
+//	public void RavindraSendDataForContractorSelectinonDataForNewOYTApplication() throws DynamicQueryException {
+//		YearMonth yearMonth = YearMonth.now();
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+//		String formattedYearMonth = yearMonth.format(formatter) + "%";
+//		System.out.println(formattedYearMonth);
+//		RestTemplate restTemplate = new RestTemplate();
+//		DynamicQuery queryData = dynamicQueryRepository.findByQueryNameData("NEW_OYT_CONTRACTOR_SELECTION_QUERY")
+//				.orElseThrow(() -> new DynamicQueryException(new Response<>(HttpCode.NOT_ACCEPTABLE,
+//						"Query Not Found : NEW_OYT_CONTRACTOR_SELECTION_QUERY")));
+//		String query = queryData.getQueryText();
+//
+//		List<Map<String, Object>> newOytContractorList = namedParameterJdbcTemplate.queryForList(query,
+//				new HashMap<>());
+//
+//		List<String> dataSent = new ArrayList<>();
+//		List<String> dataAlreadyExist = new ArrayList<>();
+//		AtomicLong dataSentCount = new AtomicLong(0);
+//		AtomicLong dataAlreadyExistCount = new AtomicLong(0);
+//		newOytContractorList.stream().forEach(bill -> {
+//
+//			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+//					.findByConsumerApplicationNumber(bill.get("CONSUMER_APPLICATION_NUMBER").toString());
+//			Map<String, String> requestBody = new HashMap<>();
+//
+//			if (findByConsumerApplicationNumber.getErpWorkFlowNumber() != null) {
+//				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
+//						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//				if (findById1.isPresent()) {
+//					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
+//					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
+//					requestBody.put("kwload", kwLoad);
+//
+//					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
+//					requestBody.put("kvaload", kvaLoad);
+//
+//					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
+//					requestBody.put("deposit_amount", depositAmount);
+//
+//					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
+//					requestBody.put("supervision_amount", superVisionAmt);
+//
+//					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
+//					requestBody.put("sgst", sgst);
+//
+//					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
+//					requestBody.put("cgst", cgst);
+//
+//					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
+//					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
+//
+//				}
+//			}
+//			requestBody.put("schema", "OYT");
+//			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
+//			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
+//
+//			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
+//
+//			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
+//			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
+//			requestBody.put("is_bid_submitted", "false");
+//			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
+//					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+//				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
+//				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
+//
+//			}
+//
+//			try {
+//				System.err.println("aaaaaaaaaaaaaaaa : " + ravinraSendDataAfterPayment);
+//				ResponseEntity<Map> response = restTemplate.postForEntity(ravinraSendDataAfterPayment, requestBody,
+//						Map.class);
+//
+//				Map<String, Object> body = response.getBody();
+//
+//				if (body != null && "201".equals(String.valueOf(body.get("status")))) {
+//
+//					findByConsumerApplicationNumber.setContractorSelectionData("Data Send");
+//					consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
+//
+//					dataSent.add(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//					dataSentCount.incrementAndGet();
+//				}
+//
+//			} catch (HttpServerErrorException ex) {
+//
+//				if (ex.getResponseBodyAsString().toLowerCase().contains("duplicate")) {
+//
+//					findByConsumerApplicationNumber.setContractorSelectionData("Data Already exist");
+//					consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
+//
+//					dataAlreadyExist.add(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//					dataAlreadyExistCount.incrementAndGet();
+//				} else {
+//					throw ex;
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//
+//		System.err.println("Total Application data : " + newOytContractorList.size());
+//		System.err.println("Total Sent Data : " + new Gson().toJson(dataSent));
+//		System.err.println("Total Sent Data count : " + dataSentCount.get());
+//		System.err.println("Total Already Exist Data : " + new Gson().toJson(dataAlreadyExist));
+//		System.err.println("Total Already Exist Data Count : " + dataAlreadyExistCount.get());
 //	}
 //
 //}

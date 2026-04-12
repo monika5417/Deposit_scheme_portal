@@ -32,5 +32,14 @@ public interface ErpRevRepository extends JpaRepository<ErpRev, Long> {
 	
 	ErpRev findByConsAppNoAndVersionNumber(String consumerApplicationNumber,Long erpVersion);
 
-
+	@Query(value="SELECT *\r\n"
+			+ "FROM (\r\n"
+			+ "    SELECT *\r\n"
+			+ "    FROM erp_rev\r\n"
+			+ "    WHERE cons_app_no =:consumerApp \r\n"
+			+ "    ORDER BY id DESC\r\n"
+			+ ")\r\n"
+			+ "WHERE ROWNUM = 1",nativeQuery=true)
+	List<ErpRev> findByConsumerAppNo_1(String consumerApp);
+	
 }

@@ -350,45 +350,45 @@ public class ReSamplinController {
 //	}
 
 ////	applicaiton ke againts me post data
-	@PostMapping("/post-resample-data1")
-	public ResponseEntity<?> postResampleData1(@RequestBody List<ReSampling> sample) {
-
-		List<ReSampling> saveAll = reSamplingRepository.saveAll(sample);
-
-//		List<VendorAddMaterial> findByConsumerApplicationNumber = vendorAddMaterialRepository
-//				.findByConsumerApplicationNumber(sample.get(0).getConAppNo());
-
-		ConsumerApplicationDetail consumerDetails = consumerApplicationDetailRepository
-				.findByConsumerApplicationNo(sample.get(0).getConAppNo()).get();
-		
-		saveAll.stream().forEach(s->{
-			ReSampling findByConAppNo = reSamplingRepository.findByConAppNo(s.getConAppNo()).get();
-			
-			Circle circleDb = consumerDetails.getDistributionCenter().getDcSubdivision()
-					.getSubdivisionDivision().getDivisionCircle();
-			
-
-			findByConAppNo.setCircleName(circleDb.getCircle());
-			findByConAppNo.setCircleId(circleDb.getCircleId());
-
-			findByConAppNo.setDivisionName(consumerDetails.getDistributionCenter()
-					.getDcSubdivision().getSubdivisionDivision().getDivision());
-			findByConAppNo.setDC_NAME(consumerDetails.getDistributionCenter().getDcName());
-			findByConAppNo.setConsumerName(consumerDetails.getConsumerName());
-			findByConAppNo.setAddress(consumerDetails.getAddress());
-			findByConAppNo.setDivisionId(consumerDetails.getDistributionCenter()
-					.getDcSubdivision().getSubdivisionDivision().getDivisionId());
-			reSamplingRepository.save(findByConAppNo);
-			
-		});
-		consumerDetails.setReSamplingFlag(1l);
-		ConsumerApplicationDetail save = consumerApplicationDetailRepository.save(consumerDetails);
-
-		return ResponseEntity
-				.ok(saveAll.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
-						: new Response<>(HttpCode.OK, "Data Retrived successfully ", Arrays.asList(saveAll)));
-
-	}
+//	@PostMapping("/post-resample-data1")
+//	public ResponseEntity<?> postResampleData1(@RequestBody List<ReSampling> sample) {
+//
+//		List<ReSampling> saveAll = reSamplingRepository.saveAll(sample);
+//
+////		List<VendorAddMaterial> findByConsumerApplicationNumber = vendorAddMaterialRepository
+////				.findByConsumerApplicationNumber(sample.get(0).getConAppNo());
+//
+//		ConsumerApplicationDetail consumerDetails = consumerApplicationDetailRepository
+//				.findByConsumerApplicationNo(sample.get(0).getConAppNo()).get();
+//		
+//		saveAll.stream().forEach(s->{
+//			ReSampling findByConAppNo = reSamplingRepository.findByConAppNo(s.getConAppNo()).get();
+//			
+//			Circle circleDb = consumerDetails.getDistributionCenter().getDcSubdivision()
+//					.getSubdivisionDivision().getDivisionCircle();
+//			
+//
+//			findByConAppNo.setCircleName(circleDb.getCircle());
+//			findByConAppNo.setCircleId(circleDb.getCircleId());
+//
+//			findByConAppNo.setDivisionName(consumerDetails.getDistributionCenter()
+//					.getDcSubdivision().getSubdivisionDivision().getDivision());
+//			findByConAppNo.setDC_NAME(consumerDetails.getDistributionCenter().getDcName());
+//			findByConAppNo.setConsumerName(consumerDetails.getConsumerName());
+//			findByConAppNo.setAddress(consumerDetails.getAddress());
+//			findByConAppNo.setDivisionId(consumerDetails.getDistributionCenter()
+//					.getDcSubdivision().getSubdivisionDivision().getDivisionId());
+//			reSamplingRepository.save(findByConAppNo);
+//			
+//		});
+//		consumerDetails.setReSamplingFlag(1l);
+//		ConsumerApplicationDetail save = consumerApplicationDetailRepository.save(consumerDetails);
+//
+//		return ResponseEntity
+//				.ok(saveAll.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
+//						: new Response<>(HttpCode.OK, "Data Retrived successfully ", Arrays.asList(saveAll)));
+//
+//	}
 
 //	 suffing hui api
 //	@GetMapping("/safling-data-by-autenotication-ID1/{authenticationId}/{userID}")
@@ -621,26 +621,26 @@ public class ReSamplinController {
 
 	}
 	
-	@GetMapping("/getReSampleData/{consumerApplicationNo}")
-	public Response<ReSampling> getReSampleData(@PathVariable String consumerApplicationNo)
-	        throws ConsumerApplicationDetailException {
-
-	    ReSampling reSample = reSamplingRepository.findByConAppNo(consumerApplicationNo)
-	            .orElseThrow(() -> new ConsumerApplicationDetailException(
-	                    new Response<>(HttpCode.NULL_OBJECT, "Application not found in Re-sampling table")));
-
-	    Response response = new Response();
-	    if(reSample==null) {
-	    	 
-	 	    response.setCode("404");
-	 	    response.setMessage("data not found");
-	    }else {
-	    	 response.setList(Arrays.asList(reSample));
-	 	    response.setCode("200");	
-	    }
-	   
-	 return response;
-	}
+//	@GetMapping("/getReSampleData/{consumerApplicationNo}")
+//	public Response<ReSampling> getReSampleData(@PathVariable String consumerApplicationNo)
+//	        throws ConsumerApplicationDetailException {
+//
+//	    ReSampling reSample = reSamplingRepository.findByConAppNo(consumerApplicationNo)
+//	            .orElseThrow(() -> new ConsumerApplicationDetailException(
+//	                    new Response<>(HttpCode.NULL_OBJECT, "Application not found in Re-sampling table")));
+//
+//	    Response response = new Response();
+//	    if(reSample==null) {
+//	    	 
+//	 	    response.setCode("404");
+//	 	    response.setMessage("data not found");
+//	    }else {
+//	    	 response.setList(Arrays.asList(reSample));
+//	 	    response.setCode("200");	
+//	    }
+//	   
+//	 return response;
+//	}
 
 	@PostMapping("/saveDtrLiftingDAte/{authenticationId}/{dtrLiftingDate}")
 	public ResponseEntity<?> saveDtrLiftingDAte(@PathVariable String authenticationId,@PathVariable String dtrLiftingDate) {
@@ -718,51 +718,51 @@ public class ReSamplinController {
 //	multipal dtr ke liye
 	
 //	applicaiton ke againts me post data
-//	@PostMapping("/post-resample-data1")
-//	public ResponseEntity<?> postResampleData1(@RequestBody List<ReSampling> sample) {
-//
-//		List<ReSampling> saveAll = reSamplingRepository.saveAll(sample);
-//
-//
-//
-//		ConsumerApplicationDetail consumerDetails = consumerApplicationDetailRepository
-//				.findByConsumerApplicationNo(sample.get(0).getConAppNo()).get();
-//		
-//		List<ReSampling> findByConApp= null;
-//		try {
-//			 findByConApp = reSamplingRepository.findByConAppNo_1(sample.get(0).getConAppNo());
-//
-//		}catch (Exception e) {
-//			e.printStackTrace();b
-//		}
-//			
-//			findByConApp.stream().forEach(s->{
-//				
-//				ReSampling findByConAppNo = reSamplingRepository.findByConAppNoAndId(s.getConAppNo(),s.getId());
-//				
-//				
-//			Circle circleDb = consumerDetails.getDistributionCenter().getDcSubdivision()
-//					.getSubdivisionDivision().getDivisionCircle();
-//			
-//
-//			findByConAppNo.setCircleName(circleDb.getCircle());
-//			findByConAppNo.setCircleId(circleDb.getCircleId());
-//
-//			findByConAppNo.setDivisionName(consumerDetails.getDistributionCenter()
-//					.getDcSubdivision().getSubdivisionDivision().getDivision());
-//			findByConAppNo.setDC_NAME(consumerDetails.getDistributionCenter().getDcName());
-//			findByConAppNo.setConsumerName(consumerDetails.getConsumerName());
-//			findByConAppNo.setAddress(consumerDetails.getAddress());
-//			reSamplingRepository.save(findByConAppNo);
-//		});
-//		consumerDetails.setReSamplingFlag(1l);
-//		ConsumerApplicationDetail save = consumerApplicationDetailRepository.save(consumerDetails);
-//
-//		return ResponseEntity
-//				.ok(saveAll.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
-//						: new Response<>(HttpCode.OK, "Data Retrived successfully ", Arrays.asList(saveAll)));
-//
-//	}
+	@PostMapping("/post-resample-data1")
+	public ResponseEntity<?> postResampleData1(@RequestBody List<ReSampling> sample) {
+
+		List<ReSampling> saveAll = reSamplingRepository.saveAll(sample);
+
+
+
+		ConsumerApplicationDetail consumerDetails = consumerApplicationDetailRepository
+				.findByConsumerApplicationNo(sample.get(0).getConAppNo()).get();
+		
+		List<ReSampling> findByConApp= null;
+		try {
+			 findByConApp = reSamplingRepository.findByConAppNo_1(sample.get(0).getConAppNo());
+
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+			
+			findByConApp.stream().forEach(s->{
+				
+				ReSampling findByConAppNo = reSamplingRepository.findByConAppNoAndId(s.getConAppNo(),s.getId());
+				
+				
+			Circle circleDb = consumerDetails.getDistributionCenter().getDcSubdivision()
+					.getSubdivisionDivision().getDivisionCircle();
+			
+
+			findByConAppNo.setCircleName(circleDb.getCircle());
+			findByConAppNo.setCircleId(circleDb.getCircleId());
+
+			findByConAppNo.setDivisionName(consumerDetails.getDistributionCenter()
+					.getDcSubdivision().getSubdivisionDivision().getDivision());
+			findByConAppNo.setDC_NAME(consumerDetails.getDistributionCenter().getDcName());
+			findByConAppNo.setConsumerName(consumerDetails.getConsumerName());
+			findByConAppNo.setAddress(consumerDetails.getAddress());
+			reSamplingRepository.save(findByConAppNo);
+		});
+		consumerDetails.setReSamplingFlag(1l);
+		ConsumerApplicationDetail save = consumerApplicationDetailRepository.save(consumerDetails);
+
+		return ResponseEntity
+				.ok(saveAll.isEmpty() ? new Response(HttpCode.NULL_OBJECT, "Data not found for this application no.")
+						: new Response<>(HttpCode.OK, "Data Retrived successfully ", Arrays.asList(saveAll)));
+
+	}
 //	
 	
 	
@@ -1023,5 +1023,25 @@ public class ReSamplinController {
 				? new Response(HttpCode.NULL_OBJECT, "Data not found for this user id.")
 				: new Response<>(HttpCode.OK, "Data Retrived successfully ", reSampleData));
 
+	}
+	
+	
+	@GetMapping("/getReSampleData/{consumerApplicationNo}")
+	public Response<ReSampling> getReSampleData(@PathVariable String consumerApplicationNo)
+	        throws ConsumerApplicationDetailException {
+
+	    List<ReSampling> findByConAppNo_1 = reSamplingRepository.findByConAppNo_1(consumerApplicationNo);
+
+	    Response response = new Response();
+	    if(findByConAppNo_1.isEmpty()) {
+	    	 
+	 	    response.setCode("404");
+	 	    response.setMessage("data not found");
+	    }else {
+	    	 response.setList(findByConAppNo_1);
+	 	    response.setCode("200");	
+	    }
+	   
+	 return response;
 	}
 }

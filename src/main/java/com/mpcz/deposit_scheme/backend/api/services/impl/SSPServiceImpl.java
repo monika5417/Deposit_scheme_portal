@@ -132,7 +132,7 @@ public class SSPServiceImpl implements SSPService {
 	@Override
 	public SignUpResponse sspSignUp(SSPDto sspDto, HttpServletRequest request)
 			throws ConsumerException, DocumentTypeException, DistributionCenterException, DistrictException {
-		// TODO Auto-generated method stub
+
 		log.info("=== [START] saveConsumerApplication() called ===");
 		log.info("=== API CALLED: /sspSignUp ===");
 
@@ -376,10 +376,30 @@ public class SSPServiceImpl implements SSPService {
 //			sspDto = checkNatureOfWork(sspDto);
 			natureOfWork = natureOfWorkRepository.findById(sspDto.getNatureOfWork()).get();
 
+			
+
 			long uniqueCurrentTimeMS = uniqueCurrentTimeMS();
 			String applicationNumber = String.valueOf(uniqueCurrentTimeMS);
 
-			String prefix = schemeType.getSchemeTypeId().equals(1L) ? "SV" : "DS";
+//			11-03-2026 added this for new scheme type id
+			String prefix = "";
+
+			switch (sspDto.getSchemeType().intValue()) {
+			case 1:
+				prefix = "SV";
+				break;
+			case 2:
+				prefix = "DS";
+				break;
+			case 3:
+				prefix = "ND";
+				break;
+			default:
+				break;
+
+			}
+
+//			11-03-2026
 			String consumerAppNo = prefix + applicationNumber;
 
 			DistributionCenter distributionCenter = distributionCenterRepository
@@ -465,6 +485,10 @@ public class SSPServiceImpl implements SSPService {
 				if (Objects.nonNull(sspDto.getTotalAmount()))
 					cad.setSspTotalAmount(BigDecimal.valueOf(sspDto.getTotalAmount()));
 			}
+			if (natureOfWork.getNatureOfWorkTypeId().equals(5l) || natureOfWork.getNatureOfWorkTypeId().equals(13l)
+					|| natureOfWork.getNatureOfWorkTypeId().equals(14l)) {
+				cad.setLt(5l);
+			}
 			cad.setPurposeOfInstallation(sspDto.getPurposeOfInstallation());
 			cad.setPhase(sspDto.getPhase());
 
@@ -475,12 +499,23 @@ public class SSPServiceImpl implements SSPService {
 			}
 			cad.setDistrict(district);
 			cad.setConnectionType(sspDto.getConnectionType());
-			cad.setApplicationStatus(applicationStatusRepository
-					.findById(ApplicationStatusEnum.UNPAID_APPLICATION_VENDOR_REJECTED.getId()).get());
+			if (sspDto.getSchemeType().equals(3l)) {
+				cad.setApplicationStatus(applicationStatusRepository
+						.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId()).get());
+			} else {
+				cad.setApplicationStatus(applicationStatusRepository
+						.findById(ApplicationStatusEnum.UNPAID_APPLICATION_VENDOR_REJECTED.getId()).get());
+			}
+			if (!"null".equals(sspDto.getDateOfPayment()))
+				cad.setDateOfPayment(sspDto.getDateOfPayment());
+			if (!"null".equals(sspDto.getTranasactionNumber()))
+				cad.setTranasactionNumber(sspDto.getTranasactionNumber());
 
 			cad.setConnectionCategory(sspDto.getConnectionCategory());
 			cad.setMeteringStatus(sspDto.getMeteringStatus());
 			cad.setCastCategory(sspDto.getCaste());
+//			System.err.println("aaaaaaaaaaaaaaaaaaaaaaaa : " +new Gson().toJson(cad));
+			System.err.println("aaaaaaaaa : " + cad);
 			return consumerApplictionDetailRepository.save(cad);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -636,18 +671,16 @@ public class SSPServiceImpl implements SSPService {
 //				|| sspDto.getIsBpl().equals("NO")  || sspDto.getIsShramik().equals("NO") ye 2 check charitra ne lagaye hai 31-12-2025
 //				check added on 11-11-2025 because in case of OYT there is only 5 as TotalAmount()
 				if ((sspDto.getSecurityDeposit() == null
-						|| BigDecimal.valueOf(sspDto.getSecurityDeposit()).compareTo(BigDecimal.ZERO) <= 0)  
+						|| BigDecimal.valueOf(sspDto.getSecurityDeposit()).compareTo(BigDecimal.ZERO) <= 0)
 						&& (!"SC".equals(sspDto.getCaste()) && !"ST".equals(sspDto.getCaste()))) {
 					response.setCode(HttpCode.NULL_OBJECT);
 					response.setMessage(
 							"Security Deposit Amount should not be null, 0 or negative in case of new NSC and OYT. Please edit your application.");
 					throw new ConsumerException(response);
 				}
-				
+
 			}
-			
-			
-			
+
 		}
 	}
 
@@ -686,36 +719,34 @@ public class SSPServiceImpl implements SSPService {
 	}
 
 	public static SSPDto checkNatureOfWork(SSPDto sspDto) {
-		
-		 if(sspDto.getNatureOfWork().equals(5l)  && ((sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(13) )|| (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(14) ))) {
-			 if (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(13)) {
-					sspDto.setNatureOfWork(13l);
-					sspDto.setConnectionCategory("LV5");
-					sspDto.setSchemeType(1L);
-				} else if (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(14)) {
-					sspDto.setNatureOfWork(14l);
-					sspDto.setConnectionCategory("LV5");
-					sspDto.setSchemeType(1L);
-				}
-		} 
-		 else  if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 1l && sspDto.getMeterCost() != null
+
+		if (sspDto.getNatureOfWork().equals(5l) && ((sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(13))
+				|| (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(14)))) {
+			if (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(13)) {
+				sspDto.setNatureOfWork(13l);
+				sspDto.setConnectionCategory("LV5");
+				sspDto.setSchemeType(1L);
+			} else if (sspDto.getIsOyt() != null && sspDto.getIsOyt().equals(14)) {
+				sspDto.setNatureOfWork(14l);
+				sspDto.setConnectionCategory("LV5");
+				sspDto.setSchemeType(1L);
+			}
+		} else if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 1l && sspDto.getMeterCost() != null
 				&& sspDto.getMeterCost() <= 0) {
 			sspDto.setNatureOfWork(5l);
 			sspDto.setConnectionCategory("LV5");
+			sspDto.setIsGoverment("No"); // added 12-03-2026 discuss with Anurag Bhujang and Ankit Sir
 		} else if (sspDto.getNatureOfWork().equals(5L) && sspDto.getSchemeType() == 2l && sspDto.getMeterCost() != null
 				&& sspDto.getMeterCost() > 0) {
 			sspDto.setNatureOfWork(2l);
 			sspDto.setConnectionCategory("LV5");
-		}  else if (sspDto.getNatureOfWork().equals(7L)) {
+		} else if (sspDto.getNatureOfWork().equals(7L)) {
 			sspDto.setNatureOfWork(7l);
-		} 
-		else {
+		} else {
 			sspDto.setNatureOfWork(2l);
 		}
-		
+
 		return sspDto;
-		}
-	
+	}
+
 }
-
-

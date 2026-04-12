@@ -431,7 +431,7 @@ public class ConsumerApplicationDetail extends Auditable<Long> {
 //	monika code end
 // 0 matlb cscrap material (bekar material)
 	@Column(name = "GOOD_MATERAIL_OR_NOT")
-	private Integer goodMaterialOrnot = 0;
+	private Integer goodMaterialOrnot = 1;
 
 	@Column(name = "CONNECTION_TYPE")
 	private String connectionType;
@@ -511,15 +511,93 @@ public class ConsumerApplicationDetail extends Auditable<Long> {
 
 	@Column(name = "GM_DEMAND_USER_ID")
 	private String gmDemandUserId;
-	
+
 	@Column(name = "ADMIN_STATUS_CHANGED_TO")
 	private Long adminStatusChangedTo;
-	
-	
+
 	@Column(name = "ERP_VER_IN_API")
 	private Long erpVersionInApi;
+
+	@Column(name = "CONTRACTOR_RESELCTION_STATUS")
+	private Long contractorReselctionStatus;
+
+	@Column(name = "CONTRACTOR_SELECTION_DATA")
+	private String contractorSelectionData;
+
+	@Column(name = "KV_11_LINE_DISTANCE")
+	private Long kv11LineDistance;
+
+	@Column(name = "LT_LINE_DISTANCE")
+	private Long ltLineDistance;
+	
+	@Column(name = "DTR_REQUIRED")
+	private String dtrRequired;
+	
+	@Column(name ="SSP_PAYMENT_DATE")
+	private String dateOfPayment;
+	
+	@Column(name = "SSP_TRANASACTION_ID")
+	private String tranasactionNumber;
 	
 	
+	
+	
+	
+	public String getDateOfPayment() {
+		return dateOfPayment;
+	}
+
+	public void setDateOfPayment(String dateOfPayment) {
+		this.dateOfPayment = dateOfPayment;
+	}
+
+	public String getTranasactionNumber() {
+		return tranasactionNumber;
+	}
+
+	public void setTranasactionNumber(String tranasactionNumber) {
+		this.tranasactionNumber = tranasactionNumber;
+	}
+
+	public Long getKv11LineDistance() {
+		return kv11LineDistance;
+	}
+
+	public void setKv11LineDistance(Long kv11LineDistance) {
+		this.kv11LineDistance = kv11LineDistance;
+	}
+
+	public Long getLtLineDistance() {
+		return ltLineDistance;
+	}
+
+	public void setLtLineDistance(Long ltLineDistance) {
+		this.ltLineDistance = ltLineDistance;
+	}
+
+	public String getDtrRequired() {
+		return dtrRequired;
+	}
+
+	public void setDtrRequired(String dtrRequired) {
+		this.dtrRequired = dtrRequired;
+	}
+
+	public String getContractorSelectionData() {
+		return contractorSelectionData;
+	}
+
+	public void setContractorSelectionData(String contractorSelectionData) {
+		this.contractorSelectionData = contractorSelectionData;
+	}
+
+	public Long getContractorReselctionStatus() {
+		return contractorReselctionStatus;
+	}
+
+	public void setContractorReselctionStatus(Long contractorReselctionStatus) {
+		this.contractorReselctionStatus = contractorReselctionStatus;
+	}
 
 	public Long getAdminStatusChangedTo() {
 		return adminStatusChangedTo;
@@ -552,8 +630,6 @@ public class ConsumerApplicationDetail extends Auditable<Long> {
 	public void setGmDemandRemark(String gmDemandRemark) {
 		this.gmDemandRemark = gmDemandRemark;
 	}
-
-	
 
 	public String getGmDemandUserId() {
 		return gmDemandUserId;
@@ -1694,7 +1770,17 @@ public class ConsumerApplicationDetail extends Auditable<Long> {
 				+ ", sspRegistrationCharge=" + sspRegistrationCharge + ", sspMeterCost=" + sspMeterCost
 				+ ", sspSecurityDeposit=" + sspSecurityDeposit + ", sspSupplyAffordingCharges="
 				+ sspSupplyAffordingCharges + ", sspTotalAmount=" + sspTotalAmount + ", purposeOfInstallation="
-				+ purposeOfInstallation + ", phase=" + phase + "]";
+				+ purposeOfInstallation + ", phase=" + phase + ", rejectionRemarkByJE=" + rejectionRemarkByJE
+				+ ", oytTepOrParma=" + oytTepOrParma + ", premiseAreaType=" + premiseAreaType
+				+ ", oytTempApplicationNo=" + oytTempApplicationNo + ", punchNamaReferenceNo=" + punchNamaReferenceNo
+				+ ", punchNamaCreatedDate=" + punchNamaCreatedDate + ", meteringStatus=" + meteringStatus
+				+ ", connectionCategory=" + connectionCategory + ", temporaryPushed=" + temporaryPushed
+				+ ", temporaryPushedDate=" + temporaryPushedDate + ", tempIvrsNo=" + tempIvrsNo + ", gmDemandApproved="
+				+ gmDemandApproved + ", gmDemandAppDate=" + gmDemandAppDate + ", gmDemandRemark=" + gmDemandRemark
+				+ ", gmDemandUserId=" + gmDemandUserId + ", adminStatusChangedTo=" + adminStatusChangedTo
+				+ ", erpVersionInApi=" + erpVersionInApi + ", contractorReselctionStatus=" + contractorReselctionStatus
+				+ ", contractorSelectionData=" + contractorSelectionData + ", kv11LineDistance=" + kv11LineDistance
+				+ ", ltLineDistance=" + ltLineDistance + ", dtrRequired=" + dtrRequired + "]";
 	}
 
 	public Long getErpVersionInApi() {
@@ -1705,8 +1791,6 @@ public class ConsumerApplicationDetail extends Auditable<Long> {
 		this.erpVersionInApi = erpVersionInApi;
 	}
 
-
 	
 	
-
 }

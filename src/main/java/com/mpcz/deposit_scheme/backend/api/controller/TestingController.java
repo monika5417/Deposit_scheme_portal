@@ -9,12 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
@@ -904,47 +904,53 @@ public class TestingController {
 		return localDateTime;
 	}
 
-
 	public static void main(String[] args) {
-//	nput: S = { “the”, “quick”, “brown”, “fox”, “quick”}, word1 = “the”, word2 = “fox”
-//		Output: 3
-//		String[] str = { "the", "quick","the", "brown", "fox", "quick" };
-//		int i = 0;
-//		int j = 0;
-//		int l;
-//		for (int k = 0; k < str.length; k++) {
-//			System.out.println("Index " + k + " -> " + str[k]);
-//			if (str[k].equals("the")) {
-//				i = k;
-//				System.err.println("the value of i = " + i);
-//			}
-//			if (str[k].equals("fox")) {
-//				j = k;
-//				System.err.println("the value of j = " + j);
-//			}
-//
-//		}
-//		l = j - i;
-//		System.err.println("the minimum distance is  : " + l);
-
-//		Remove duplicate from int array
-		int[] intArray = { 1, 9, 3, 5, 3, 6, 4, 2, 8, 9, 5, 8 };
-//		Set<Integer> uniqueData = new HashSet<>();
-//		Set<Integer> notAddedData = new HashSet<>();
-//		for (int i : intArray) {
-//			if (!uniqueData.add(i)) {
-//				notAddedData.add(i); // duplicate element
-//			}
-//		}
-//
-//		System.out.println("Unique Data: " + uniqueData);
-//		System.out.println("Not Added Data (Duplicates): " + notAddedData);
-
-		int[] tempArray = {};
-		for (int i = 0; i < intArray.length; i++) {
-			System.err.println(intArray[i]);
+//		 Reverse string
+//		 Reverse number
+//		 Palindrome check  ----------------> left and right same hi hoga
+		String str = "Madam";
+		str = str.toLowerCase();
+		String revStr = "";
+		for (int i = str.length() - 1; i >= 0; i--) {
+			revStr += str.charAt(i);
 		}
-	}
 
+//		System.err.println("aaaaaa : " + str + " bbbbbbb : " + revStr);
+//		if (revStr.equals(str)) {
+//			System.err.println("String is pallindrom ");
+//
+//		} else {
+//			System.err.println("String is not pallindrom ");
+//		}
+
+//		pallindrom check in numbers
+		int num = 121;
+
+//		 Fibonacci series
+//		 Factorial
+//		 Prime number
+//		 Swap two numbers without temp
+//		 Find duplicate in array
+//		 Find missing number
+//		 Second largest element
+//		 Count frequency using Map
+//		 Sort array
+//		 Remove duplicate from list
+//		 Anagram check
+
+//		Isme se sirf even numbers filter karke unka square nikaalna hai using Stream API
+		List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+		List<Integer> collect = numbers.stream().filter(no -> no % 2 == 0).map(no -> no * no)
+				.collect(Collectors.toList());
+		System.err.println("aaaaaa : " + new Gson().toJson(collect));
+		
+//		 VOWELs exist or not
+		String str1 = "Hello World";
+		boolean matches = str1.toLowerCase().matches(".*[aeiou]*.");
+		System.err.println("aaaaaaaaaaa : " +matches);
+		
+		System.err.println("null hashcode : " +Objects.hashCode(null)); ;
+		
+	}
 
 }

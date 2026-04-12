@@ -8,4 +8,6 @@ public interface ErpEstimateAmountDataGetRepository extends JpaRepository<ErpEst
 
 	
      public ErpEstimateAmountDataGet findByErpNo(String erpNo);
+     
+     public ErpEstimateAmountDataGet findByErpNoAndConsumerApplicationNo(String erpNo,String applicationNo);
 }

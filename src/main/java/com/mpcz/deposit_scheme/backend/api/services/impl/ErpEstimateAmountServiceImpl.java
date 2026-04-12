@@ -554,10 +554,10 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 				&& erpEstimateAmountDataOptional.get().getSchemeCode().equalsIgnoreCase("DEPOSITE"))
 
 		{
-
+//good material )(zero ) pesa lena hai
 			minusCost = roundAmountCgstAndSgst(
-					erpEstimateAmountDataOptional.get().getMinusCost().multiply(new BigDecimal(-1)));
-			if (Objects.equals(consumerapplication.getIsAvedakGovernmentErp(), "Yes") && consumerapplication.getGoodMaterialOrnot().equals("0")) {
+					erpEstimateAmountDataOptional.get().getMinusCost().abs());
+			if (Objects.equals(consumerapplication.getIsAvedakGovernmentErp(), "Yes") && consumerapplication.getGoodMaterialOrnot()==0) {
 			
 				erpEstimateAmount.setJeReturnAmount(minusCost);
 			} else if(Objects.equals(consumerapplication.getIsAvedakGovernmentErp(), "No")) {
@@ -1018,6 +1018,9 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 //					erpEstimateAmount.setAvedanShulk(new BigDecimal(2495));
 						erpEstimateAmount.setAvedanShulkFiveRupee(new BigDecimal(5));
 						erpEstimateAmount.setSecurityDeposit(roundAmountCgstAndSgst(jeLoadAmount));
+						// minus cost added on 31-03-2026 as per ankit sir
+						estimateAmountDto.setMinusCost(minusCost);
+						estimateAmountDto.setJeReturnAmount(minusCost);
 
 						BigDecimal total_amount = new BigDecimal(0.0);
 						Map<String, BigDecimal> getoytMaterialforGetAmount = getoytMaterialforGetAmount(
@@ -1033,9 +1036,9 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 						estimateAmountDto.setOytMaterialtotalcostwithCgstAndSgst(total_amount);
 
 						erpEstimateAmount.setTotalBalanceSupervisionAmount(
-								round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount));
+								round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount).add(minusCost));  // minus cost added on 31-03-2026 as per ankit sir
 						estimateAmountDto.setTotalamountOfSupervision(
-								round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount));
+								round11(round, 2).add(new BigDecimal(5)).add(jeLoadAmount).add(total_amount).add(minusCost));
 
 						estimateAmountRepository.save(erpEstimateAmount);
 						return estimateAmountDto;
@@ -1081,6 +1084,8 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 						erpEstimateAmount
 								.setSspTotalAmount(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()));
 
+						estimateAmountDto.setMinusCost(minusCost);
+						estimateAmountDto.setJeReturnAmount(minusCost);
 						BigDecimal total_amount = new BigDecimal(0.0);
 						Map<String, BigDecimal> getoytMaterialforGetAmount = getoytMaterialforGetAmount(
 								consumerapplication.getConsumerApplicationNo());
@@ -1096,10 +1101,10 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 
 						erpEstimateAmount.setTotalBalanceSupervisionAmount(
 								round11(round, 2).add(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()))
-										.add(total_amount));
+										.add(total_amount).add(minusCost));
 						estimateAmountDto.setTotalamountOfSupervision(
 								round11(round, 2).add(roundAmountCgstAndSgst(consumerapplication.getSspTotalAmount()))
-										.add(total_amount));
+										.add(total_amount).add(minusCost));
 
 						estimateAmountRepository.save(erpEstimateAmount);
 						return estimateAmountDto;

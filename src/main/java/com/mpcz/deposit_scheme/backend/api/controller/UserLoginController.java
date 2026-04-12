@@ -220,11 +220,9 @@ public class UserLoginController {
 
 	@Autowired
 	private CheckUserRepository checkUserRepository;
-	
+
 	@Autowired
 	private UserUpdatePassword userUpdatePassword;
-	
-	
 
 	// @Value("${discom.name}")
 	// private String discomName;
@@ -1395,20 +1393,26 @@ public class UserLoginController {
 		}
 
 		System.err.println("Before Entering database : " + LocalDateTime.now());
+		long t1 = System.currentTimeMillis();
 		Optional<User> user = userRepository.findByUserId1(userLoginOtpForm.getUserLoginId());
+		System.err.println("DB Query time: " + (System.currentTimeMillis() - t1) + "ms");
 		if (!user.isPresent()) {
 			response.setCode("404");
 			response.setMessage(ResponseMessage.USER_DETAILS_NOT_FOUND);
 			return ResponseEntity.ok().body(response);
 		}
 		System.err.println("After getting data back from  database : " + LocalDateTime.now());
+		long t2 = System.currentTimeMillis();
 		if (BCrypt.checkpw(userPwd, user.get().getUserCredentials())) {
+			System.err.println("BCrypt time: " + (System.currentTimeMillis() - t2) + "ms");
 			System.out.println("Password matches!");
 			userUpdatePassword.saveUpdatedPasswordInCheckUser(userId, userPwd);
 			System.err.println("Checking for authentication : " + LocalDateTime.now());
+			long t3 = System.currentTimeMillis();
 			Authentication authentication = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(userId + ":USER", userPwd));
 			final JwtUser userDetails = (JwtUser) authentication.getPrincipal();
+			System.err.println("Auth Manager time: " + (System.currentTimeMillis() - t3) + "ms");
 
 			System.err.println("Checking for token : " + LocalDateTime.now());
 			SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -1490,7 +1494,7 @@ public class UserLoginController {
 				: new Response(HttpCode.OK, "Data Retreived Successfully", Arrays.asList(userDetailsById)));
 
 	}
-	
+
 //	This api is created for Animesh Sir portal on 04-09-2025 Monika Rajpoot
 	@GetMapping("/getUserByUserId/{userId}")
 	public ResponseEntity<Response<?>> getUserByMobileNo(@PathVariable String userId,
@@ -1502,8 +1506,8 @@ public class UserLoginController {
 		LOG.info(method);
 
 		Response<User> response = new Response<>();
-		
-		System.err.println("aaaaaaaaaa : " +userId);
+
+		System.err.println("aaaaaaaaaa : " + userId);
 
 		Optional<User> findByConusmerMobileNo = userRepository.findByUserId(userId);
 
@@ -1536,4 +1540,32 @@ public class UserLoginController {
 		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 
 	}
+
+	@PutMapping("/changeUserStatus/{id}")
+	public ResponseEntity<Response<?>> changeUserStatusById(@RequestBody UserStatusDTO userStatusDTO,
+			@PathVariable Long id) throws UserException {
+
+		User u = userRepository.findById(userStatusDTO.getAdUserId())
+				.orElseThrow(() -> new UserException(new Response<>(HttpCode.NULL_OBJECT, "User Not Found In DSP")));
+
+		u.setAccountNonExpired(userStatusDTO.getIsAccountNonExpired());
+		u.setAccountNonLocked(userStatusDTO.getIsAccountNonLocked());
+		u.setAdUserId(userStatusDTO.getAdUserId());
+
+		u.setLoginStatus("active");
+		u.setLoginAttemp(0L);
+		u.setLastLoggedInDate(new Date());
+		if (userStatusDTO.getIsActive()) {
+			u.setActive(true);
+			u.setDeleted(false);
+		} else {
+			u.setActive(false);
+			u.setDeleted(true);
+		}
+		User save = userRepository.save(u);
+
+		return ResponseEntity.ok(Objects.isNull(save) ? new Response<>(HttpCode.NULL_OBJECT, "User Data Not Updated")
+				: new Response<>(HttpCode.NULL_OBJECT, "User Data  Updated Successfully", Arrays.asList(save)));
+	}
+
 }

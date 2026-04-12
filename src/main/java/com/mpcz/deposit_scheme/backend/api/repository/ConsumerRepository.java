@@ -43,6 +43,12 @@ public interface ConsumerRepository extends JpaRepository<Consumer, Long> {
 
 	public Consumer findByConsumerId(Long consumerId);
 
+	@Query(value="select max(IS_PARENT) from consumer", nativeQuery = true)
+	public int findMaxCount();
+
+	@Query(value="select * from consumer where consumer_id=:consumerId or child_of=:consumerId", nativeQuery = true)
+	public List<Integer> findSelfAndAllChild(Long consumerId);
+
 	
 
 }

@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ import com.mpcz.deposit_scheme.backend.api.builddesk.ViewBillUtility;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.domain.BillDeskPaymentRequest1;
+import com.mpcz.deposit_scheme.backend.api.domain.BillDeskPaymentResponse;
 import com.mpcz.deposit_scheme.backend.api.domain.CalculationOytTempOrParmanent;
 import com.mpcz.deposit_scheme.backend.api.domain.Consumer;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
@@ -32,6 +34,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.OytCalculationTempOrParma1;
 import com.mpcz.deposit_scheme.backend.api.domain.PaymentType;
 import com.mpcz.deposit_scheme.backend.api.enums.ApplicationStatusEnum;
 import com.mpcz.deposit_scheme.backend.api.exception.DistributionCenterException;
+import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.BllDeskPaymentRequestRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.CalculationOytTempOrParmanentRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
@@ -107,6 +110,10 @@ public class BillDeskPaymentServiceImpl1 implements BillDeskPaymentService {
 
 	@Autowired
 	private OytCalculationTempOrParmaRepository1 oytCalculationTempOrParmaRepository1;
+	
+	@Autowired
+	private BillPaymentResponseeeeeeeRepository billPaymentResponseeeeeeeRepository;
+	
 	
 	@Override
 	public Response<Object> prePaymentProcessingBillDesk(CustomerBillDTO billDto, List<Object> list,
@@ -309,14 +316,26 @@ public class BillDeskPaymentServiceImpl1 implements BillDeskPaymentService {
 				}
 			} else {
 				if ((findByConsumerApplicationNumber.getErpVersion() != null)
-						&& (findByConsumerApplicationNumber.getErpVersion().equals("V2"))
+						&& (findByConsumerApplicationNumber.getErpVersion().equals("V2")) 
 						&& (findByConsumerApplicationNumber.getApplicationStatus().getApplicationStatusId().compareTo(
 								ApplicationStatusEnum.REMAING_DEMAND_PAYMENT_PENDING_BY_CONSUMER.getId()) == 0)) {
 
-					ErpRev findByConsAppNo = erpRevRepository
-							.findByConsAppNo(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//					ErpRev findByConsAppNo = erpRevRepository
+//							.findByConsAppNo(findByConsumerApplicationNumber.getConsumerApplicationNo());
+					
+					List<ErpRev> findByConsAppNoDb = erpRevRepository.findByConsumerAppNo_1(findByConsumerApplicationNumber.getConsumerApplicationNo());
+					ErpRev findByConsAppNo = findByConsAppNoDb.get(0);
 					payRequest.setTxnAmount(findByConsAppNo.getPayAmt());
-					payRequest.setAdditionalInfo7("Revised_Demand_fees");
+					
+					LinkedList<BillDeskPaymentResponse> findByConsumerApplicationNoRevDemand = billPaymentResponseeeeeeeRepository.findByConsumerApplicationNoRevDemand(findByConsAppNo.getConsAppNo());
+					if(findByConsumerApplicationNoRevDemand.size()==0) {
+						payRequest.setAdditionalInfo7("Revised_Demand_fees");
+					}else {
+						Long erpVersionInApi = findByConsumerApplicationNumber.getErpVersionInApi();
+						payRequest.setAdditionalInfo7( erpVersionInApi + "_Revised_Demand_fees");
+					}
+					
+				
 
 				} else {
 

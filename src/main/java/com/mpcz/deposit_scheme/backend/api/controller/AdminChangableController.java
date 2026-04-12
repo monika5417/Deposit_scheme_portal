@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.domain.AppUpdationRemark;
@@ -44,6 +46,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.Upload;
 import com.mpcz.deposit_scheme.backend.api.domain.User;
 import com.mpcz.deposit_scheme.backend.api.dto.UpdateUser;
 import com.mpcz.deposit_scheme.backend.api.enums.ApplicationStatusEnum;
+import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
 import com.mpcz.deposit_scheme.backend.api.exception.DocumentTypeException;
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.exception.InvalidAuthenticationException;
@@ -67,6 +70,7 @@ import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.ApplicationDocumentService;
 import com.mpcz.deposit_scheme.backend.api.services.ConsumerApplicationDetailService;
 import com.mpcz.deposit_scheme.backend.api.services.UploadService;
+import com.mpcz.deposit_scheme.dryprincipalutility.DryUtility;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -832,4 +836,37 @@ public class AdminChangableController {
 		return null;
 
 	}
+
+	@Autowired
+	private DryUtility dryUtility;
+
+	@PatchMapping("/changeDescriptionOfWork")
+	public ResponseEntity<?> changeDescriptionOfWork(@RequestBody Map<String, Object> mapData)
+			throws ConsumerApplicationDetailException {
+		System.err.println("aaaaaaaaaa : " + new Gson().toJson(mapData));
+
+		if (!mapData.containsKey("consumerApplicationNo")) {
+			throw new ConsumerApplicationDetailException(
+					new Response(HttpCode.NOT_ACCEPTABLE, "consumerApplicationNo should not be null"));
+		}
+		String consumerApplicationNo = String.valueOf(mapData.get("consumerApplicationNo"));
+		String descriptionWork = mapData.get("shortDescriptionOfWork") != null
+				? String.valueOf(mapData.get("shortDescriptionOfWork"))
+				: null;
+
+		ConsumerApplicationDetail validateConsumerApplication = dryUtility
+				.validateConsumerApplication(consumerApplicationNo);
+
+		if (descriptionWork != null) {
+			validateConsumerApplication.setShortDescriptionOfWork(descriptionWork);
+		}
+
+		ConsumerApplicationDetail saveConsumerApplicationDetail = dryUtility
+				.saveConsumerApplicationDetail(validateConsumerApplication);
+		return ResponseEntity.ok(
+				Objects.isNull(saveConsumerApplicationDetail) ? new Response(HttpCode.NULL_OBJECT, "Data Not Updated")
+						: new Response(HttpCode.UPDATED, "Data Updated Successfully",Arrays.asList(saveConsumerApplicationDetail)));
+
+	}
+
 }

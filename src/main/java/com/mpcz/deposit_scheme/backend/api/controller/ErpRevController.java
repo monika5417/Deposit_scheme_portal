@@ -22,11 +22,13 @@ import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.domain.ApplicationDocument;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountData;
+import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountDataGet;
 import com.mpcz.deposit_scheme.backend.api.domain.ErpRev;
 import com.mpcz.deposit_scheme.backend.api.domain.Upload;
 import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
 import com.mpcz.deposit_scheme.backend.api.exception.DocumentTypeException;
 import com.mpcz.deposit_scheme.backend.api.repository.ApplicationDocumentRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ErpRevRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
@@ -70,6 +72,14 @@ public class ErpRevController {
 
 	@Autowired
 	private DryUtility dryUtility;
+	
+	
+	@Autowired
+	private com.mpcz.deposit_scheme.backend.api.repository.ErpEstimateAmountDataGetRepository ErpEstimateAmountDataGetRepository;
+	
+	
+	@Autowired
+	private BillPaymentResponseeeeeeeRepository BillPaymentResponseeeeeeeRepository;
 
 	private static final List<String> EXCEPTION_APPS = Arrays.asList("DS1699426487567", "DS1699253588016",
 			"DS1702298555321", "DS1701246539098", "DS1704454926731", "DS1706857590152", "DS1706004532398",
@@ -95,7 +105,7 @@ public class ErpRevController {
 			ConsumerApplicationDetail findConsumerApplicationDetailByApplicationNo = ConsumerApplicationDetailService
 					.findConsumerApplicationDetailByApplicationNo(applicationNo);
 			
-			if(findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId().equals("3L") &&
+			if(findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId().equals(3l) &&
 					findConsumerApplicationDetailByApplicationNo.getJeLoadUnitKwYaKva().equals("KW")) {
 				res.setCode("404");
 				res.setMessage("Applicationn je load unit not correct Please connect it department ");
@@ -122,24 +132,36 @@ public class ErpRevController {
 				res.setMessage("Scheme closed");
 				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
 			}
-			if (value == 2L) {
-				ErpRev byConsAppNoDB = erpRevRepository.findByConsAppNo(applicationNo);
-				if (byConsAppNoDB != null) {
-					res.setCode("406");
-					res.setMessage("Data already submitted for this application : " + applicationNo);
-					return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
-				}
+			if (value == 2L || value == 1L) {
+//				ErpRev byConsAppNoDB = erpRevRepository.findByConsAppNo(applicationNo);
+//				if (byConsAppNoDB != null) {
+//					res.setCode("406");
+//					res.setMessage("Data already submitted for this application : " + applicationNo);
+//					return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
+//				}
 
-				ErpRev newErpNoDB = erpRevRepository.findByNewErpNo(erpNo);
-				if (newErpNoDB != null) {
-					return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE,
-							"This erp no. is already associate with application no. : " + applicationNo));
+//				ErpRev newErpNoDB = erpRevRepository.findByNewErpNo(erpNo);
+//				if (newErpNoDB != null) {
+//					return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE,
+//							"This erp no. is already associate with application no. : " + applicationNo));
+//				}
+				if(findConsumerApplicationDetailByApplicationNo.getApplicationStatus().getApplicationStatusId().equals(24l)) {
+					ErpEstimateAmountDataGet findByErpNoAndConsumerApplicationNo = ErpEstimateAmountDataGetRepository.findByErpNoAndConsumerApplicationNo(erpNo,applicationNo);
+					if (findByErpNoAndConsumerApplicationNo == null) {
+						return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE,
+								"For this application, revision is allowed only with the existing (old) ERP number. Issuance of a new ERP number is not permitted.  : " + applicationNo));
+					}
 				}
+				
+				
+	
 			}
 
 			Optional<ErpEstimateAmountData> findByIdAndConsumerApplicationNoOptinaol = EstimateAmountRepository
 					.findByIdAndConsumerApplicationNo(erpNo, applicationNo);
 			if (!findByIdAndConsumerApplicationNoOptinaol.isPresent()) {
+				
+				
 
 				ResponseEntity<Response> checkErpExistOrNotForRevDemand = dryUtility
 						.checkErpExistOrNot1(erpNo,applicationNo);
@@ -160,25 +182,35 @@ public class ErpRevController {
 			
 			
 //				erp 	= erpRevService.save(erpNo, applicationNo, value);
-			
+			if (erp.getSchemeCode().equals("The ERP has not been revised yet.Please get it revised first.")) {
+				res.setCode("404");
+				res.setMessage("The ERP has not been revised yet.Please get it revised first.");
+				
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
+			}
+			if (erp.getSchemeCode().equals("Supervision amount cannot be zero")) {
+				res.setCode("404");
+				res.setMessage("Supervision can not be Zero");
+				res.setList(Arrays.asList(erp));
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
+			}
 			if (erp.getSchemeCode().equals("Scheme code not match")) {
 				res.setCode("404");
 				res.setMessage("Scheme code not match");
 				res.setList(Arrays.asList(erp));
 				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
 			}
-//			if(erp.getSchemeCode().equals("As per guidelines, dismantling cost cannot be zero or negative hence the estimate is incorrect.")){
-//				res.setMessage(erp.getSchemeCode());
-//				res.setCode("404");
-//				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
-//			}
+			if(erp.getSchemeCode().equals("As per guidelines, dismantling cost cannot be zero or negative hence the estimate is incorrect.")){
+				res.setMessage(erp.getSchemeCode());
+				res.setCode("404");
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
+			}
 			if (!erp.getSchemeCode().equals("not data show")) {
 				res.setCode("200");
 				res.setMessage("data save successfully");
 				res.setList(Arrays.asList(erp));
 				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(res);
-			} else if (erp.getSchemeCode().equals("not data show"))
-				;
+			} else if (erp.getSchemeCode().equals("not data show"));
 			res.setCode("404");
 			res.setMessage("this application of elegle type thats way amount not show");
 			res.setList(Arrays.asList(erp));

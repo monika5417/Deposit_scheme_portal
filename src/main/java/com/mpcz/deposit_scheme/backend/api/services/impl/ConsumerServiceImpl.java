@@ -5,24 +5,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
+import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.domain.CheckConsumer;
 import com.mpcz.deposit_scheme.backend.api.domain.Consumer;
-import com.mpcz.deposit_scheme.backend.api.domain.ConsumerType;
-import com.mpcz.deposit_scheme.backend.api.domain.Upload;
-import com.mpcz.deposit_scheme.backend.api.domain.User;
 import com.mpcz.deposit_scheme.backend.api.exception.ConsumerException;
 import com.mpcz.deposit_scheme.backend.api.exception.DataNotFoundException;
 import com.mpcz.deposit_scheme.backend.api.exception.DocumentTypeException;
@@ -40,7 +35,6 @@ import com.mpcz.deposit_scheme.backend.api.services.SMSDirectService;
 import com.mpcz.deposit_scheme.backend.api.services.UploadService;
 import com.mpcz.deposit_scheme.backend.api.util.MasterDataStatus;
 import com.mpcz.deposit_scheme.backend.api.utility.MessageProperties;
-import com.mpcz.deposit_scheme.backend.api.utility.Utility;
 
 @Service
 public class ConsumerServiceImpl implements ConsumerService {
@@ -160,6 +154,7 @@ public class ConsumerServiceImpl implements ConsumerService {
 			consumer.setCredentialsNonExpired(Boolean.FALSE);
 
 			consumer.setAddress(consumerSignUpForm.getAddress().trim());
+			consumer.setConsumerTypeData(consumerSignUpForm.getConsumerType());
 
 			consumerResponse = consumerRepository.save(consumer);
 			CheckConsumerRepository.save(checkConsumer);
@@ -344,4 +339,158 @@ public class ConsumerServiceImpl implements ConsumerService {
 			return MasterDataStatus.EXISTS;
 		}
 	}
+
+//	25-02-2026 mutiple consumer signup
+	@Override
+	public Consumer consumerSignUpForMutipleConsumer(ConsumerSignUpForm consumerSignUpForm)
+			throws ConsumerException, DocumentTypeException {
+
+		final String method = "ConsumerServiceImpl : saveConsumer()";
+		logger.info(method);
+
+		Response<Consumer> response = new Response<>();
+
+		Consumer consumerResponse = null;
+
+		if (Objects.isNull(consumerSignUpForm)) {
+			logger.error("Consumer object is null");
+			response.setCode(HttpCode.NULL_OBJECT);
+			response.setMessage(ResponseMessage.NULL_OBJECT_MESSAGE);
+			throw new ConsumerException(response);
+		} else {
+
+			/*********** validations start ***********************/
+
+			if (consumerSignUpForm.getConsumerName() == null || consumerSignUpForm.getConsumerName().equals("")) {
+
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Please fill Consumer Name");
+				throw new ConsumerException(response);
+			}
+
+			if (consumerSignUpForm.getConsumerEmailId() == null || consumerSignUpForm.getConsumerEmailId().equals("")) {
+
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Please fill Email Id");
+				throw new ConsumerException(response);
+			}
+
+			if (consumerSignUpForm.getConsumerMobileNo() == null
+					|| consumerSignUpForm.getConsumerMobileNo().equals("")) {
+
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Please fill Mobile No");
+				throw new ConsumerException(response);
+			}
+
+			if (consumerSignUpForm.getAddress() == null || consumerSignUpForm.getAddress().equals("")) {
+
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Please fill Address");
+				throw new ConsumerException(response);
+			}
+
+			if (consumerSignUpForm.getConsumerPassword() == null
+					|| consumerSignUpForm.getConsumerPassword().equals("")) {
+
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Please fill Password");
+				throw new ConsumerException(response);
+			}
+			if (consumerSignUpForm.getParentMobileNo() == null
+					|| consumerSignUpForm.getParentMobileNo().equals("")) {
+
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage("Please fill Parent Mobile No");
+				throw new ConsumerException(response);
+			}
+
+
+			Consumer consumerExist = consumerRepository.findByConsumerLoginId(consumerSignUpForm.getConsumerMobileNo())
+					.orElse(null);
+			if (consumerExist != null) {
+				throw new ConsumerException(
+						new Response<>(HttpCode.NOT_ACCEPTABLE, "Consumer Already Exist With This Mobile No."));
+			}
+
+			Consumer consumer = new Consumer();
+			CheckConsumer checkConsumer = new CheckConsumer();
+
+			final SMSRequest smsRequest = new SMSRequest();
+
+			String consumerPassword = consumerSignUpForm.getConsumerPassword();
+
+			checkConsumer.setConsumerNumber(consumerSignUpForm.getConsumerMobileNo());
+			checkConsumer.setCheckConsumer(consumerPassword);
+
+			smsRequest.setText(MessageFormat.format(messageProperties.getDefaultPasswordMessage(),
+					new Object[] { consumerSignUpForm.getConsumerName(), consumerPassword }));
+			smsRequest.setMobileNo(consumerSignUpForm.getConsumerMobileNo());
+			smsRequest.setTemplateId(messageProperties.getPasswordTemplateId());
+
+			final String password = PasswordUtil.getPasswordHash(consumerPassword);
+
+			consumer.setConsumerName(consumerSignUpForm.getConsumerName().trim());
+			consumer.setConsumerLoginId(consumerSignUpForm.getConsumerMobileNo().trim());
+			consumer.setConsumerMobileNo(consumerSignUpForm.getConsumerMobileNo().trim());
+			consumer.setConsumerEmailId(consumerSignUpForm.getConsumerEmailId().trim());
+			consumer.setActive(Boolean.TRUE);
+			consumer.setAccountNonExpired(Boolean.FALSE);
+			consumer.setAccountNonLocked(Boolean.FALSE);
+			consumer.setIsFirstLogin(Boolean.TRUE);
+			consumer.setCredentialsNonExpired(null);
+			consumer.setConsumerCredentials(password);
+			consumer.setLoginAttemp(0L);
+			consumer.setCreated(new Date());
+			consumer.setCreatedBy(1L);
+			consumer.setUpdated(new Date());
+			consumer.setUpdatedBy(1L);
+			consumer.setLoginStatus("NEW REGISTRATION");
+			consumer.setCredentialsNonExpired(Boolean.FALSE);
+			consumer.setAddress(consumerSignUpForm.getAddress().trim());
+			consumer.setConsumerTypeData(consumerSignUpForm.getConsumerType());
+
+			if (consumerSignUpForm.getParentMobileNo() != null) {
+
+				// Parent dhundo
+				Consumer parentConsumer = consumerRepository
+						.findByConsumerLoginId(consumerSignUpForm.getParentMobileNo())
+						.orElseThrow(() -> new ConsumerException(new Response<>(HttpCode.NULL_OBJECT,
+								"Parent Mobile No. not exist: " + consumerSignUpForm.getParentMobileNo())));
+
+				// ✅ Fix 1 — Chain prevention (Parent khud Child nahi hona chahiye)
+				if (parentConsumer.getChildOf() != null && parentConsumer.getChildOf()>0) {
+					throw new ConsumerException(new Response<>(HttpCode.NOT_ACCEPTABLE,
+							"This consumer is already a Child, cannot be used as Parent :" +parentConsumer.getConsumerMobileNo() ));
+				}
+
+				// ✅ Fix 2 — Long → Integer cast (agar childOf Integer hai entity mein)
+				consumer.setChildOf(parentConsumer.getConsumerId());
+
+				// ✅ Fix 3 — Redundant null check hataya
+				logger.info("Child consumer linked to Parent Mobile: {}", consumerSignUpForm.getParentMobileNo());
+			}
+
+			consumerResponse = consumerRepository.save(consumer);
+			CheckConsumerRepository.save(checkConsumer);
+
+			try {
+				smsDirectService.sendMessage(smsRequest);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			if (Objects.isNull(consumerResponse)) {
+				logger.error("repository.save(consumer) is returning Null");
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage(ResponseMessage.RECORD_INSERTION_FAILED_MESSAGE);
+				throw new ConsumerException(response);
+			} else {
+				System.err.println("aaaaaaaaa : " + new Gson().toJson(consumerResponse));
+				return consumerResponse;
+			}
+
+		}
+	}
+
 }

@@ -561,11 +561,13 @@ public class BillPaymentProcessController {
 
 					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
 							.equalsIgnoreCase("Supervision")) {
-						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
+						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+								|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
+										.equals(14l)) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
-						}
-						else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
+						} else if (findByConsumerApplicationNumber.getNatureOfWorkType()
+								.getNatureOfWorkTypeId() != 5L) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 						}
@@ -611,6 +613,22 @@ public class BillPaymentProcessController {
 				if (save == null) {
 //					return "data not save";
 				} else {
+					
+					if(jobObject.getString("auth_status").equals("0300")) {
+						if ("V1".equals(findByConsumerApplicationNumber.getErpVersion())
+								|| "V2".equals(findByConsumerApplicationNumber.getErpVersion())) {
+							if ("V1".equals(findByConsumerApplicationNumber.getErpVersion())) {
+								findByConsumerApplicationNumber.setErpVersionInApi(1l);
+							}	else if(findByConsumerApplicationNumber.getErpVersionInApi()!=null ){
+								Long erpVersionInApi = findByConsumerApplicationNumber.getErpVersionInApi() + 1;
+								findByConsumerApplicationNumber.setErpVersionInApi(erpVersionInApi);
+							}
+							
+						} 
+					}
+					
+				
+
 					ConsumerApplicationDetail save2 = consumerApplictionDetailRepository
 							.save(findByConsumerApplicationNumber);
 					// Code for sending data to QC portal when payment done
@@ -1712,11 +1730,13 @@ public class BillPaymentProcessController {
 
 					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
 							.equalsIgnoreCase("Supervision")) {
-						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
+						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+								|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
+										.equals(14l)) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
-						}
-						else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
+						} else if (findByConsumerApplicationNumber.getNatureOfWorkType()
+								.getNatureOfWorkTypeId() != 5L) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 						}

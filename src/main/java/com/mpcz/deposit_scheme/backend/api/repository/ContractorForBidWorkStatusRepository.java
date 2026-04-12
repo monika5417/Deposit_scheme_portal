@@ -30,6 +30,9 @@ public interface ContractorForBidWorkStatusRepository extends JpaRepository<Cont
 
 	Optional<ContractorForBidWorkStatus> findByUserId(Long userId);
 
+	@Query(value="select * from contractor_for_bid_work_status where user_id is null", nativeQuery=true)
+	List<ContractorForBidWorkStatus> getNullUserIdData();
+
 
 
 	

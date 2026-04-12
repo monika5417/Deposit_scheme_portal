@@ -66,7 +66,8 @@ public class VendorWorkOrderServiceImpl implements VendorWorkOrderService {
 				.findById(ApplicationStatusEnum.PENDING_FOR_WORK_COMPLETION.getId());
 		consumerApplicationDetail.setApplicationStatus(applicationStatus);
 		if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)
-				|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(2L)) {
+				|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(2L)
+				|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(3L)) {
 			appStatus = applicationStatusService
 					.findById(ApplicationStatusEnum.PENDING_FOR_CONTRACTOR_SELECTION_AFTER_TENDER_BY_DGM_STC.getId());
 			consumerApplicationDetail.setApplicationStatus(appStatus);

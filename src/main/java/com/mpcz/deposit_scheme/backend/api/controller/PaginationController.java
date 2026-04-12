@@ -1,7 +1,7 @@
 package com.mpcz.deposit_scheme.backend.api.controller;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -611,6 +611,105 @@ public class PaginationController {
 			} else {
 				params.put("divisionId", Long.valueOf(divisionId));
 				allDataCount = namedParameterJdbcTemplate.queryForList(byQueryName.getQueryText(), params);
+			}
+
+		}
+		response.setCode("200");
+		response.setMessage("Data found successfully");
+		response.setList(allDataCount);
+
+		return response;
+	}
+	
+	
+	
+	
+	
+	@GetMapping("/getAllApplicationByApplicationStatusByUserIdAndDC/{applicationStatusId}/{userId}/{dcId}/{divisionId}/{schemeTypeIds}")
+	public Response getAllApplicationByApplicationStatusByUserIdAndDC1(@PathVariable String applicationStatusId,
+			@PathVariable String userId, @PathVariable int dcId, @PathVariable int divisionId, @PathVariable String schemeTypeIds) {
+		Response response = new Response();
+		List<String> statusIdList = Arrays.asList(applicationStatusId.split(","));
+		System.err.println("Before entering database: " + LocalDateTime.now());
+		
+		List<String> schemeTypeId = new ArrayList<>();
+		
+		if (schemeTypeIds == null || schemeTypeIds.equalsIgnoreCase("null")) {
+		    schemeTypeId.add("1");
+		    schemeTypeId.add("2");
+		} else {
+			schemeTypeId = Arrays.asList(schemeTypeIds.split(","));
+		}
+
+		System.err.println("aaaaaaaaaaaaaaaa : " +new Gson().toJson(schemeTypeId));
+		System.err.println("Before entering database: " + LocalDateTime.now());
+		Map<String, Object> usersByUserID = userRepository.findUsersByUserID(userId);
+		System.err.println(new Gson().toJson(usersByUserID));
+		Object accessLevel = usersByUserID.get("ACCESS_LEVEL");
+
+		List<Map<String, Object>> allDataCount = null;
+
+		if (dcId == 0 && divisionId == 0) {
+			if (accessLevel.equals("1")) {
+
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						1l, filterDTO.getRegionId(), filterDTO.getCircleId(), filterDTO.getDivisionId(),
+						filterDTO.getSubDivisionId(), filterDTO.getDcId(),schemeTypeId);
+			} else if (accessLevel.equals("2")) {
+
+				Object object1 = usersByUserID.get("REGION_ID");
+
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						filterDTO.getDiscomId(), Long.valueOf(object1.toString()), filterDTO.getCircleId(),
+						filterDTO.getDivisionId(), filterDTO.getSubDivisionId(), filterDTO.getDcId(),schemeTypeId);
+			} else if (accessLevel.equals("3")) {
+
+				Object object1 = usersByUserID.get("CIRCLE_ID");
+
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						filterDTO.getDiscomId(), filterDTO.getRegionId(), Long.valueOf(object1.toString()),
+						filterDTO.getDivisionId(), filterDTO.getSubDivisionId(), filterDTO.getDcId(),schemeTypeId);
+			} else if (accessLevel.equals("4")) {
+
+				Object object1 = usersByUserID.get("DIV_ID");
+
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						filterDTO.getDiscomId(), filterDTO.getRegionId(), filterDTO.getCircleId(),
+						Long.valueOf(object1.toString()), filterDTO.getSubDivisionId(), filterDTO.getDcId(),schemeTypeId);
+				System.out.println("" + new Gson().toJson(allDataCount));
+			} else if (accessLevel.equals("5")) {
+
+				Object object1 = usersByUserID.get("SUB_DIVISION_ID");
+
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						filterDTO.getDiscomId(), filterDTO.getRegionId(), filterDTO.getCircleId(),
+						filterDTO.getDivisionId(), Long.valueOf(object1.toString()), filterDTO.getDcId(),schemeTypeId);
+			} else if (accessLevel.equals("6")) {
+
+				Object object1 = usersByUserID.get("DISTRIBUTION_CENTER_ID");
+
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						filterDTO.getDiscomId(), filterDTO.getRegionId(), filterDTO.getCircleId(),
+						filterDTO.getDivisionId(), filterDTO.getSubDivisionId(), Long.valueOf(object1.toString()),schemeTypeId);
+			}
+		} else {
+
+			if (dcId != 0) {
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						filterDTO.getDiscomId(), filterDTO.getRegionId(), filterDTO.getCircleId(),
+						filterDTO.getDivisionId(), filterDTO.getSubDivisionId(), Long.valueOf(dcId),schemeTypeId);
+			} else {
+				ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+				allDataCount = consumerApplicationDetailRepository.getAllApplicationByApplicationStatusWithSchemeTypeId(statusIdList,
+						filterDTO.getDiscomId(), filterDTO.getRegionId(), filterDTO.getCircleId(),
+						Long.valueOf(divisionId), filterDTO.getSubDivisionId(), filterDTO.getDcId(),schemeTypeId);
 			}
 
 		}

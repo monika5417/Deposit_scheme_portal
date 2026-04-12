@@ -27,6 +27,8 @@ import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.constant.RestApiUrl;
 import com.mpcz.deposit_scheme.backend.api.domain.Consumer;
+import com.mpcz.deposit_scheme.backend.api.exception.ConsumerException;
+import com.mpcz.deposit_scheme.backend.api.exception.DocumentTypeException;
 import com.mpcz.deposit_scheme.backend.api.exception.FormValidationException;
 import com.mpcz.deposit_scheme.backend.api.request.ConsumerSignUpForm;
 import com.mpcz.deposit_scheme.backend.api.request.ErrorDetails;
@@ -130,6 +132,52 @@ public class ConsumerSignupController {
 //		consumer.setConsumerCredentials(password);
 
 //		smsDirectService.sendMessage(smsRequest);
+
+		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+	}
+	
+	
+	
+	
+//	CONSUMER SIGNUP PAGE FOR PARENT AND CHILD APPLICATION CONSUMER 25-02-2026
+	
+	@PostMapping("/v2/consumerSignUp")
+	public ResponseEntity<Response<?>> consumerSignUpForMutipleConsumer(
+			@RequestBody @Valid ConsumerSignUpForm consumerSignUpForm,
+			BindingResult bindingResult) throws ConsumerException, DocumentTypeException, FormValidationException, Exception {
+
+		System.out.println("consumerSignUp !!!!!");
+
+		final String method = RestApiUrl.CONSUMER_SIGNUP_API + RestApiUrl.SIGNUP_URL + " : consumerSignUp()";
+		LOG.info(method);
+
+		Response<Consumer> response = new Response<>();
+
+		if (bindingResult.hasErrors()) {
+			List<ErrorDetails> errorList = new ArrayList<ErrorDetails>();
+
+			bindingResult.getFieldErrors().stream().forEach(f -> {
+
+				ErrorDetails error = new ErrorDetails(new Date(), f.getDefaultMessage(),
+						f.getField() + ":" + f.getDefaultMessage());
+				errorList.add(error);
+			});
+			
+			response = new Response<>();
+			response.setMessage(ResponseMessage.FORM_VALIDATION_ERROR);
+			response.setCode(ResponseCode.FORM_VALIDATION_ERROR);
+			response.setError(errorList);
+			throw new FormValidationException(response);
+		} 
+		
+		Consumer consumer = null;
+		
+			consumer = consumerService.consumerSignUpForMutipleConsumer(consumerSignUpForm);
+		
+
+		response.setList(Arrays.asList(consumer));
+		response.setCode(HttpCode.CREATED);
+		response.setMessage("Record Inserted Successfully");
 
 		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 	}

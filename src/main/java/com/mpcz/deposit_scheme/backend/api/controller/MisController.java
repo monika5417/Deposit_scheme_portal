@@ -21,9 +21,12 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +41,7 @@ import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.domain.DynamicQuery;
 import com.mpcz.deposit_scheme.backend.api.exception.ConsumerApplicationDetailException;
+import com.mpcz.deposit_scheme.backend.api.exception.DynamicQueryException;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.DynamicQueryRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
@@ -312,5 +316,95 @@ public class MisController {
 		workbook.write(response.getOutputStream());
 		workbook.close();
 	}
+
+	@GetMapping("/fetchRecords/{tableName}/{propertyName}/{consumerApplicationNo}")
+	public ResponseEntity<?> fetchRecords(@PathVariable String tableName, @PathVariable String consumerApplicationNo,
+			@PathVariable String propertyName) {
+
+//		List<Map<String, Object>> fetchRecords = dynamicQueryRepository.fetchRecords(tableName,propertyName,consumerApplicationNo);
+		String query = buildQuery(tableName, propertyName, consumerApplicationNo);
+
+		// Set parameters
+
+		// Execute query
+		List<Map<String, Object>> queryForList = namedParameterJdbcTemplate.queryForList(query, new HashMap<>());
+		return ResponseEntity.ok(queryForList.isEmpty() ? new Response<>(HttpCode.NULL_OBJECT, "Data Not Found")
+				: new Response<>(HttpCode.OK, "Data Retrived Succssfully", queryForList));
+	}
+
+	private String buildQuery(String tableName, String propertyName, String consumerApplicationNo) {
+		return String
+				.format("SELECT * FROM " + tableName + " WHERE " + propertyName + "= '" + consumerApplicationNo + "'");
+	}
+
+	@PostMapping("/changeDynamicQuery")
+	public ResponseEntity<?> changeDynamicQuery(@RequestBody Map<String, String> map) throws DynamicQueryException {
+
+		if (!map.containsKey("queryName")) {
+			throw new DynamicQueryException(new Response<>(HttpCode.NOT_ACCEPTABLE, "Query Name should not be null"));
+		}
+		System.err.println("xxxxxxxxxxxxx : " + new Gson().toJson(map));
+		System.err.println("aaaaaaaaaa : " + map.get("queryName"));
+
+		DynamicQuery dynamicQuery = dynamicQueryRepository.findByQueryNameData(map.get("queryName")).orElse(null);
+
+		if (dynamicQuery != null) {
+			// ✅ Use named parameters to prevent SQL injection
+			String updateQuery = "UPDATE DYNAMIC_QUERIES SET QUERY_TEXT = :queryText WHERE QUERY_NAME = :queryName";
+
+			MapSqlParameterSource params = new MapSqlParameterSource().addValue("queryText", map.get("queryText"))
+					.addValue("queryName", map.get("queryName"));
+
+			// ✅ Use update() for DML — returns number of rows affected
+			int rowsAffected = namedParameterJdbcTemplate.update(updateQuery, params);
+
+			return ResponseEntity.ok(rowsAffected == 0 ? new Response<>(HttpCode.NULL_OBJECT, "Query Not Updated")
+					: new Response<>(HttpCode.OK, "Query Updated Successfully", Arrays.asList(rowsAffected)));
+		} else {
+			DynamicQuery dynamic = new DynamicQuery();
+			dynamic.setIsActive(1);
+			dynamic.setQueryName(map.get("queryName"));
+			dynamic.setQueryText(map.get("queryText"));
+			dynamic.setParamKeys(map.getOrDefault("paramsKey", ""));
+
+			System.err.println("dynamic data to save : " + new Gson().toJson(dynamic));
+
+			DynamicQuery save = dynamicQueryRepository.save(dynamic);
+			return ResponseEntity.ok(Objects.isNull(save) ? new Response<>(HttpCode.NULL_OBJECT, "Data Not Saved")
+					: new Response<>(HttpCode.CREATED, "Data Created Successfully", Arrays.asList(save)));
+		}
+	}
+
+//	@Value("${spring.profiles.active}")
+//	private String env;
+//
+////	@PreAuthorize("hasRole('ADMIN')")
+//	@GetMapping("/sqlExecutableQueries")
+//	public ResponseEntity<?> sqlExecutableQueries(@RequestParam String sqlQuery) {
+//
+//		String query = sqlQuery.trim().toLowerCase();
+//		if ("prod".equals(env)) {
+//			return ResponseEntity.status(403).body("This API is disabled in this environment");
+//		}
+//		if (query.contains("drop") || query.contains("truncate") || query.contains("alter")) {
+//			return ResponseEntity.badRequest().body("Dangerous query not allowed");
+//		}
+//		if (query.startsWith("select")) {
+//
+//			List<Map<String, Object>> result = namedParameterJdbcTemplate.queryForList(sqlQuery, new HashMap<>());
+//
+//			return ResponseEntity.ok(result);
+//
+//		} else if (query.startsWith("update") || query.startsWith("insert") || query.startsWith("delete")) {
+//
+//			int rows = namedParameterJdbcTemplate.update(sqlQuery, new HashMap<>());
+//
+//			return ResponseEntity.ok("Rows affected: " + rows);
+//
+//		} else {
+//
+//			return ResponseEntity.badRequest().body("Only SELECT/INSERT/UPDATE/DELETE allowed");
+//		}
+//	}
 
 }

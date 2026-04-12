@@ -2,15 +2,21 @@ package com.mpcz.deposit_scheme.backend.api.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "DYNAMIC_QUERIES")
 public class DynamicQuery {
 
-    @Id
+	@Id
+	@SequenceGenerator(name = "DYNAMIC_QUERIES_SEQ", sequenceName = "DYNAMIC_QUERIES_SEQ", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DYNAMIC_QUERIES_SEQ")
+	@Column(name="ID")
     private Long id;
 
     @Column(name = "QUERY_NAME")

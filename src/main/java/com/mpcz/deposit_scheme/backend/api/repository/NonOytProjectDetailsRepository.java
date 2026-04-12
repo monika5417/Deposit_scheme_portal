@@ -3,6 +3,9 @@
  */
 package com.mpcz.deposit_scheme.backend.api.repository;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.mpcz.deposit_scheme.backend.api.domain.NonOytProjectDetails;
@@ -14,5 +17,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.NonOytProjectDetails;
  */
 
 public interface NonOytProjectDetailsRepository extends JpaRepository<NonOytProjectDetails, Long> {
+	
+
 
 }

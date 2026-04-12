@@ -31,6 +31,19 @@ public interface ApplicationDocumentRepository extends JpaRepository<Application
 	public ApplicationDocument findByconsumerApplicationDetail_consumer(
 			@Param("consumerID") Long consumerID);
 
+
+	@Query(value = "SELECT DOCUMENT_PATH \r\n"
+			+ "FROM (\r\n"
+			+ "    select up.DOCUMENT_PATH \r\n"
+			+ "    from application_document ad \r\n"
+			+ "    left join upload up \r\n"
+			+ "    on ad.DOC_DEMAND_NOTE_FILE = up.UPLOAD_ID \r\n"
+			+ "    where consumer_application_id = :consumerApplicationId \r\n"
+			+ "    order by APPLICATION_DOCUMENT_ID desc\r\n"
+			+ ") \r\n"
+			+ "WHERE ROWNUM = 1", nativeQuery = true)
+	public String findLatestDocument(Long consumerApplicationId);
+
 	
 
 

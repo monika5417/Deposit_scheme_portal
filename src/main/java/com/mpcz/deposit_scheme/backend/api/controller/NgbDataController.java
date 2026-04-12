@@ -229,7 +229,7 @@ public class NgbDataController {
 		Response res = new Response();
 		try {
 
-			String apiUrl = "http://isampark.mpcz.in/UrjasApi/UrjasApi.aspx?api=1&var=" + iSamparkCode;
+			String apiUrl = "https://isampark.mpcz.in/UrjasApi/UrjasApi.aspx?api=1&var=" + iSamparkCode;
 
 			System.out.println("apiUrl : " + apiUrl);
 			HttpHeaders headers = new HttpHeaders();
@@ -267,7 +267,7 @@ public class NgbDataController {
 		Response res = new Response();
 		try {
 
-			String apiUrl = "http://isampark.mpcz.in/UrjasApi/UrjasApi.aspx?api=0&var=" + feederCode;
+			String apiUrl = "https://isampark.mpcz.in/UrjasApi/UrjasApi.aspx?api=0&var=" + feederCode;
 
 			System.out.println("apiUrl : " + apiUrl);
 			HttpHeaders headers = new HttpHeaders();

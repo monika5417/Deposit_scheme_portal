@@ -1,6 +1,7 @@
 package com.mpcz.deposit_scheme.backend.api.dto;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.Data;
 
@@ -20,6 +21,21 @@ public @Data class ConsumerApplicationDetailsFilterDTO implements Serializable {
 	Long dcId = 0l;
 	
 	Long consumerId=0l;
+	
+	
+//	commented above id code for multiple user check code 26-02-2026
+	List<Long> consumerIds;
+	
+
+	
+
+	public List<Long> getConsumerIds() {
+		return consumerIds;
+	}
+
+	public void setConsumerIds(List<Long> consumerIds) {
+		this.consumerIds = consumerIds;
+	}
 
 	public String getUserLoginId() {
 		return userLoginId;

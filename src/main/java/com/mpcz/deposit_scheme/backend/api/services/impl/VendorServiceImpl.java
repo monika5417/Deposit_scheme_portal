@@ -105,8 +105,8 @@ public class VendorServiceImpl implements VendorService {
 
 		logger.info("Response is returning successfully");
 
-		if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() != 22 &&
-				consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() != 24) {
+		if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() != 22
+				&& consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() != 24) {
 			response.setCode(HttpCode.NULL_OBJECT);
 			response.setMessage("You are not authorize to call this api at this stage of application status");
 			throw new ConsumerApplicationDetailException(response);
@@ -130,7 +130,8 @@ public class VendorServiceImpl implements VendorService {
 
 			if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22
 					&& (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)
-							|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(2L))) {
+							|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(2L)
+							|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(3L))) {
 
 				ContractorForBidWorkStatus contractorForBidWorkStatus = new ContractorForBidWorkStatus();
 				contractorForBidWorkStatus.setConsumerApplicationNumber(vendorRejectionForm.getConsumerApplicationNo());
@@ -173,6 +174,12 @@ public class VendorServiceImpl implements VendorService {
 				if (!findByConsumerApplicationNoDemand.isEmpty()) {
 					appStatusDb = applicationStatusService
 							.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+				} else if (consumerApplicationDetail.getContractorReselctionStatus() != null
+						&& consumerApplicationDetail.getContractorReselctionStatus() <= 12L) {
+					appStatusDb = applicationStatusService
+							.findById(consumerApplicationDetail.getContractorReselctionStatus());
+
+					System.err.println("aaaaaaaaaaaaaaa : " + appStatusDb);
 				} else {
 					appStatusDb = applicationStatusService
 							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());
@@ -180,8 +187,10 @@ public class VendorServiceImpl implements VendorService {
 				}
 
 				consumerApplicationDetail.setApplicationStatus(appStatusDb);
-
-			} else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22 && (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) ||consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l))) {
+				consumerApplicationDetail.setContractorReselctionStatus(null);
+			} else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22
+					&& (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+							|| consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l))) {
 //			charitra Prajapati
 				ContractorForBidWorkStatus contractorForBidWorkStatus = new ContractorForBidWorkStatus();
 				contractorForBidWorkStatus.setConsumerApplicationNumber(vendorRejectionForm.getConsumerApplicationNo());
@@ -200,10 +209,26 @@ public class VendorServiceImpl implements VendorService {
 
 				// consumerApplicationDetail.setIsRejected(Boolean.FALSE);
 
-				appStatusDb = applicationStatusService.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId());
+				LinkedList<BillDeskPaymentResponse> findByConsumerApplicationNoDemand = billPaymentResponseeeeeeeRepository
+						.findByConsumerApplicationNoDemand(vendorRejectionForm.getConsumerApplicationNo());
+
+				if (!findByConsumerApplicationNoDemand.isEmpty()) {
+					appStatusDb = applicationStatusService
+							.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
+				} else if (consumerApplicationDetail.getContractorReselctionStatus() != null
+						&& consumerApplicationDetail.getContractorReselctionStatus() <= 12L) {
+					appStatusDb = applicationStatusService
+							.findById(consumerApplicationDetail.getContractorReselctionStatus());
+
+					System.err.println("aaaaaaaaaaaaaaa : " + appStatusDb);
+				} else {
+					appStatusDb = applicationStatusService
+							.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId());
+
+				}
 				consumerApplicationDetail.setApplicationStatus(appStatusDb);
-			}
-			else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22) {
+				consumerApplicationDetail.setContractorReselctionStatus(null);
+			} else if (consumerApplicationDetail.getApplicationStatus().getApplicationStatusId() == 22) {
 
 				// Monika code start
 				ContractorForBidWorkStatus contractorForBidWorkStatus = new ContractorForBidWorkStatus();
@@ -238,7 +263,8 @@ public class VendorServiceImpl implements VendorService {
 
 				contractorForBidWorkStatusRepository.save(findByConsumerApplicationNumber);
 				if (consumerApplicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(8L)
-						|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(2L)) {
+						|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(2L)
+						|| consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(3L)) {
 
 					appStatusDb = applicationStatusService.findById(
 							ApplicationStatusEnum.PENDING_FOR_CONFIRMATION_OF_WORK_COMPLETION_BY_DGM_STC.getId());

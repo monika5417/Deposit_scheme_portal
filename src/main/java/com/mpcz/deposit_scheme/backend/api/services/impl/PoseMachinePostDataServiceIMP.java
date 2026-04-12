@@ -111,9 +111,10 @@ public class PoseMachinePostDataServiceIMP implements PoseMachinePostDataService
 								&& save.getPaymentType().equals("Registration_Fees"))) {
 
 					if (findByConsumerApplicationNumber.getAdminStatusChangedTo() != null
-							&& findByConsumerApplicationNumber.getAdminStatusChangedTo().equals(5l)) { // added this check for
-																								// government case
-																								// 17-12-2025
+							&& findByConsumerApplicationNumber.getAdminStatusChangedTo().equals(5l)) { // added this
+																										// check for
+						// government case
+						// 17-12-2025
 						appStatusDb = applicationStatusService
 								.findById(ApplicationStatusEnum.PENDING_FOR_DEMAND_NOTE_APPROVAL_AT_DGM.getId());
 					} else {
@@ -147,11 +148,13 @@ public class PoseMachinePostDataServiceIMP implements PoseMachinePostDataService
 					} else if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeName()
 							.equalsIgnoreCase("Supervision")) {
 
-						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
+						if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+								|| findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId()
+										.equals(14l)) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId());
-						}
-						else if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() != 5L) {
+						} else if (findByConsumerApplicationNumber.getNatureOfWorkType()
+								.getNatureOfWorkTypeId() != 5L) {
 							appStatusDb = applicationStatusService
 									.findById(ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId());
 						}
@@ -270,6 +273,7 @@ public class PoseMachinePostDataServiceIMP implements PoseMachinePostDataService
 		PoseMachinePostData byApplicationNumber = poseMachinePostDataRepository
 				.findByApplicationNumber(consumerApplicationNo);
 		if (byApplicationNumber != null) {
+			byApplicationNumber.setConsumerName(byConsumerApplicationNumber.getConsumerName());
 			response.setCode(HttpCode.OK);
 			response.setMessage("Data found in Pose Machine");
 			response.setList(Arrays.asList(byApplicationNumber));
@@ -277,6 +281,7 @@ public class PoseMachinePostDataServiceIMP implements PoseMachinePostDataService
 			ManualPayment demandDataFromManualPayment = manualPaymentRepository
 					.getDemandDataFromManualPayment(consumerApplicationNo);
 			if (demandDataFromManualPayment != null) {
+				demandDataFromManualPayment.setConsumerName(byConsumerApplicationNumber.getConsumerName());
 				response.setCode(HttpCode.OK);
 				response.setMessage("Data found in Manual Payment");
 				response.setList(Arrays.asList(demandDataFromManualPayment));

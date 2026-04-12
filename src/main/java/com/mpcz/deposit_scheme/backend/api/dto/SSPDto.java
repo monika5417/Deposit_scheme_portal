@@ -43,17 +43,32 @@ public class SSPDto {
 //	live code date 
 	private Integer isOyt =1;
 	
+	private String isBpl;
+	private String isShramik;
+	
+//	15-04-2026
+	private String dateOfPayment;
+	private String tranasactionNumber;
 	
 	
 	
 	
 
-	private String isBpl;
-	private String isShramik;
-	
-	
-	
-	
+	public String getDateOfPayment() {
+		return dateOfPayment;
+	}
+
+	public void setDateOfPayment(String dateOfPayment) {
+		this.dateOfPayment = dateOfPayment;
+	}
+
+	public String getTranasactionNumber() {
+		return tranasactionNumber;
+	}
+
+	public void setTranasactionNumber(String tranasactionNumber) {
+		this.tranasactionNumber = tranasactionNumber;
+	}
 
 	public String getIsBpl() {
 		return isBpl;

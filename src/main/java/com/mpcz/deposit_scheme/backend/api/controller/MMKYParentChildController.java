@@ -713,7 +713,7 @@ public class MMKYParentChildController {
 
 //	 for new sms sending testing
 
-	@GetMapping("/sendSms")
+//	@GetMapping("/sendSms")
 	public ResponseEntity<?> sendSms() {
 		final SMSRequest smsRequest = new SMSRequest();
 
@@ -753,5 +753,33 @@ public class MMKYParentChildController {
 	public void deleteMkyPayAmountErpData(String consumerApplicationNo) {
 		mmkyPayAmountRespository.deleteByConsumerApplicationNo(consumerApplicationNo);
 	}
+	
+	@GetMapping("/sendSms")
+	public ResponseEntity<?> sendSms1() {
+		final SMSRequest smsRequest = new SMSRequest();
+
+		String application = "SV32948982349";		
+
+//			For English Message
+		smsRequest.setText(MessageFormat.format(messageProperties.getMessageServeyouAccepetByDc(),
+				new Object[] { application, application }));
+		smsRequest.setMobileNo("9806204737");
+		smsRequest.setTemplateId(messageProperties.getMessageServeyorAccepetByDcTemplatedId());
+
+		try {
+			String sendMessage = smsDirectService.sendMessage(smsRequest);
+			System.out.println("sendMessage  : " + sendMessage);
+//				if (!sendMessage.equalsIgnoreCase(null)) {
+//					M.setMsgSend("Send");
+//					mmkyPayAmountRespository.save(M);
+//				}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+
 
 }

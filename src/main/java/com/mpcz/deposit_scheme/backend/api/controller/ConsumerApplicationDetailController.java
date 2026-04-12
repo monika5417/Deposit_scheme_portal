@@ -64,6 +64,7 @@ import com.mpcz.deposit_scheme.backend.api.domain.LandAreaUnit;
 import com.mpcz.deposit_scheme.backend.api.domain.LoadRequested;
 import com.mpcz.deposit_scheme.backend.api.domain.NatureOfWork;
 import com.mpcz.deposit_scheme.backend.api.domain.OytSamagraListData;
+import com.mpcz.deposit_scheme.backend.api.domain.ProjectEstimate;
 import com.mpcz.deposit_scheme.backend.api.domain.PurposeType;
 import com.mpcz.deposit_scheme.backend.api.domain.SamagraList;
 import com.mpcz.deposit_scheme.backend.api.domain.SchemeType;
@@ -104,6 +105,7 @@ import com.mpcz.deposit_scheme.backend.api.repository.LandAreaUnitRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.LoadRequestedRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.NatureOfWorkRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.OytSamagraListDataRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.ProjectEstimateRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.PurposeTypeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.SamagraListRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.SchemeTypeRepository;
@@ -115,6 +117,7 @@ import com.mpcz.deposit_scheme.backend.api.request.ConsumerApplicationDetailForm
 import com.mpcz.deposit_scheme.backend.api.request.ErrorDetails;
 import com.mpcz.deposit_scheme.backend.api.request.SMSRequest;
 import com.mpcz.deposit_scheme.backend.api.response.PageConsumerApplicationDetailDTO;
+import com.mpcz.deposit_scheme.backend.api.response.ProjectEstimateApiResponse;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.ConsumerApplicationDetailService;
 import com.mpcz.deposit_scheme.backend.api.services.ConsumerService;
@@ -2841,7 +2844,8 @@ public class ConsumerApplicationDetailController {
 		}
 
 		Long statusId = applicationDetail.getApplicationStatus().getApplicationStatusId();
-		if (statusId == 22 || statusId == 23 || statusId == 24) {
+		if (statusId == 22 || statusId == 23 || statusId == 24 || statusId == 5 || statusId == 6 || statusId == 7
+				|| statusId == 9 || statusId == 12) {
 			if (gmAccepted) {
 				ContractorForBid byApplicationNo = contractorForBidRepository
 						.findByApplicationNo(consumerApplicationNumber);
@@ -2854,14 +2858,11 @@ public class ConsumerApplicationDetailController {
 				if (byConsumerApplicationNo != null) {
 					contractorForBidWorkStatusRepository.delete(byConsumerApplicationNo);
 				}
-//				List<VendorWorkOrder> workOrder = vendorWorkOrderRepository
-//						.findByConsumerApplicationNo(consumerApplicationNumber);
-//				if (workOrder != null) {
-//					for (VendorWorkOrder wOrder : workOrder)
-//						vendorWorkOrderRepository.delete(wOrder);
-//				}
-				vendorWorkOrderRepository.findByConsumerApplicationNo(consumerApplicationNumber)
-						.forEach(vendorWorkOrderRepository::delete);
+
+				if (applicationDetail.getSchemeType().getSchemeTypeId() != 2l) {
+					vendorWorkOrderRepository.findByConsumerApplicationNo(consumerApplicationNumber)
+							.forEach(vendorWorkOrderRepository::delete);
+				}
 				Long newStatusId = applicationDetail.getSchemeType().getSchemeTypeId().equals(1L)
 						? ApplicationStatusEnum.PENDING_FOR_SELECTING_CONTRACTOR.getId()
 						: ApplicationStatusEnum.PENDING_FOR_CONTRACTOR_SELECTION_AFTER_TENDER_BY_DGM_STC.getId();
@@ -2896,6 +2897,7 @@ public class ConsumerApplicationDetailController {
 				applicationDetail.setConReselectionDgmAccepted("true");
 				applicationDetail.setConReselectionDGMOANDMName(conReselectionDGMOANDMName);
 				applicationDetail.setConReselectionRemark(conReselectionRemark);
+				applicationDetail.setContractorReselctionStatus(statusId);
 
 				ConsumerApplicationDetail savedDetail = consumerApplicationDetailRepository.save(applicationDetail);
 				response.setCode("200");
@@ -3458,8 +3460,10 @@ public class ConsumerApplicationDetailController {
 
 						|| (SchemeCode.equals("SCCW")
 								&& findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 5l)
+						|| (SchemeCode.equals("Regulatory Connections Service")
+								&& !findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(3L)))
 
-				) {
+				{
 
 					response.setCode(HttpCode.NULL_OBJECT);
 					response.setMessage("Scheme code not match");
@@ -3478,8 +3482,18 @@ public class ConsumerApplicationDetailController {
 
 //			code end
 				findByConsumerApplicationNumber.setErpWorkFlowNumber(erpNumber);
-				findByConsumerApplicationNumber.setApplicationStatus(applicationStatusRepository
-						.findById(ApplicationStatusEnum.PENDING_FOR_DEMAND_NOTE_APPROVAL_AT_DGM.getId()).get());
+
+				if (findByConsumerApplicationNumber.getSchemeType().getSchemeTypeId().equals(3l)) { // Added this status
+																									// for new Scheme
+																									// Type Id
+																									// 23-03-2026
+					findByConsumerApplicationNumber.setApplicationStatus(applicationStatusRepository
+							.findById(ApplicationStatusEnum.PENDING_AT_DGM_END_FOR_DEMAND_NOTE_AND_WORK_ORDER.getId())
+							.get());
+				} else {
+					findByConsumerApplicationNumber.setApplicationStatus(applicationStatusRepository
+							.findById(ApplicationStatusEnum.PENDING_FOR_DEMAND_NOTE_APPROVAL_AT_DGM.getId()).get());
+				}
 				consumerApplicationDetailRepository.save(findByConsumerApplicationNumber);
 				response.setCode(HttpCode.OK);
 				response.setMessage("Consumer Application Update");
@@ -3495,11 +3509,12 @@ public class ConsumerApplicationDetailController {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			return ResponseEntity.ok(new Response("500", e.getMessage()));
 		}
 
-		response.setCode(HttpCode.OK);
-		response.setMessage("Application Revert To Demand Note Payment");
-		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+//		response.setCode(HttpCode.OK);
+//		response.setMessage("Application Revert To Demand Note Payment");
+//		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 
 	}
 
@@ -3898,6 +3913,76 @@ public class ConsumerApplicationDetailController {
 				.saveConsumerApplicationDetail(validateConsumerApplication);
 		return ResponseEntity.ok(new Response<>(HttpCode.UPDATED, "Data Updated Successfully",
 				Arrays.asList(saveConsumerApplicationDetail)));
+	}
+
+	@GetMapping("/v2/getAllPaginate")
+	public ResponseEntity<Response<?>> getAllConsumerApplicationPaginationForMultipleConsumer(
+			@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size,
+			HttpServletResponse httpServletResponse)
+			throws FormValidationException, InvalidAuthenticationException, ConsumerApplicationDetailException {
+
+		System.out.println("getAllConsumerApplicationPagination !!!!!");
+
+		final String method = RestApiUrl.CONSUMER_APPLICATION_DETAIL_API + RestApiUrl.GET_ALL_PAGINATE_URL
+				+ " : getAllConsumerApplicationPagination()";
+		LOG.info(method);
+
+		Response<PageConsumerApplicationDetailDTO> response = new Response<>();
+
+		String consumerLoginId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+		System.out.println(consumerLoginId);
+		ConsumerApplicationDetailsFilterDTO filterDTO = new ConsumerApplicationDetailsFilterDTO();
+
+		filterDTO.setConsumerLoginId(consumerLoginId);
+
+		response = consumerApplicationDetailService.findAllConsumerApplicationDetailPaginationForMultipleUser(page,
+				size, filterDTO);
+
+		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+
+	}
+
+	@PostMapping("/surevyDetailsForNdScheme")
+	public ResponseEntity<?> surevyDetailsForNdScheme(@RequestBody Map<String, Object> map)
+			throws ConsumerApplicationDetailException {
+		if (map.get("consumerApplicationNo") == null) {
+			throw new ConsumerApplicationDetailException(
+					new Response(HttpCode.NULL_OBJECT, "consumer application no. should not be null"));
+		}
+		Object kv11Line = map.get("kv11LineDistance");
+		Object LtLineDistance = map.get("ltLineDistance");
+		Object dtrRequired = map.get("dtrRequired");
+		ConsumerApplicationDetail validateConsumerApplication = dryUtility
+				.validateConsumerApplication(String.valueOf(map.get("consumerApplicationNo")));
+		validateConsumerApplication.setKv11LineDistance(Long.parseLong(kv11Line.toString()));
+		validateConsumerApplication.setLtLineDistance(Long.parseLong(LtLineDistance.toString()));
+		validateConsumerApplication.setDtrRequired(dtrRequired.toString());
+		ConsumerApplicationDetail saveConsumerApplicationDetail = dryUtility
+				.saveConsumerApplicationDetail(validateConsumerApplication);
+		return ResponseEntity.ok(
+				Objects.isNull(saveConsumerApplicationDetail) ? new Response<>(HttpCode.NULL_OBJECT, "Data Not Updated")
+						: new Response<>(HttpCode.UPDATED, "Data Updated Successfully",
+								Arrays.asList(saveConsumerApplicationDetail)));
+	}
+
+	@Autowired
+	private ProjectEstimateRepository projectEstimateRepository;
+
+	@GetMapping("/getProjectEstimateDataByErpNo/{erpNo}")
+	public ProjectEstimateApiResponse getProjectEstimateDataByErpNo(@PathVariable String erpNo) {
+		ProjectEstimateApiResponse projectEstimateApiResponse = new ProjectEstimateApiResponse();
+		ProjectEstimate byProjectNumber = projectEstimateRepository.findByProjectNumber(erpNo);
+		if (byProjectNumber != null) {
+			projectEstimateApiResponse.setData(Arrays.asList(byProjectNumber));
+			projectEstimateApiResponse.setStatusCode("200");
+			projectEstimateApiResponse.setMessage("Approved Estimate found successfully");
+			return projectEstimateApiResponse;
+		} else {
+			projectEstimateApiResponse.setStatusCode("404");
+			projectEstimateApiResponse.setMessage("Data Not Found");
+			return projectEstimateApiResponse;
+		}
 	}
 
 }

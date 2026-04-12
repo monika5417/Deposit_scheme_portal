@@ -211,6 +211,56 @@ public class SMSDirectServiceImpl implements SMSDirectService {
 	
 //	code start for sms sending by monika on 30-august-2024
 	
+//	public String sendMessage(SMSRequest smsRequest) {
+//
+//		SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
+//		Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.mpcz.in", 8080));
+//		clientHttpReq.setProxy(proxy);
+//
+//		RestTemplate restTemplate = new RestTemplate(clientHttpReq);
+//
+//		try {
+//
+//			String smsUrl = "https://api.pinnacle.in/index.php/sms/urlsms";
+//			String sender = "CCMPCZ";
+//			String responseDltId = "Y&dltentityid=1201158039515302745";
+////			String apiKey = "886160-f84fbe-ff3044-2d993k-5311f6";
+//			String apiKey = "210d59-4684c1-525x69-0e1352-5fde17";
+//
+//			String encodedMessage = URLEncoder.encode(smsRequest.getText(), "UTF-8");
+//
+//			if (smsRequest.getHinglish()==null) {
+//
+////			            	For english 
+//
+//				String url = smsUrl + "?sender=" + sender + "&numbers=" + smsRequest.getMobileNo() + "&messagetype="
+//						+ "TXT" + "&message=" + encodedMessage + "&response=" + responseDltId + "&apikey=" + apiKey
+//						+ "&dlttempid=" + smsRequest.getTemplateId();
+//
+//				ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//				return response.getBody();
+//
+//			} else {         //For hindi
+//				String url = smsUrl + "?sender=" + sender + "&numbers=" + smsRequest.getMobileNo() + "&messagetype="
+//						+ "UNI" + "&message=" + encodedMessage + "&response=" + responseDltId + "&apikey=" + apiKey
+//						+ "&dlttempid=" + smsRequest.getTemplateId();
+//
+//				ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//				return response.getBody();
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return "Error occurred while sending SMS: " + e.getMessage();
+//		}
+//
+//	}
+	
+//	code end for sms sending by monika on 30-august-2024
+	
+	
+	
+//	new message api implemented on 09-04-2026
 	public String sendMessage(SMSRequest smsRequest) {
 
 		SimpleClientHttpRequestFactory clientHttpReq = new SimpleClientHttpRequestFactory();
@@ -221,32 +271,31 @@ public class SMSDirectServiceImpl implements SMSDirectService {
 
 		try {
 
-			String smsUrl = "https://api.pinnacle.in/index.php/sms/urlsms";
-			String sender = "CCMPCZ";
-			String responseDltId = "Y&dltentityid=1201158039515302745";
-//			String apiKey = "886160-f84fbe-ff3044-2d993k-5311f6";
-			String apiKey = "210d59-4684c1-525x69-0e1352-5fde17";
+			String smsUrl = "https://msg.cerfgs.com/pushapi/sendmsg";
+			String sender = "MPMKVVCL_ERP";
+			String entityid = "1201158039515302745";
+			String apiKey = "rw7g17n0HsI5To0xhfKd6wX8OKY8OqYS";
+			String signature = "CCMPCZ";
 
 			String encodedMessage = URLEncoder.encode(smsRequest.getText(), "UTF-8");
 
 			if (smsRequest.getHinglish()==null) {
+				String url = smsUrl + "?username=" + sender + "&dest=" + smsRequest.getMobileNo() + "&apikey=" + apiKey + 
+						"&signature="+ signature +"&msgtype=PM" + "&msgtxt=" + smsRequest.getText() + "&entityid=" + entityid 
+						+ "&templateid=" + smsRequest.getTemplateId();
 
-//			            	For english 
-
-				String url = smsUrl + "?sender=" + sender + "&numbers=" + smsRequest.getMobileNo() + "&messagetype="
-						+ "TXT" + "&message=" + encodedMessage + "&response=" + responseDltId + "&apikey=" + apiKey
-						+ "&dlttempid=" + smsRequest.getTemplateId();
-
+				System.err.println("aaaaaaaaaaaa : " +url);
 				ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 				return response.getBody();
 
 			} else {         //For hindi
-				String url = smsUrl + "?sender=" + sender + "&numbers=" + smsRequest.getMobileNo() + "&messagetype="
-						+ "UNI" + "&message=" + encodedMessage + "&response=" + responseDltId + "&apikey=" + apiKey
-						+ "&dlttempid=" + smsRequest.getTemplateId();
-
-				ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-				return response.getBody();
+//				String url = smsUrl + "?sender=" + sender + "&numbers=" + smsRequest.getMobileNo() + "&messagetype="
+//						+ "UNI" + "&message=" + encodedMessage + "&response=" + responseDltId + "&apikey=" + apiKey
+//						+ "&dlttempid=" + smsRequest.getTemplateId();
+//
+//				ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//				return response.getBody();
+				return null;
 			}
 
 		} catch (Exception e) {
@@ -256,6 +305,6 @@ public class SMSDirectServiceImpl implements SMSDirectService {
 
 	}
 	
-//	code end for sms sending by monika on 30-august-2024
 
 }
+ 

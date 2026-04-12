@@ -38,6 +38,7 @@ import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.ApplicationStatusService;
 import com.mpcz.deposit_scheme.backend.api.services.ConsumerApplicationDetailService;
 import com.mpcz.deposit_scheme.backend.api.services.WorkCompletionChangStautsByDgmOAndMService;
+import com.mpcz.deposit_scheme.feignClient.SSPFeignClientAPI;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,6 +70,9 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 	@Autowired
 	private PoseMachinePostDataRepository poseMachinePostDataRepository;
 
+	@Autowired
+	private SSPFeignClientAPI sSPFeignClientAPI;
+
 	private static final Logger log = LoggerFactory.getLogger(WorkCompletionChangStautsByDgmOAndMServiceIMp.class);
 
 	@Override
@@ -89,8 +93,40 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 				if (workCompletionChangStautsByDgmOAndM.getWorkComplationChangedByDgmOrendum()
 						.equalsIgnoreCase("false")) {
 					if (applicationDetail.getIvrsNo() == null) {
-						applicationStatus = applicationStatusService.findById(
-								ApplicationStatusEnum.WORK_FINISHED_NOW_PENDING_FOR_CONNECTION_PUNCHING.getId());
+						// added this check for new scheme 09-04-2026
+						if (applicationDetail.getSchemeType().getSchemeTypeId().equals(3L)) {
+							applicationStatus = applicationStatusService
+									.findById(ApplicationStatusEnum.WORK_FINISED.getId());
+							applicationDetail.setApplicationStatus(applicationStatus);
+							Map<String, Object> map = new HashMap<>();
+							map.put("applicationNumber", applicationDetail.getNscApplicationNo());
+							map.put("dspApplicationNo", applicationDetail.getConsumerApplicationNo());
+							map.put("dspStatus", "Work Completed");
+							map.put("workStatus", applicationDetail.getApplicationStatus().getApplicationStatusId());
+							ResponseEntity<?> sendNDSchemeDataToSSP = sSPFeignClientAPI.sendNDSchemeDataToSSP(map);
+							System.err.println("aaaaaaaaaaaaaaaaaa : " + new Gson().toJson(sendNDSchemeDataToSSP));
+							JSONObject responseJson = new JSONObject(sendNDSchemeDataToSSP.getBody());
+
+							// Extract the message and statusCode
+							try {
+//								String message = responseJson.getString("message");
+								int statusCode = responseJson.getInt("statusCode");
+								if (statusCode == 200) {
+									DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+									String formattedDate = LocalDateTime.now().format(formatter);
+									applicationDetail.setSspApplicationCompleted("true");
+									applicationDetail.setSspApplicationCompleteDate(formattedDate);
+									consumerApplictionDetailRepository.save(applicationDetail);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							// added this check for new scheme 09-04-2026
+						} else {
+							applicationStatus = applicationStatusService.findById(
+									ApplicationStatusEnum.WORK_FINISHED_NOW_PENDING_FOR_CONNECTION_PUNCHING.getId());
+						}
+
 					} else {
 						applicationStatus = applicationStatusService
 								.findById(ApplicationStatusEnum.CONNECTION_GRANTED_SUCCESSFULLY.getId());
@@ -109,38 +145,13 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 							: BigDecimal.ZERO;
 
 					System.err.println("bbbbbbbbbbbbbbb : " + securityDeposit);
-
-					if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 2L
-							&& Objects.nonNull(erpDataDB.getSspTotalAmount())
-							&& erpDataDB.getSspTotalAmount().compareTo(BigDecimal.ZERO) >= 0) {
-						String sendDataToSSp = sendDataToSSp1(applicationDetail);
-						System.err.println("sendDataToSSp : " + sendDataToSSp);
-//			end
-						if ("Success".equals(sendDataToSSp)) {
-							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-							String formattedDate = LocalDateTime.now().format(formatter);
-							applicationDetail.setSspApplicationCompleted("true");
-							applicationDetail.setSspApplicationCompleteDate(formattedDate);
-							consumerApplictionDetailRepository.save(applicationDetail);
-						} else {
-							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-							String formattedDate = LocalDateTime.now().format(formatter);
-							applicationDetail.setSspApplicationCompleteDate(formattedDate);
-							applicationDetail.setSspApplicationCompleted(sendDataToSSp);
-							consumerApplictionDetailRepository.save(applicationDetail);
-						}
-					} else {
-//					02-05-2025 added the above check for oyt application
-						if (applicationDetail.getSspApplicationCompleteDate() == null
-								&& securityDeposit.compareTo(BigDecimal.ZERO) <= 0 && !applicationDetail
-										.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
-//				String sendDataToSSp = sendDataToSSp(saveConsumerApplicationDB.getNscApplicationNo(), 32L,
-//								applicationDetail.getConsumerApplicationNo());
-
-//						//		given line is new code 19-05-2025 commented due to production early deployment
+					if (!applicationDetail.getSchemeType().getSchemeTypeId().equals(3l)) {
+						if (applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId() == 2L
+								&& Objects.nonNull(erpDataDB.getSspTotalAmount())
+								&& erpDataDB.getSspTotalAmount().compareTo(BigDecimal.ZERO) >= 0) {
 							String sendDataToSSp = sendDataToSSp1(applicationDetail);
 							System.err.println("sendDataToSSp : " + sendDataToSSp);
-//				end
+//			end
 							if ("Success".equals(sendDataToSSp)) {
 								DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 								String formattedDate = LocalDateTime.now().format(formatter);
@@ -153,6 +164,32 @@ public class WorkCompletionChangStautsByDgmOAndMServiceIMp implements WorkComple
 								applicationDetail.setSspApplicationCompleteDate(formattedDate);
 								applicationDetail.setSspApplicationCompleted(sendDataToSSp);
 								consumerApplictionDetailRepository.save(applicationDetail);
+							}
+						} else {
+//					02-05-2025 added the above check for oyt application
+							if (applicationDetail.getSspApplicationCompleteDate() == null
+									&& securityDeposit.compareTo(BigDecimal.ZERO) <= 0
+									&& !applicationDetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)) {
+//				String sendDataToSSp = sendDataToSSp(saveConsumerApplicationDB.getNscApplicationNo(), 32L,
+//								applicationDetail.getConsumerApplicationNo());
+
+//						//		given line is new code 19-05-2025 commented due to production early deployment
+								String sendDataToSSp = sendDataToSSp1(applicationDetail);
+								System.err.println("sendDataToSSp : " + sendDataToSSp);
+//				end
+								if ("Success".equals(sendDataToSSp)) {
+									DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+									String formattedDate = LocalDateTime.now().format(formatter);
+									applicationDetail.setSspApplicationCompleted("true");
+									applicationDetail.setSspApplicationCompleteDate(formattedDate);
+									consumerApplictionDetailRepository.save(applicationDetail);
+								} else {
+									DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+									String formattedDate = LocalDateTime.now().format(formatter);
+									applicationDetail.setSspApplicationCompleteDate(formattedDate);
+									applicationDetail.setSspApplicationCompleted(sendDataToSSp);
+									consumerApplictionDetailRepository.save(applicationDetail);
+								}
 							}
 						}
 					}

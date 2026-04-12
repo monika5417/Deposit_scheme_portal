@@ -146,4 +146,11 @@ public interface ConsumerApplicationDetailService {
 	public Response updateMKMYDocument(MultipartFile samagraFile, MultipartFile khasraFile,
 			String consumerApplicationNo) throws DocumentTypeException;
 
+//	mulitple user method 26-02-2026
+	public Response<PageConsumerApplicationDetailDTO> findAllConsumerApplicationDetailPaginationForMultipleUser(Integer page,
+			Integer size, ConsumerApplicationDetailsFilterDTO filterDTO) throws ConsumerApplicationDetailException;
+	
+	public Page<ConsumerApplicationDetail> findConsumerApplicationDetailPaginateForMultipleUser(Integer page, Integer size,
+			ConsumerApplicationDetailsFilterDTO filterDTO) throws ConsumerApplicationDetailException ;
+	
 }

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -311,6 +312,38 @@ public class ErpSurveyEstimationDetailController {
 
 	private double roundTo3Decimal(double value) {
 		return Math.round(value * 1000.0) / 1000.0;
+	}
+
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+	@GetMapping("/fetchRecordsBasedOnMapData")
+	public ResponseEntity<?> fetchRecordsBasedOnMapData(@RequestBody Map<String, String> mapData)
+			throws ConsumerApplicationDetailException {
+		String consumerApplicationNo = mapData.get("consumerApplicationNo");
+		String property1 = mapData.get("property1");
+		String property2 = mapData.get("property2");
+		
+		if (consumerApplicationNo == null || property1 == null || property2 == null) {
+			String cantNull = "";
+			if (consumerApplicationNo == null) {
+				cantNull = "consumerApplicationNo";
+			} else if (property1 == null) {
+				cantNull = "property1";
+			} else {
+				cantNull = "property2";
+			}
+			throw new ConsumerApplicationDetailException(
+					new Response<>(HttpCode.NULL_OBJECT, cantNull + " can not be"));
+		}
+
+		String query = "SELECT * FROM " + property1 + " WHERE " + property2 + " = '" + consumerApplicationNo + "'";
+	
+		List<Map<String, Object>> queryForList = namedParameterJdbcTemplate.queryForList(query, new HashMap<>());
+		return ResponseEntity.ok(queryForList.isEmpty() && queryForList == null
+				? new Response<>(HttpCode.NULL_OBJECT, "Data Not Found For The Given Application No.")
+				: new Response<>(HttpCode.OK, "Data Retrived Successfully", queryForList));
+
 	}
 
 }

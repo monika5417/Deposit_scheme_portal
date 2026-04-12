@@ -11,58 +11,71 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name = "POSE_MACHINE_D")
 public class PoseMachinePostData {
-	
+
 	@Id
 	@SequenceGenerator(name = "POSE_MACHINE_D_SEQ", sequenceName = "POSE_MACHINE_D_SEQ", allocationSize = 1)
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "POSE_MACHINE_D_SEQ")
 	@Column(name = "ID", columnDefinition = "serial", updatable = false)
-	private long id; 
-	
-	@Column(name="APPLICATION_NUMBWER")
+	private long id;
+
+	@Column(name = "APPLICATION_NUMBWER")
 	private String applicationNumber;
-	
-	@Column(name="LOCATION_CODE")
-    private String locationCode;
-	
-	@Column(name="TXN_AMOUNT")
-    private BigDecimal txnAmount; // Transaction Amount
-	
-	@Column(name="MR_NO")
-    private String mrNo; // Money Receipt No
-	
-	@Column(name="DEVICE_ID")
-    private String deviceId; // 20 Char
-	
+
+	@Column(name = "LOCATION_CODE")
+	private String locationCode;
+
+	@Column(name = "TXN_AMOUNT")
+	private BigDecimal txnAmount; // Transaction Amount
+
+	@Column(name = "MR_NO")
+	private String mrNo; // Money Receipt No
+
+	@Column(name = "DEVICE_ID")
+	private String deviceId; // 20 Char
+
 //	@Column(name="")
 //    private String userId; // MobileNo ,15 Char
-	
-	@Column(name="DATE_OF_PAYMENT")
-    private Date dateOfPayment; // 1 Now Push this Date in NGB
-	
-	@Column(name="CASH_ACCEPTED_DATE")
-    private Date cashAcceptedDate;// 2 Ignore this Date to push in NGB
-	
-	@Column(name="PAYMENT_MODE")
-    private String paymentMode; // Cash or DD
-	
-	@Column(name="BANK_NAME")
-    private String bankName; // Bank Name if( paymentMode = DD )
-	
-	@Column(name="INSTRUMENT_NO")
-    private String instrumentNo; // DDNo if( paymentMode = DD )
-	
-	@Column(name="INSTRUNENT_DATE")
-    private Date instrumentDate; // DD Date if( paymentMode = DD )
-	
-	@Column(name="PAYMENT_TYPE")
+
+	@Column(name = "DATE_OF_PAYMENT")
+	private Date dateOfPayment; // 1 Now Push this Date in NGB
+
+	@Column(name = "CASH_ACCEPTED_DATE")
+	private Date cashAcceptedDate;// 2 Ignore this Date to push in NGB
+
+	@Column(name = "PAYMENT_MODE")
+	private String paymentMode; // Cash or DD
+
+	@Column(name = "BANK_NAME")
+	private String bankName; // Bank Name if( paymentMode = DD )
+
+	@Column(name = "INSTRUMENT_NO")
+	private String instrumentNo; // DDNo if( paymentMode = DD )
+
+	@Column(name = "INSTRUNENT_DATE")
+	private Date instrumentDate; // DD Date if( paymentMode = DD )
+
+	@Column(name = "PAYMENT_TYPE")
 	private String paymentType;
+
+	@Transient
+	private String consumerName;
 
 	
 	
+	
+	public String getConsumerName() {
+		return consumerName;
+	}
+
+	public void setConsumerName(String consumerName) {
+		this.consumerName = consumerName;
+	}
+
 	public String getPaymentType() {
 		return paymentType;
 	}
@@ -119,8 +132,6 @@ public class PoseMachinePostData {
 		this.deviceId = deviceId;
 	}
 
-
-
 	public String getPaymentMode() {
 		return paymentMode;
 	}
@@ -168,7 +179,5 @@ public class PoseMachinePostData {
 	public void setInstrumentDate(Date instrumentDate) {
 		this.instrumentDate = instrumentDate;
 	}
-
-	
 
 }

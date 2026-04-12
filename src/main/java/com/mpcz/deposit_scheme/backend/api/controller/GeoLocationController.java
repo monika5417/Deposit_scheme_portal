@@ -78,7 +78,7 @@ public class GeoLocationController {
 
 		final String method = RestApiUrl.GEO_TYPE_API + RestApiUrl.ADD_URL + " : addLocation()";
 		System.out.println(geoLocationForm.toString());
-		System.out.println(geoLocationForm.getFile().getOriginalFilename());
+//		System.out.println(geoLocationForm.getFile().getOriginalFilename());
 		
 		
 		LOG.info(method);

@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.domain.ApplicationStatus;
-import com.mpcz.deposit_scheme.backend.api.domain.Consumer;
 import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
 import com.mpcz.deposit_scheme.backend.api.domain.ContractorForBidWorkStatus;
 import com.mpcz.deposit_scheme.backend.api.domain.VendorAddMaterial;
@@ -264,6 +264,86 @@ public class VendorAddMaterialController {
 		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 
 	}
+
 	
 	
+//	calling same api with two different type of HTTP method 07-04-2026
+	@RequestMapping(value = "/addAndGetMaterial", method = { RequestMethod.GET, RequestMethod.POST })
+//	@Transactional
+	public ResponseEntity<?> addAndGetMaterial(@RequestBody VendorAddMaterial vendorAddMaterial,
+			HttpServletRequest request) throws VendorAddMaterialException, ConsumerApplicationDetailException {
+		Response response = new Response();
+		VendorAddMaterial savedVendor = null;
+		if (vendorAddMaterial.getConsumerApplicationNumber() == null
+				|| vendorAddMaterial.getConsumerApplicationNumber().equals("")) {
+
+			response.setCode(HttpCode.NULL_OBJECT);
+			response.setMessage("Please Fill Consumer Application Number");
+			throw new VendorAddMaterialException(response);
+
+		}
+
+		if ("GET".equals(request.getMethod())) {
+			List<VendorAddMaterial> byConsumerApplicationNumber = vendorAddMaterialRepository
+					.findByConsumerApplicationNumber(vendorAddMaterial.getConsumerApplicationNumber());
+			return ResponseEntity.ok(new Response<>(HttpCode.OK, "data found", byConsumerApplicationNumber));
+		} else if ("POST".equals(request.getMethod())) {
+			ConsumerApplicationDetail consumerAppObject = consumerApplictionDetailRepository
+					.findByConsumerApplicationNumber(vendorAddMaterial.getConsumerApplicationNumber());
+
+			if (consumerAppObject == null) {
+				response.setCode(HttpCode.NULL_OBJECT);
+				response.setMessage(
+						"Consumer Application Number not found in database. Kindly provide the correct application number");
+				throw new ConsumerApplicationDetailException(response);
+			}
+
+			if (consumerAppObject.getSchemeType().getSchemeTypeId().equals(1L)) {
+				ContractorForBidWorkStatus findByConsumerApplicationNo = contractorForBidWorkStatusRepository
+						.findByUniqueConsumerApplicationNo(vendorAddMaterial.getConsumerApplicationNumber());
+				if (findByConsumerApplicationNo == null) {
+					response.setCode(HttpCode.NULL_OBJECT);
+					response.setMessage("Consumer Application Number not found in Contractor For Bid Work Status");
+					throw new ConsumerApplicationDetailException(response);
+				}
+
+				if (findByConsumerApplicationNo.getActualWorkCompletionDate() != null
+						&& !findByConsumerApplicationNo.getActualWorkCompletionDate().equals("None")) {
+//				 consumerAppObject = entityManager.merge(consumerAppObject);
+					savedVendor = vendorAddMaterialRepository.save(vendorAddMaterial);
+
+					if (savedVendor.getMaterialInstallationDate() != null) {
+
+						if (consumerAppObject.getApplicationStatus().getApplicationStatusId() == 24) {
+
+							ApplicationStatus appStatusDb = applicationStatusService.findById(
+									ApplicationStatusEnum.PENDING_FOR_CONFIRMATION_OF_WORK_COMPLETION_BY_DGM_STC
+											.getId());
+							consumerAppObject.setApplicationStatus(appStatusDb);
+
+							consumerApplictionDetailRepository.save(consumerAppObject);
+						}
+
+					}
+				} else {
+					response.setCode("404");
+					response.setMessage("Actual Date Not Submitted By Contractor");
+					return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+				}
+				response.setCode("200");
+				response.setMessage("Application Saved Successfully");
+				response.setList(Arrays.asList(savedVendor));
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+			} else {
+				response.setCode("406");
+				response.setMessage(
+						"Data can not be submitted because the application not belongs to Supervision cases");
+				return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
+			}
+		} else {
+			return ResponseEntity.ok(new Response(HttpCode.NOT_ACCEPTABLE, "Not a valid Request Method"));
+		}
+
+	}
+
 }

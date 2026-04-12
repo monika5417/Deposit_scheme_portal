@@ -42,7 +42,6 @@ public @Data class Consumer extends Auditable<Long> {
 
 	@Column(name = "CONSUMER_MOBILE_NO")
 	private String consumerMobileNo;
-	
 
 	@Column(name = "IVRS_NO")
 	private String ivrsNo;
@@ -107,14 +106,39 @@ public @Data class Consumer extends Auditable<Long> {
 	@OneToOne
 	@JoinColumn(name = "DOC_PAN_ID", referencedColumnName = "UPLOAD_ID")
 	private Upload docPan;
-	
+
 	@Transient
 	private String dspApplicationNo;
-	
+
 	@Transient
 	private String sspApplicationNo;
+
+	@Column(name = "CONSUMER_TYPE")
+	private String consumerTypeData;
+
+//	25-02-2026 multiple consumer signup
+//	@Column(name = "IS_PARENT")
+//	private Integer isParent;
 	
-	
+	@Column(name = "CHILD_OF")
+	private Long childOf;
+
+
+	public Long getChildOf() {
+		return childOf == null ? 0 : childOf;
+	}
+
+	public void setChildOf(Long childOf) {
+		this.childOf = childOf;
+	}
+
+	public String getConsumerTypeData() {
+		return consumerTypeData;
+	}
+
+	public void setConsumerTypeData(String consumerTypeData) {
+		this.consumerTypeData = consumerTypeData;
+	}
 
 	public String getDspApplicationNo() {
 		return dspApplicationNo;
@@ -311,6 +335,5 @@ public @Data class Consumer extends Auditable<Long> {
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
-	
-	
+
 }

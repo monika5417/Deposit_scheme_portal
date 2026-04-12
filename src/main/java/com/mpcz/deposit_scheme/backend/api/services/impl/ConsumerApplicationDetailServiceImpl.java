@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,13 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
@@ -42,14 +41,12 @@ import com.mpcz.deposit_scheme.backend.api.domain.LandAreaUnit;
 import com.mpcz.deposit_scheme.backend.api.domain.LoadRequested;
 import com.mpcz.deposit_scheme.backend.api.domain.NatureOfWork;
 import com.mpcz.deposit_scheme.backend.api.domain.RejectProposalApplicationStatusHis;
-import com.mpcz.deposit_scheme.backend.api.domain.Role;
 import com.mpcz.deposit_scheme.backend.api.domain.SchemeType;
 import com.mpcz.deposit_scheme.backend.api.domain.SupplyVoltage;
 import com.mpcz.deposit_scheme.backend.api.domain.Upload;
 import com.mpcz.deposit_scheme.backend.api.domain.User;
 import com.mpcz.deposit_scheme.backend.api.domain.WorkType;
 import com.mpcz.deposit_scheme.backend.api.dto.ConsumerApplicationDetailsFilterDTO;
-import com.mpcz.deposit_scheme.backend.api.dto.ErpEstimateCalculatedDto;
 import com.mpcz.deposit_scheme.backend.api.dto.GeoPendingStatusConsmersListResponse;
 import com.mpcz.deposit_scheme.backend.api.enums.ApplicationStatusEnum;
 import com.mpcz.deposit_scheme.backend.api.enums.VendorEnum;
@@ -64,7 +61,6 @@ import com.mpcz.deposit_scheme.backend.api.exception.GeoLocationException;
 import com.mpcz.deposit_scheme.backend.api.exception.NatureOfWorkException;
 import com.mpcz.deposit_scheme.backend.api.exception.PaymentTypeException;
 import com.mpcz.deposit_scheme.backend.api.exception.SMSDirectServiceException;
-import com.mpcz.deposit_scheme.backend.api.exception.SchemeTypeException;
 import com.mpcz.deposit_scheme.backend.api.exception.SupplyVoltageException;
 import com.mpcz.deposit_scheme.backend.api.exception.TariffCategoryException;
 import com.mpcz.deposit_scheme.backend.api.exception.TaskTypeException;
@@ -73,6 +69,7 @@ import com.mpcz.deposit_scheme.backend.api.repository.ApplicationStatusRepositor
 import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplicationSurveyRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
+import com.mpcz.deposit_scheme.backend.api.repository.ConsumerRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.DivisionRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.RejectProposalApplicationStatusHisRepository;
@@ -240,6 +237,9 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	private ConsumerRepository consumerRepository;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -1437,10 +1437,11 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			MultipartFile docNazul, MultipartFile docMap, MultipartFile docKhasraKhatoni,
 			MultipartFile docMapCivilEngineer, MultipartFile docApplicationConsent, MultipartFile docPerforma5A,
 			MultipartFile docPerforma5B, MultipartFile docPlotAreaDetailsWithOwner, MultipartFile docIndividualOrGroup,
-			MultipartFile docAdministrative, Long id, MultipartFile docGst,MultipartFile consentletter) throws ConsumerApplicationDetailException,
-			DocumentTypeException, ConsumerApplicationSurveyException, SMSDirectServiceException, PaymentTypeException,
-			ApplicationHeadChargesException, ApplicationDocumentException, SupplyVoltageException,
-			TariffCategoryException, TaskTypeException, NatureOfWorkException {
+			MultipartFile docAdministrative, Long id, MultipartFile docGst, MultipartFile consentletter)
+			throws ConsumerApplicationDetailException, DocumentTypeException, ConsumerApplicationSurveyException,
+			SMSDirectServiceException, PaymentTypeException, ApplicationHeadChargesException,
+			ApplicationDocumentException, SupplyVoltageException, TariffCategoryException, TaskTypeException,
+			NatureOfWorkException {
 		// TODO Auto-generated method stub
 
 		final String method = "ConsumerApplicationDetailServiceImpl : updateConsumerApplicationDetail()";
@@ -1492,7 +1493,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		Upload plotAreaDetailsWithOwnerUpload = null;
 		Upload docAdministrativeUpload = null;
 		Upload docGstUpload = null;
-		Upload docconsentletter =null;
+		Upload docconsentletter = null;
 
 		/*********** validations start ***********************/
 
@@ -1599,8 +1600,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 					throw new ConsumerApplicationDetailException(response);
 				}
 
-			}
-			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(13l) == 0)) {
+			} else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(13l) == 0)) {
 
 				if (consentletter == null) {
 					response.setCode(HttpCode.NULL_OBJECT);
@@ -1613,8 +1613,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		}
 
 		/*********** validations ends ************************/
-		
-		if(consentletter!=null){
+
+		if (consentletter != null) {
 			docconsentletter = uploadService.uploadFile(consentletter, "CONSENT_LETTER");
 			if (registryUpload == null) {
 				response.setCode(HttpCode.NULL_OBJECT);
@@ -2145,7 +2145,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 //				added code start for release erp no. when application is going to Reject 2-jan-2025
 				String deleteRejectedApplication = deleteRejectedApplication(
-						consumerApplicationDetail.getErpWorkFlowNumber(),consumerApplicationDetail.getConsumerApplicationNo());
+						consumerApplicationDetail.getErpWorkFlowNumber(),
+						consumerApplicationDetail.getConsumerApplicationNo());
 				System.err.println("deleteRejectedApplication : " + deleteRejectedApplication);
 				if (deleteRejectedApplication.equals("ERP No. can be deleted")) {
 					deletErp(consumerApplicationDetail.getErpWorkFlowNumber());
@@ -2223,9 +2224,12 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 			consumerApplicationDetail.setJeLoad(jeLoad);
 			consumerApplicationDetail.setJeLoadUnitKwYaKva(jeLoadUnitKwYaKva);
-			if (consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(1l)) {
+			if (consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(1l)) { 
 				consumerApplicationDetail.setGoodMaterialOrnot(0);
-			} else {
+			} else if(consumerApplicationDetail.getSchemeType().getSchemeTypeId().equals(2l)) {// added this condition as per ankit sir Deposit case me by default Good material jana chahiye 23-03-2026
+				consumerApplicationDetail.setGoodMaterialOrnot(1);
+			}
+			else  {
 				consumerApplicationDetail.setGoodMaterialOrnot(goodMaterialOrNot);
 			}
 
@@ -2596,7 +2600,7 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			MultipartFile docT$cpPermission, MultipartFile docReraPermission, MultipartFile docNoc,
 			MultipartFile docKhasraKhatoni, MultipartFile docIndividualOrGroup, MultipartFile docAdministrative,
 			Long id, MultipartFile docGst, MultipartFile docEnergyBill, MultipartFile docSamagraFile,
-			MultipartFile docLoadSheet, MultipartFile docMap,MultipartFile docconsentletter)
+			MultipartFile docLoadSheet, MultipartFile docMap, MultipartFile docconsentletter)
 			throws ConsumerApplicationDetailException, DocumentTypeException, ApplicationDocumentException {
 
 		Response response = new Response();
@@ -2638,6 +2642,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 					.findByNatureOfWorkId(consumerApplicationDetailForm.getNatureOfWorkTypeId());
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new ConsumerApplicationDetailException(
+					new Response<>(HttpCode.NOT_ACCEPTABLE, "Nature of work id should not be null"));
 		}
 
 		if (natureOfWorkdb != null) {
@@ -2661,6 +2667,16 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 //				this is for NSC 
 			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(2l) == 0)) {
 
+			}
+
+			else if ((consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13l))
+					|| (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14l))) {
+				if (consumerApplicationDetailForm.getSupplyVoltageId() == null
+						|| consumerApplicationDetailForm.getSupplyVoltageId().isEmpty()) {
+					response.setCode(HttpCode.NULL_OBJECT);
+					response.setMessage("Please fill Supply Voltage details");
+					throw new ConsumerApplicationDetailException(response);
+				}
 			}
 //				this is for colony eletrification  legal
 			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(3l) == 0)) {
@@ -2742,7 +2758,9 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			}
 
 			// this is for OYT
-			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(5l) == 0) || (natureOfWorkdb.getNatureOfWorkTypeId().compareTo(13l) == 0) || (natureOfWorkdb.getNatureOfWorkTypeId().compareTo(14l) == 0) ) {
+			else if ((natureOfWorkdb.getNatureOfWorkTypeId().compareTo(5l) == 0)
+					|| (natureOfWorkdb.getNatureOfWorkTypeId().compareTo(13l) == 0)
+					|| (natureOfWorkdb.getNatureOfWorkTypeId().compareTo(14l) == 0)) {
 
 				if (docKhasraKhatoni == null) {
 					response.setCode(HttpCode.NULL_OBJECT);
@@ -2781,15 +2799,15 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 					response.setMessage("Please fill khatoni number");
 					throw new ConsumerApplicationDetailException(response);
 				}
-				
-				if((consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13l)) || consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14l) ) {
+
+				if ((consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13l))
+						|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14l)) {
 					if (docconsentletter == null) {
 						response.setCode(HttpCode.NULL_OBJECT);
 						response.setMessage("Please upload consentletter document");
 						throw new ConsumerApplicationDetailException(response);
 					}
 				}
-					
 
 			}
 
@@ -2829,9 +2847,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 
 		}
 
-		
 		/*********** validations ends ************************/
-		
+
 		if (docconsentletter != null) {
 			docconsentletterUpload = uploadService.uploadFile(docconsentletter, "CONSENT_LETTER");
 			if (docconsentletterUpload == null) {
@@ -3017,7 +3034,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		}
 
 		if (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(1L)
-				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(7L) ||  consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13L) 
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(7L)
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13L)
 				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14L)) {
 			if (consumerApplicationDetailForm.getIvrsNo() != null
 					&& !consumerApplicationDetailForm.getIvrsNo().equals("")) {
@@ -3092,7 +3110,9 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 			consumerAppdetail.setColonyLegalSelectionType(null);
 		}
 
-		if ((consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(5L)) || (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13L)) || (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14L))) {
+		if ((consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(5L))
+				|| (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13L))
+				|| (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14L))) {
 
 			if (consumerApplicationDetailForm.getSamagraId() != null) {
 				consumerAppdetail.setSamagraId(consumerApplicationDetailForm.getSamagraId());
@@ -3134,7 +3154,10 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		}
 //		special check start in the condition of NSC application
 		if (consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(1L)
-				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(6L)) {
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(6L)
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(12L)
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(13L)
+				|| consumerApplicationDetailForm.getNatureOfWorkTypeId().equals(14L)) {
 			if (consumerApplicationDetailForm.getSupplyVoltageId() != null) {
 				for (Long s : consumerApplicationDetailForm.getSupplyVoltageId()) {
 					System.out.println("************************************************++++++ ========" + s);
@@ -3215,27 +3238,80 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		}
 
 //		25-september-2024
-		if (consumerAppdetail.getNscApplicationNo() != null
-				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(3L)) {
-			consumerAppdetail.setApplicationStatus(
-					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
-		} else if (consumerAppdetail.getNscApplicationNo() != null
-				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(4L)) {
-			consumerAppdetail.setApplicationStatus(
-					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
-		}else if (consumerAppdetail.getNatureOfWorkType().equals(5l) && consumerAppdetail.getNscApplicationNo()==null) {
-			consumerAppdetail.setApplicationStatus(
-					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
-		}else if (consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l) || consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l) ) {
-			consumerAppdetail.setApplicationStatus(
-					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
-		}
-		else {
-			consumerAppdetail.setApplicationStatus(applicationStatusRepository
-					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId()).get());
-
-		}
+//		if (consumerAppdetail.getNscApplicationNo() != null
+//				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(3L)) {
+//			consumerAppdetail.setApplicationStatus(
+//					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
+//		} else if (consumerAppdetail.getNscApplicationNo() != null
+//				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(4L)) {
+//			consumerAppdetail.setApplicationStatus(
+//					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
+//		} else if ((consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
+//				&& consumerAppdetail.getNscApplicationNo() == null)
+//				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(3l)) {
+//			consumerAppdetail.setApplicationStatus(
+//					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
+//		} else if ((consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+//				|| consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l))
+//				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(3l)) {
+//			consumerAppdetail.setApplicationStatus(
+//					applicationStatusRepository.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId()).get());
+//		} else if ((consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
+//				&& consumerAppdetail.getNscApplicationNo() == null)
+//				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(38l)) {
+//			consumerAppdetail.setApplicationStatus(applicationStatusRepository
+//					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId()).get());
+//		} else if ((consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(13l)
+//				|| consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId().equals(14l))
+//				&& consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(38l)) {
+//			consumerAppdetail.setApplicationStatus(applicationStatusRepository
+//					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId()).get());
+//		} else if (consumerAppdetail.getApplicationStatus().getApplicationStatusId().equals(38l)) {
+//			consumerAppdetail.setApplicationStatus(applicationStatusRepository
+//					.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId()).get());
+//
+//		} else {
+//			consumerAppdetail.setApplicationStatus((applicationStatusRepository
+//					.findById(consumerAppdetail.getApplicationStatus().getApplicationStatusId())).get());
+//		}
 //		25-september-2024
+
+//		10-03-2026 code for setting correct application status for different applications
+		Long statusId = consumerAppdetail.getApplicationStatus().getApplicationStatusId();
+		Long natureId = consumerAppdetail.getNatureOfWorkType().getNatureOfWorkTypeId();
+		String nscNo = consumerAppdetail.getNscApplicationNo();
+
+		ApplicationStatus pendingForGIS = applicationStatusRepository
+				.findById(ApplicationStatusEnum.PENDING_FOR_GIS_LOCATION.getId())
+				.orElseThrow(() -> new RuntimeException("Pending for GIS status not found"));
+
+		ApplicationStatus acceptanceAtDC = applicationStatusRepository
+				.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId())
+				.orElseThrow(() -> new RuntimeException("Acceptance at DC status not found"));
+
+		boolean isNatureTypeSpecial = natureId.equals(13L) || natureId.equals(14L);
+		boolean isStatusThree = statusId.equals(3L);
+		boolean isStatusFour = statusId.equals(4L);
+		boolean isStatusThirtyEight = statusId.equals(38L);
+
+		if ((nscNo != null && (isStatusThree || isStatusFour)) || (natureId.equals(5L) && nscNo == null && isStatusFour)
+				|| (isNatureTypeSpecial && (isStatusThree || isStatusFour))) {
+			consumerAppdetail.setApplicationStatus(pendingForGIS);
+
+		} else if (isStatusThirtyEight) {
+
+			consumerAppdetail.setApplicationStatus(acceptanceAtDC);
+
+		} else {
+
+			ApplicationStatus currentStatus = applicationStatusRepository.findById(statusId)
+					.orElseThrow(() -> new RuntimeException("Application status not found: " + statusId));
+
+			consumerAppdetail.setApplicationStatus(currentStatus);
+		}
+
+//		10-03-2026 code for setting correct application status for different applications
+
 		ConsumerApplicationDetail consumerApplicationDetailResponse = consumerApplictionDetailRepository
 				.save(consumerAppdetail);
 
@@ -3336,8 +3412,8 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 				if (cad.getApplicationStatus().getApplicationStatusId() > 12
 						&& !cad.getApplicationStatus().getApplicationStatusId().equals(37L)) {
 					System.err.println("consumer applciaiotn no : " + cad.getConsumerApplicationNo());
-					if(!consumerApplicationNo.equals(cad.getConsumerApplicationNo()))
-					erpNumberDemandPaymentDone.add(cad.getConsumerApplicationNo());
+					if (!consumerApplicationNo.equals(cad.getConsumerApplicationNo()))
+						erpNumberDemandPaymentDone.add(cad.getConsumerApplicationNo());
 				}
 			}
 		}
@@ -3350,6 +3426,173 @@ public class ConsumerApplicationDetailServiceImpl implements ConsumerApplication
 		}
 
 	}
-	
+
+//	multiuser 
+	@Override
+	public Response<PageConsumerApplicationDetailDTO> findAllConsumerApplicationDetailPaginationForMultipleUser(
+			Integer page, Integer size, ConsumerApplicationDetailsFilterDTO filterDTO)
+			throws ConsumerApplicationDetailException {
+
+		System.out.println("findAllConsumerApplicationDetailPagination method is calling !!!");
+
+		Response<PageConsumerApplicationDetailDTO> response = new Response<PageConsumerApplicationDetailDTO>();
+		PageConsumerApplicationDetailDTO pageConsumerApplicationDetailDTO = new PageConsumerApplicationDetailDTO();
+		Page<ConsumerApplicationDetail> consumerApplicationDetails = findConsumerApplicationDetailPaginateForMultipleUser(
+				page, size, filterDTO);
+		Map<String, Object> pageData = new HashMap<>();
+		Meta meta = new Meta();
+		meta.setCurrentPage(consumerApplicationDetails.getNumber());
+		meta.setTotalItems(consumerApplicationDetails.getTotalElements());
+		meta.setTotalPages(consumerApplicationDetails.getTotalPages());
+		pageConsumerApplicationDetailDTO.setMeta(meta);
+		List<ConsumerApplicationDetail> consumerApplicationDetailList = consumerApplicationDetails.getContent();
+
+		pageConsumerApplicationDetailDTO.setList(consumerApplicationDetailList);
+		response.setList(Arrays.asList(pageConsumerApplicationDetailDTO));
+		response.setCode("200");
+		response.setMessage("All record retrieved successfully");
+		return response;
+	}
+
+	@Override
+	public Page<ConsumerApplicationDetail> findConsumerApplicationDetailPaginateForMultipleUser(Integer page,
+			Integer size, ConsumerApplicationDetailsFilterDTO filterDTO) throws ConsumerApplicationDetailException {
+
+		System.out.println("findConsumerApplicationDetailPaginate method is calling !!!");
+
+		Response<ConsumerApplicationDetail> response = new Response<>();
+		Pageable paging = PageRequest.of(page, size);
+		Page<ConsumerApplicationDetail> pages = null;
+		Integer totalRecords = 0;
+
+		if (filterDTO.getUserLoginId() != null) {
+
+			User user = userService.findByUserId(filterDTO.getUserLoginId());
+
+			switch (user.getAccessLevel()) {
+			case "1":
+				// discomId
+				filterDTO.setDiscomId(user.getUserDiscom().getDiscomId());
+
+				break;
+			case "2":
+
+				// regionId
+				filterDTO.setDiscomId(user.getUserDiscom().getDiscomId());
+
+				if (Optional.ofNullable(user.getUserRegion()).isPresent()) {
+					filterDTO.setRegionId(user.getUserRegion().getRegionId());
+				}
+
+				break;
+			case "3":
+				// circleId
+				filterDTO.setDiscomId(user.getUserDiscom().getDiscomId());
+				if (Optional.ofNullable(user.getUserRegion()).isPresent()) {
+					filterDTO.setRegionId(user.getUserRegion().getRegionId());
+				}
+				if (Optional.ofNullable(user.getUserCircle()).isPresent()) {
+					filterDTO.setCircleId(user.getUserCircle().getCircleId());
+				}
+
+				break;
+			case "4":
+				// divisionId
+				filterDTO.setDiscomId(user.getUserDiscom().getDiscomId());
+				if (Optional.ofNullable(user.getUserRegion()).isPresent()) {
+					filterDTO.setRegionId(user.getUserRegion().getRegionId());
+				}
+				if (Optional.ofNullable(user.getUserCircle()).isPresent()) {
+					filterDTO.setCircleId(user.getUserCircle().getCircleId());
+				}
+				if (Optional.ofNullable(user.getUserDivision()).isPresent()) {
+					filterDTO.setDivisionId(user.getUserDivision().getDivisionId());
+				}
+
+				break;
+			case "5":
+				// subDivisionId
+				filterDTO.setDiscomId(user.getUserDiscom().getDiscomId());
+				if (Optional.ofNullable(user.getUserRegion()).isPresent()) {
+					filterDTO.setRegionId(user.getUserRegion().getRegionId());
+				}
+				if (Optional.ofNullable(user.getUserCircle()).isPresent()) {
+					filterDTO.setCircleId(user.getUserCircle().getCircleId());
+				}
+				if (Optional.ofNullable(user.getUserDivision()).isPresent()) {
+					filterDTO.setDivisionId(user.getUserDivision().getDivisionId());
+				}
+				filterDTO.setSubDivisionId(user.getUserSubDivision().getSubDivisionId());
+
+				break;
+			case "6":
+				// dcId
+				filterDTO.setDiscomId(user.getUserDiscom().getDiscomId());
+				if (Optional.ofNullable(user.getUserRegion()).isPresent()) {
+					filterDTO.setRegionId(user.getUserRegion().getRegionId());
+				}
+				if (Optional.ofNullable(user.getUserCircle()).isPresent()) {
+					filterDTO.setCircleId(user.getUserCircle().getCircleId());
+				}
+				if (Optional.ofNullable(user.getUserDivision()).isPresent()) {
+					filterDTO.setDivisionId(user.getUserDivision().getDivisionId());
+				}
+				filterDTO.setSubDivisionId(user.getUserSubDivision().getSubDivisionId());
+				filterDTO.setDcId(user.getUserDc().getDcId());
+
+				break;
+
+			default:
+				break;
+			}
+
+		}
+
+//		26-02-2026 code for multiple consumer data
+		if (filterDTO.getConsumerLoginId() != null) {
+
+			Consumer consumer = consumerService.findByConsumerLoginId(filterDTO.getConsumerLoginId());
+
+			List<Long> allChildConsumerId = consumerRepository.findSelfAndAllChild(consumer.getConsumerId()).stream()
+					.map(Long::valueOf).collect(Collectors.toList());
+			filterDTO.setConsumerIds(allChildConsumerId);
+		}
+		// ✅ Flag decide karo
+		Integer skipConsumer = (filterDTO.getConsumerIds() == null || filterDTO.getConsumerIds().isEmpty()) ? 1 : 0;
+
+		// ✅ Agar list empty hai toh dummy value daalo — Oracle IN() empty nahi hona
+		// chahiye
+		List<Long> consumerIds = (filterDTO.getConsumerIds() == null || filterDTO.getConsumerIds().isEmpty())
+				? Collections.singletonList(-1L) // dummy — koi match nahi karega
+				: filterDTO.getConsumerIds();
+		try {
+			pages = consumerApplictionDetailRepository.findByConsumerApplicationDetailsUserWisePaginate1(
+					filterDTO.getDiscomId(), filterDTO.getRegionId(), filterDTO.getCircleId(),
+					filterDTO.getDivisionId(), filterDTO.getSubDivisionId(), filterDTO.getDcId(), skipConsumer, // ✅ 1
+																												// =skip
+																												// filter,0
+																												// =
+																												// apply
+																												// filter
+					consumerIds, // ✅ List<Long>
+					paging);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("pages " + pages.getContent().get(0).getAadharNo());
+
+		if (Objects.isNull(pages) || pages.isEmpty()) {
+			logger.error(
+					"consumerApplictionDetailRepository.findByConsumerApplicationDetailsPaginate is returning Null when findConsumerApplicationDetailPaginate call");
+			response.setCode(HttpCode.NULL_OBJECT);
+			response.setMessage(ResponseMessage.CONSUMER_APPLICATION_DETAIL_RECORDS_WITH_PAGINATION_FAILED_MESSAGE);
+//			throw new ConsumerApplicationDetailException(response);
+			return pages;
+		} else {
+			logger.info("Response is returning successfully");
+			return pages;
+		}
+
+	}
 
 }
