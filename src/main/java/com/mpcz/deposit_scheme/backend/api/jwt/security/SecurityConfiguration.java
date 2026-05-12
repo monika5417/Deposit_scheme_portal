@@ -49,7 +49,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/ReSampling/post-resample-data1", "/ReSampling/safling-data-by-autenotication-ID/{authenticationId}",
 			"/ReSampling/safling-data-by-autenotication-ID1/{authenticationId}/{userID}",
 			"/ReSampling/safling-data-by-autenotication-ID1/{authenticationId}/{userID}/{circleId}/{divisionId}",
-			"/mis_details/sqlExecutableQueries",
 //			"/ReSampling/getSampleDataForReSamplingTable/{flagNo}",
 			"/oyt14/save", "/oyt14//getbyapplication-no/{applicationNo}",
 			"/ReSampling/getSampleDataForReSamplingTable/{flagNo}/{circleId}/{divisionId}/{regionId}",
@@ -131,7 +130,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/user/erp/getErpEstimateAmount/{erpNumber}/{consumerAppId}", "/api/user/erp/update/{consumerAppId}",
 			"/api/user/erp/erpEstimateCalculations/{consumerAppId}",
 			"/api/consumer/qc-portal/getQcConsumerbid/{consumerAppNo}", "/api/consumer/qc-portal/saveForQcPortal",
-			"/api/consumer/jasper-pdf/download", "/api/user/login/changeUserStaus/{id}",
+			"/api/consumer/jasper-pdf/download", "/api/user/login/changeUserStaus/{id}","/api/user/login/getUserByUserId1/{userId}",
 			"/api/user/jasper-pdf/download/{erp_no}", "/api/consumer/jasper-pdf/download/{erp_no}",
 			"/api/user/otp/getLoginOtp", "/api/consumer/bill-desk-response/save", "/api/user/handoverToDgmHtc/add",
 			"/api/user/change-status/get",
@@ -351,7 +350,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/erp-estimate/fetchRecordsBasedOnMapData",
 			"/api/consumer/consumer-details/generateExcel",
 			"/api/consumer/consumer-application/surevyDetailsForNdScheme",
-			"/api/sso/test",
 //			procedure call api
 			"/procedure/createInvoiceProcedure", "/mis_details/getFinancePaymentDataForGSTApplication/{yearMonth}",
 			"/api/consumer/consumer-application/demandNoteApprovalByGM", "/api/consumer/consumer-details/getExcelPdf",
@@ -360,7 +358,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/mis_details/changeDynamicQuery",
 			"/api/consumer/v2/consumerSignUp",
 			"/api/consumer/consumer-application/v2/getAllPaginate",
-			
 			// Monika API End
 			"/ErpRev/RevErpDataNew/{erpNo}/{applicationNo}/{value}", "/api/consumer/bill-desk/billPaymentProcess/{id}",
 			"/api/user/consumer-application/get/{id}", "/poseMachine/savedata",
@@ -374,7 +371,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/erp-estimate/user/getKVLineData/{distance}",
 			"/api/consumer/consumer-application/getKVLineData/{distance}",
 			"/api/consumer/consumer-application/getProjectEstimateDataByErpNo/{erpNo}",
-			"/api/user/login/changeUserStatus/{id}",
 
 			"/api/consumer/consumer-application/getAllNewPaginate/",
 			"/api/refundAmount/consumer/saveApplicationCancelletion",

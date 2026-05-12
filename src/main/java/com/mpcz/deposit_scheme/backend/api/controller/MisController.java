@@ -21,12 +21,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -374,37 +372,5 @@ public class MisController {
 					: new Response<>(HttpCode.CREATED, "Data Created Successfully", Arrays.asList(save)));
 		}
 	}
-
-//	@Value("${spring.profiles.active}")
-//	private String env;
-//
-////	@PreAuthorize("hasRole('ADMIN')")
-//	@GetMapping("/sqlExecutableQueries")
-//	public ResponseEntity<?> sqlExecutableQueries(@RequestParam String sqlQuery) {
-//
-//		String query = sqlQuery.trim().toLowerCase();
-//		if ("prod".equals(env)) {
-//			return ResponseEntity.status(403).body("This API is disabled in this environment");
-//		}
-//		if (query.contains("drop") || query.contains("truncate") || query.contains("alter")) {
-//			return ResponseEntity.badRequest().body("Dangerous query not allowed");
-//		}
-//		if (query.startsWith("select")) {
-//
-//			List<Map<String, Object>> result = namedParameterJdbcTemplate.queryForList(sqlQuery, new HashMap<>());
-//
-//			return ResponseEntity.ok(result);
-//
-//		} else if (query.startsWith("update") || query.startsWith("insert") || query.startsWith("delete")) {
-//
-//			int rows = namedParameterJdbcTemplate.update(sqlQuery, new HashMap<>());
-//
-//			return ResponseEntity.ok("Rows affected: " + rows);
-//
-//		} else {
-//
-//			return ResponseEntity.badRequest().body("Only SELECT/INSERT/UPDATE/DELETE allowed");
-//		}
-//	}
 
 }

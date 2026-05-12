@@ -536,15 +536,16 @@ public class ContractorDetailForBidController {
 		map.put("subDivisionName", mapData.get("subdivName").toString());
 		map.put("dcName", mapData.get("dcName").toString());
 
-//		added this path sharing code 24-04-2026
+//      added this path sharing code 24-04-2026
 		String demandFilePath = applicationDocumentRepository
 				.findLatestDocument(findByConsumerApplicationId.getConsumerApplicationId());
-		System.err.println("aaaaaaaaaaaaa :  " +demandFilePath);
-		if (demandFilePath!=null) {
+		System.err.println("aaaaaaaaaaaaa :  " + demandFilePath);
+		if (demandFilePath != null) {
 			Path path = Paths.get("D:", "UploadDocsNew", demandFilePath);
 			System.out.println("aaaaaaaaaaaaaa " + path.toString());
 			map.put("demandEstimatePath", path.toString());
 		}
+
 //		*************this is url based on properties file ****************
 		System.err.println("tttttttttttt url : " + RavindraSendDataForContractorSelection);
 

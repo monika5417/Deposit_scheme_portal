@@ -878,56 +878,56 @@ public class UserLoginController {
 		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(response);
 	}
 
-	@ApiOperation(value = "Change user login status", notes = "Pass userid & status", response = Response.class, responseContainer = "List", tags = RestApiUrl.UPDATE_USER_STATUS_URL)
-	@ApiResponses(value = {
-			@ApiResponse(code = ApiResponseCode.SUCCESS_CODE, message = ResponseMessage.RECORD_FETCH_ALL_MESSAGE),
-			@ApiResponse(code = ApiResponseCode.FORBIDDEN_CODE, message = ResponseMessage.FORBIDDEN),
-			@ApiResponse(code = ApiResponseCode.NOT_FOUND_CODE, message = ResponseMessage.NOT_FOUND),
-			@ApiResponse(code = ApiResponseCode.UNSUPPORTED_MEDIA_TYPE_CODE, message = ResponseMessage.UNSUPPORTED_MEDIA_TYPE),
-			@ApiResponse(code = ApiResponseCode.BAD_REQUEST_CODE, message = ResponseMessage.BAD_REQUEST),
-			@ApiResponse(code = ApiResponseCode.UNAUTHORIZED_CODE, message = ResponseMessage.UNAUTHORIZED),
-			@ApiResponse(code = ApiResponseCode.INTERNAL_SERVER_ERROR_CODE, message = ResponseMessage.INTERNAL_SERVER_ERROR) })
-	@PutMapping(RestApiUrl.UPDATE_USER_STATUS_URL)
-	public ResponseEntity<Response<?>> changeUserStatus(@RequestBody @Valid UserStatusDTO userStatusDTO,
-			@PathVariable long id, BindingResult bindingResult, HttpServletResponse httpServletResponse)
-			throws FormValidationException, InvalidAuthenticationException, UserException {
-
-		final String method = RestApiUrl.USER_LOGIN_API + RestApiUrl.UPDATE_USER_STATUS_URL + " : changeUserStatus()";
-
-		Response<User> response = null;
-
-		if (bindingResult.hasErrors()) {
-			List<ErrorDetails> errorList = new ArrayList<ErrorDetails>();
-
-			bindingResult.getFieldErrors().stream().forEach(f -> {
-				// LOG.error(ResponseMessage.FORM_VALIDATION_ERROR + f.getField() + ": " +
-				// f.getDefaultMessage());
-				ErrorDetails error = new ErrorDetails(new Date(), f.getDefaultMessage(),
-						f.getField() + ":" + f.getDefaultMessage());
-				errorList.add(error);
-			});
-			response = new Response<>();
-			response.setMessage(ResponseMessage.FORM_VALIDATION_ERROR);
-			response.setCode(ResponseCode.FORM_VALIDATION_ERROR);
-			response.setError(errorList);
-			throw new FormValidationException(response);
-		}
-
-		Response<User> userResponse = userService.findById(userStatusDTO.getAdUserId());
-
-		User u = userResponse.getList().get(0);
-		u.setAccountNonExpired(userStatusDTO.getIsAccountNonExpired());
-		u.setAccountNonLocked(userStatusDTO.getIsAccountNonLocked());
-		u.setAdUserId(userStatusDTO.getAdUserId());
-		u.setActive(userStatusDTO.getIsActive());
-		u.setLoginStatus("active");
-		u.setLoginAttemp(0L);
-		u.setLastLoggedInDate(new Date());
-
-		userResponse = userService.save(u);
-
-		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(userResponse);
-	}
+//	@ApiOperation(value = "Change user login status", notes = "Pass userid & status", response = Response.class, responseContainer = "List", tags = RestApiUrl.UPDATE_USER_STATUS_URL)
+//	@ApiResponses(value = {
+//			@ApiResponse(code = ApiResponseCode.SUCCESS_CODE, message = ResponseMessage.RECORD_FETCH_ALL_MESSAGE),
+//			@ApiResponse(code = ApiResponseCode.FORBIDDEN_CODE, message = ResponseMessage.FORBIDDEN),
+//			@ApiResponse(code = ApiResponseCode.NOT_FOUND_CODE, message = ResponseMessage.NOT_FOUND),
+//			@ApiResponse(code = ApiResponseCode.UNSUPPORTED_MEDIA_TYPE_CODE, message = ResponseMessage.UNSUPPORTED_MEDIA_TYPE),
+//			@ApiResponse(code = ApiResponseCode.BAD_REQUEST_CODE, message = ResponseMessage.BAD_REQUEST),
+//			@ApiResponse(code = ApiResponseCode.UNAUTHORIZED_CODE, message = ResponseMessage.UNAUTHORIZED),
+//			@ApiResponse(code = ApiResponseCode.INTERNAL_SERVER_ERROR_CODE, message = ResponseMessage.INTERNAL_SERVER_ERROR) })
+//	@PutMapping(RestApiUrl.UPDATE_USER_STATUS_URL)
+//	public ResponseEntity<Response<?>> changeUserStatus(@RequestBody @Valid UserStatusDTO userStatusDTO,
+//			@PathVariable long id, BindingResult bindingResult, HttpServletResponse httpServletResponse)
+//			throws FormValidationException, InvalidAuthenticationException, UserException {
+//
+//		final String method = RestApiUrl.USER_LOGIN_API + RestApiUrl.UPDATE_USER_STATUS_URL + " : changeUserStatus()";
+//
+//		Response<User> response = null;
+//
+//		if (bindingResult.hasErrors()) {
+//			List<ErrorDetails> errorList = new ArrayList<ErrorDetails>();
+//
+//			bindingResult.getFieldErrors().stream().forEach(f -> {
+//				// LOG.error(ResponseMessage.FORM_VALIDATION_ERROR + f.getField() + ": " +
+//				// f.getDefaultMessage());
+//				ErrorDetails error = new ErrorDetails(new Date(), f.getDefaultMessage(),
+//						f.getField() + ":" + f.getDefaultMessage());
+//				errorList.add(error);
+//			});
+//			response = new Response<>();
+//			response.setMessage(ResponseMessage.FORM_VALIDATION_ERROR);
+//			response.setCode(ResponseCode.FORM_VALIDATION_ERROR);
+//			response.setError(errorList);
+//			throw new FormValidationException(response);
+//		}
+//
+//		Response<User> userResponse = userService.findById(userStatusDTO.getAdUserId());
+//
+//		User u = userResponse.getList().get(0);
+//		u.setAccountNonExpired(userStatusDTO.getIsAccountNonExpired());
+//		u.setAccountNonLocked(userStatusDTO.getIsAccountNonLocked());
+//		u.setAdUserId(userStatusDTO.getAdUserId());
+//		u.setActive(userStatusDTO.getIsActive());
+//		u.setLoginStatus("active");
+//		u.setLoginAttemp(0L);
+//		u.setLastLoggedInDate(new Date());
+//
+//		userResponse = userService.save(u);
+//
+//		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(userResponse);
+//	}
 
 	@ApiOperation(value = "Change user password", notes = "Required UserId,OldPassword & NewPassword", response = Response.class, responseContainer = "List", tags = RestApiUrl.LOGIN_TAGS)
 	@ApiResponses(value = {
@@ -1541,20 +1541,38 @@ public class UserLoginController {
 
 	}
 
-	@PutMapping("/changeUserStatus/{id}")
-	public ResponseEntity<Response<?>> changeUserStatusById(@RequestBody UserStatusDTO userStatusDTO,
-			@PathVariable Long id) throws UserException {
+	@PutMapping("/getUserByUserId1/{userId}")
+	public ResponseEntity<Response<?>> changeUserStatus(@RequestBody @Valid UserStatusDTO userStatusDTO,
+			BindingResult bindingResult, HttpServletResponse httpServletResponse)
+			throws FormValidationException, InvalidAuthenticationException, UserException {
 
-		User u = userRepository.findById(userStatusDTO.getAdUserId())
-				.orElseThrow(() -> new UserException(new Response<>(HttpCode.NULL_OBJECT, "User Not Found In DSP")));
+		final String method = RestApiUrl.USER_LOGIN_API + RestApiUrl.UPDATE_USER_STATUS_URL + " : changeUserStatus()";
 
+		Response<User> response = null;
+
+		if (bindingResult.hasErrors()) {
+			List<ErrorDetails> errorList = new ArrayList<ErrorDetails>();
+
+			bindingResult.getFieldErrors().stream().forEach(f -> {
+				// LOG.error(ResponseMessage.FORM_VALIDATION_ERROR + f.getField() + ": " +
+				// f.getDefaultMessage());
+				ErrorDetails error = new ErrorDetails(new Date(), f.getDefaultMessage(),
+						f.getField() + ":" + f.getDefaultMessage());
+				errorList.add(error);
+			});
+			response = new Response<>();
+			response.setMessage(ResponseMessage.FORM_VALIDATION_ERROR);
+			response.setCode(ResponseCode.FORM_VALIDATION_ERROR);
+			response.setError(errorList);
+			throw new FormValidationException(response);
+		}
+
+		Response<User> userResponse = userService.findById(userStatusDTO.getAdUserId());
+
+		User u = userResponse.getList().get(0);
 		u.setAccountNonExpired(userStatusDTO.getIsAccountNonExpired());
 		u.setAccountNonLocked(userStatusDTO.getIsAccountNonLocked());
 		u.setAdUserId(userStatusDTO.getAdUserId());
-
-		u.setLoginStatus("active");
-		u.setLoginAttemp(0L);
-		u.setLastLoggedInDate(new Date());
 		if (userStatusDTO.getIsActive()) {
 			u.setActive(true);
 			u.setDeleted(false);
@@ -1562,10 +1580,12 @@ public class UserLoginController {
 			u.setActive(false);
 			u.setDeleted(true);
 		}
-		User save = userRepository.save(u);
+		u.setLoginStatus("active");
+		u.setLoginAttemp(0L);
+		u.setLastLoggedInDate(new Date());
 
-		return ResponseEntity.ok(Objects.isNull(save) ? new Response<>(HttpCode.NULL_OBJECT, "User Data Not Updated")
-				: new Response<>(HttpCode.NULL_OBJECT, "User Data  Updated Successfully", Arrays.asList(save)));
+		userResponse = userService.save(u);
+		return ResponseEntity.ok().header(ResponseMessage.APPLICATION_TYPE_JSON).body(userResponse);
 	}
 
 }

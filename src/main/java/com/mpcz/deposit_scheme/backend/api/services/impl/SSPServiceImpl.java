@@ -500,6 +500,7 @@ public class SSPServiceImpl implements SSPService {
 			cad.setDistrict(district);
 			cad.setConnectionType(sspDto.getConnectionType());
 			if (sspDto.getSchemeType().equals(3l)) {
+				cad.setVoltageLevel("LT");
 				cad.setApplicationStatus(applicationStatusRepository
 						.findById(ApplicationStatusEnum.ACCEPTANCE_OF_APPLICATION_AT_DC.getId()).get());
 			} else {

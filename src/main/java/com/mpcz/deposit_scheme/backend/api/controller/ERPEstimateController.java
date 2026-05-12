@@ -135,11 +135,10 @@ import io.swagger.annotations.ApiResponses;
 @RequestMapping(RestApiUrl.URJAS_PORTAL_API)
 public class ERPEstimateController {
 
-	@Value("${spring.profiles.active}")
-	private String envVariable;
-
 	Logger logger = LoggerFactory.getLogger(ERPEstimateController.class);
 
+	 @Value("${spring.profiles.active}")
+     private String envVariable;
 	@Autowired
 	ConsumerApplicationDetailService consumerApplicationDetailService;
 
@@ -355,16 +354,20 @@ public class ERPEstimateController {
 
 //		String url = "https://dsp.mpcz.in:8888/urjas/XXPA_PROJECTS_DSP_V/" + erpNumber;
 
-		String url = "";
-		if ("prod".equals(envVariable)) {
-			url = "https://dsp.mpcz.in:8888/newerp/XXPA_PROJECTS_DSP_V/" + erpNumber;
-		} else {  // y api uat and local k liye chalani hai bss
-// commented above api for testing below selfmade api
-			url = "https://dsp.mpcz.in:8888/deposit_scheme/api/consumer/consumer-application/getProjectEstimateDataByErpNo/"
-					+ erpNumber;
-		}
-		
-		System.err.println("url : " +url);
+		 String url = "";
+         if ("prod".equals(envVariable)) {
+                 url = "https://dsp.mpcz.in:8888/newerp/XXPA_PROJECTS_DSP_V/" + erpNumber;
+//         new wala code chalana hai
+         } else {  // y api uat and local k liye chalani hai bss
+//         String        url="https://rooftop-uat.mpcz.in:8443/newerp/XXPA_PROJECTS_DSP_V/"+erpNumber;
+//commented above api for testing below self made api
+                 url = "https://dsp.mpcz.in:8888/deposit_scheme/api/consumer/consumer-application/getProjectEstimateDataByErpNo/"
+                                 + erpNumber;
+         }
+         
+         System.err.println("url : " +url);
+//		new wala code chalana hai
+//		String	url="https://rooftop-uat.mpcz.in:8443/newerp/XXPA_PROJECTS_DSP_V/"+erpNumber;
 
 		URI uri = new URI(url);
 
@@ -449,7 +452,7 @@ public class ERPEstimateController {
 //			code end
 
 			result = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-			System.err.println("aaaaaaaaaaaaaaaaaaaaaaaaaa :  " + result);
+
 			JSONObject jsonObject = new JSONObject(result.getBody());
 
 			System.out.println(
@@ -968,11 +971,11 @@ public class ERPEstimateController {
 					return ResponseEntity.ok(response);
 				}
 			}
-			
+
 			BillDeskPaymentResponse demandDataFromBilldesk = billPaymentResponseeeeeeeRepository
 					.getDemandDataFromBilldesk(consumerApplicationDetail.getConsumerApplicationNo());
-			PoseMachinePostData byApplicationNumber = poseMachinePostDataRepository
-					.findDataByApplicationNumber(consumerApplicationDetail.getConsumerApplicationNo(),"Demand_fees");
+            PoseMachinePostData byApplicationNumber = poseMachinePostDataRepository
+                    .findDataByApplicationNumber(consumerApplicationDetail.getConsumerApplicationNo(),"Demand_fees");
 
 			if (demandDataFromBilldesk == null && byApplicationNumber == null) {
 
