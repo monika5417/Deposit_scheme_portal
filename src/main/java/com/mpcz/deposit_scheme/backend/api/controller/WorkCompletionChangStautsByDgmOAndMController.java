@@ -52,7 +52,7 @@ public class WorkCompletionChangStautsByDgmOAndMController {
 	@Autowired
 	private WorkCompletionChangStautsByDgmOAndMRepository workCompletionChangStautsByDgmOAndMRepo;
 
-	@ApiOperation(value = "Save Work Completion Chang Stauts By Dgm O And M Controller", notes = "Pass Work Completion Chang Stauts By DgmO And M Controller information", response = Response.class, responseContainer = "List", tags = RestApiUrl.WORK_COMPLECATION_API)
+//	@ApiOperation(value = "Save Work Completion Chang Stauts By Dgm O And M Controller", notes = "Pass Work Completion Chang Stauts By DgmO And M Controller information", response = Response.class, responseContainer = "List", tags = RestApiUrl.WORK_COMPLECATION_API)
 	@ApiResponses(value = {
 			@ApiResponse(code = ApiResponseCode.SUCCESS_CODE, message = ResponseMessage.RECORD_INSERTED_MESSAGE),
 			@ApiResponse(code = ApiResponseCode.FORM_VALIDATION_ERROR, message = ResponseMessage.FORM_VALIDATION_ERROR),
@@ -118,4 +118,6 @@ public class WorkCompletionChangStautsByDgmOAndMController {
 		return ResponseEntity.ok().body(response);
 
 	}
+	
+
 }

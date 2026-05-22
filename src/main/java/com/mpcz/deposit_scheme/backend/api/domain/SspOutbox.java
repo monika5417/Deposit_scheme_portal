@@ -49,8 +49,8 @@ public class SspOutbox {
     @Column(name = "ERROR_MSG", length = 500)
     private String errorMsg;
 
-    @Column(name = "DSP_STATUS_UPDATED", length = 1)
-    private String dspStatusUpdated = "N"; 
+//    @Column(name = "DSP_STATUS_UPDATED", length = 1)
+//    private String dspStatusUpdated = "N"; 
     // Y / N
 
     /* ---------- Lifecycle ---------- */
@@ -77,7 +77,7 @@ public class SspOutbox {
     public void markSuccess() {
         this.status = "SUCCESS";
         this.lastTriedAt = LocalDateTime.now();
-        this.dspStatusUpdated = "Y";
+//        this.dspStatusUpdated = "Y";
     }
 
 	public Long getId() {
@@ -144,13 +144,13 @@ public class SspOutbox {
 		this.errorMsg = errorMsg;
 	}
 
-	public String getDspStatusUpdated() {
-		return dspStatusUpdated;
-	}
-
-	public void setDspStatusUpdated(String dspStatusUpdated) {
-		this.dspStatusUpdated = dspStatusUpdated;
-	}
+//	public String getDspStatusUpdated() {
+//		return dspStatusUpdated;
+//	}
+//
+//	public void setDspStatusUpdated(String dspStatusUpdated) {
+//		this.dspStatusUpdated = dspStatusUpdated;
+//	}
     
     
    

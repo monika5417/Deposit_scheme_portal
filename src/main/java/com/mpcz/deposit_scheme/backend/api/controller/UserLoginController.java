@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.ApiResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ConstantProperty;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
@@ -59,10 +60,7 @@ import com.mpcz.deposit_scheme.backend.api.constant.ResponseCode;
 import com.mpcz.deposit_scheme.backend.api.constant.ResponseMessage;
 import com.mpcz.deposit_scheme.backend.api.constant.RestApiUrl;
 import com.mpcz.deposit_scheme.backend.api.domain.Captcha;
-import com.mpcz.deposit_scheme.backend.api.domain.CheckConsumer;
 import com.mpcz.deposit_scheme.backend.api.domain.CheckUser;
-import com.mpcz.deposit_scheme.backend.api.domain.Consumer;
-import com.mpcz.deposit_scheme.backend.api.domain.ConsumerLoginToken;
 import com.mpcz.deposit_scheme.backend.api.domain.Otp;
 import com.mpcz.deposit_scheme.backend.api.domain.OtpId;
 import com.mpcz.deposit_scheme.backend.api.domain.Role;
@@ -71,7 +69,6 @@ import com.mpcz.deposit_scheme.backend.api.domain.UserHistory;
 import com.mpcz.deposit_scheme.backend.api.domain.UserLoginAttempts;
 import com.mpcz.deposit_scheme.backend.api.domain.UserLoginHistory;
 import com.mpcz.deposit_scheme.backend.api.domain.UserLoginToken;
-import com.mpcz.deposit_scheme.backend.api.domain.UserRole;
 import com.mpcz.deposit_scheme.backend.api.dto.UserDTO;
 import com.mpcz.deposit_scheme.backend.api.dto.UserStatusDTO;
 import com.mpcz.deposit_scheme.backend.api.exception.ChangePasswordException;
@@ -89,7 +86,6 @@ import com.mpcz.deposit_scheme.backend.api.exception.RegionException;
 import com.mpcz.deposit_scheme.backend.api.exception.RoleException;
 import com.mpcz.deposit_scheme.backend.api.exception.SubDivisionException;
 import com.mpcz.deposit_scheme.backend.api.exception.UserException;
-import com.mpcz.deposit_scheme.backend.api.jwt.security.JwtConsumer;
 import com.mpcz.deposit_scheme.backend.api.jwt.security.JwtTokenUtil;
 import com.mpcz.deposit_scheme.backend.api.jwt.security.JwtUser;
 import com.mpcz.deposit_scheme.backend.api.jwt.security.util.PasswordUtil;
@@ -1395,8 +1391,9 @@ public class UserLoginController {
 		System.err.println("Before Entering database : " + LocalDateTime.now());
 		long t1 = System.currentTimeMillis();
 		Optional<User> user = userRepository.findByUserId1(userLoginOtpForm.getUserLoginId());
+		System.err.println("aaaaaaaaaaaaaaaaa : " + new Gson().toJson(user.get().isActive()));
 		System.err.println("DB Query time: " + (System.currentTimeMillis() - t1) + "ms");
-		if (!user.isPresent()) {
+		if (!user.isPresent() || !user.get().isActive()) {
 			response.setCode("404");
 			response.setMessage(ResponseMessage.USER_DETAILS_NOT_FOUND);
 			return ResponseEntity.ok().body(response);

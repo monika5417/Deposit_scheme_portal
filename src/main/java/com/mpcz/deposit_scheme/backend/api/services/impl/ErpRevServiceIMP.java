@@ -1654,6 +1654,10 @@ public class ErpRevServiceIMP implements ErpRevService {
 						erpRev.setOldDeposit(oldDepositAmountDb);
 					}
 
+//					isme newMinuseCost 0 set kiya hai kyuki deposit me minus cost ki value nahi lete hai 25-06-2026
+					if(findConsumerApplicationDetailByApplicationNo.getSchemeType().getSchemeTypeId().equals(2l)) {
+						erpRev.setNewMinusCost(BigDecimal.ZERO);
+					}
 //					yaha erp Rev table me 
 					if (oldErpDetailss.getNewMinusCost() != null) {
 //								jeReturnAmount = erpEstimateAmountData.getJeReturnAmount();
@@ -1740,15 +1744,16 @@ public class ErpRevServiceIMP implements ErpRevService {
 					
 					if (findConsumerApplicationDetailByApplicationNo.getSchemeType().getSchemeTypeId() == 2) {
 						erpRev.setRemmDepositAmt(erpRev.getNewDepositAmt().subtract(erpRev.getOldDeposit()));
+						erpRev.setRemEstimateAmt(erpRev.getNewEstimateAmt().subtract(erpRev.getOldEstimate()));
 						BigDecimal oldKvaLoad = BigDecimal.ZERO;
-						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
-								.equals(4L)
-								&& findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
-										.getIndividualOrGroupId() != 1L) {
-//						common feild sabke liye same
-							erpRev.setRemEstimateAmt(erpRev.getNewEstimateAmt().subtract(erpRev.getOldEstimate()));
-							erpRev.setRemmDepositAmt(erpRev.getNewDepositAmt().subtract(erpRev.getOldDeposit()));
-						}
+//						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
+//								.equals(4L)
+//								&& findConsumerApplicationDetailByApplicationNo.getIndividualOrGroup()
+//										.getIndividualOrGroupId() != 1L) {
+////						common feild sabke liye same
+//							erpRev.setRemEstimateAmt(erpRev.getNewEstimateAmt().subtract(erpRev.getOldEstimate()));
+//							erpRev.setRemmDepositAmt(erpRev.getNewDepositAmt().subtract(erpRev.getOldDeposit()));
+//						}
 						// Deposit Nature of work 3 Legal case
 						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
 								.equals(3L)) {
@@ -1846,7 +1851,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 								erpRev.setNewKvaAmt(newkvaAmt);
 
 								BigDecimal remKvaLoad = roundAmountCgstAndSgst(
-										newKvaLoadAmt.subtract(oldErpDetailss.getNewKvaAmt()));
+										newkvaAmt.subtract(oldErpDetailss.getNewKvaAmt()));
 								erpRev.setRemKvaAmt(remKvaLoad);
 
 								if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
@@ -1922,7 +1927,12 @@ public class ErpRevServiceIMP implements ErpRevService {
 								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
 										.getNatureOfWorkTypeId().equals(2L)
 								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
-										.getNatureOfWorkTypeId().equals(6L)) {
+										.getNatureOfWorkTypeId().equals(6L)
+										|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId().equals(11L)
+										|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+										.getNatureOfWorkTypeId().equals(12L)
+										) {
 
 							erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemmDepositAmt()
 									.add(erpRev.getRemSupervisionAmt()).add(erpRev.getRemCgst())

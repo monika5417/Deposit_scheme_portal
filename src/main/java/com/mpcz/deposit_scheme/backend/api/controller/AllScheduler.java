@@ -1,27 +1,15 @@
 
 package com.mpcz.deposit_scheme.backend.api.controller;
 
-import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,50 +17,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 import com.mpcz.deposit_scheme.backend.api.constant.HttpCode;
 import com.mpcz.deposit_scheme.backend.api.domain.BillDeskPaymentResponse;
-import com.mpcz.deposit_scheme.backend.api.domain.ConsumerApplicationDetail;
-import com.mpcz.deposit_scheme.backend.api.domain.ContractorForBidWorkStatus;
-import com.mpcz.deposit_scheme.backend.api.domain.DynamicQuery;
-import com.mpcz.deposit_scheme.backend.api.domain.ErpEstimateAmountData;
-import com.mpcz.deposit_scheme.backend.api.domain.MmkyPayAmount;
-import com.mpcz.deposit_scheme.backend.api.domain.PoseMachinePostData;
-import com.mpcz.deposit_scheme.backend.api.enums.ApplicationStatusEnum;
-import com.mpcz.deposit_scheme.backend.api.exception.DynamicQueryException;
 import com.mpcz.deposit_scheme.backend.api.jose.JoseHelper;
 import com.mpcz.deposit_scheme.backend.api.jose.VerifyJWS;
 import com.mpcz.deposit_scheme.backend.api.repository.ApplicationStatusRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.BillPaymentResponseeeeeeeRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ConsumerApplictionDetailRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.ContractorForBidWorkStatusRepository;
-import com.mpcz.deposit_scheme.backend.api.repository.DynamicQueryRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.EstimateAmountRepository;
 import com.mpcz.deposit_scheme.backend.api.repository.MmkyPayAmountRespository;
 import com.mpcz.deposit_scheme.backend.api.repository.PoseMachinePostDataRepository;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
 import com.mpcz.deposit_scheme.backend.api.services.ApplicationStatusService;
 import com.mpcz.deposit_scheme.backend.api.services.SMSDirectService;
+import com.mpcz.deposit_scheme.backend.api.util.SchedulerCondition;
 import com.mpcz.deposit_scheme.backend.api.utility.MessageProperties;
 
 @RequestMapping("/scheduler")
 @RestController
 @Profile("prod")
+@Conditional(SchedulerCondition.class)
+@EnableScheduling
 public class AllScheduler {
 	
 	
@@ -640,7 +619,8 @@ public class AllScheduler {
 			JSONObject sendDataBillDesk = new JSONObject();
 			sendDataBillDesk.put("mercid", "MPMKDSPLT");
 			sendDataBillDesk.put("from_date", formattedminusOneDayDate);
-			sendDataBillDesk.put("to_date", formattedCurrentDate);
+//			sendDataBillDesk.put("to_date", formattedCurrentDate);
+			sendDataBillDesk.put("to_date", formattedminusOneDayDate);
 
 			logger.info("Request payload for BillDesk: {}", sendDataBillDesk.toString());
 
