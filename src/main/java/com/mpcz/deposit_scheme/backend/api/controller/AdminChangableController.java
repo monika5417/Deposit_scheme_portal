@@ -868,5 +868,10 @@ public class AdminChangableController {
 						: new Response(HttpCode.UPDATED, "Data Updated Successfully",Arrays.asList(saveConsumerApplicationDetail)));
 
 	}
+	
+	
+	
+	
+	
 
 }

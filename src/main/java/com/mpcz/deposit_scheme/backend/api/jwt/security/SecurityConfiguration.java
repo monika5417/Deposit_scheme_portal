@@ -36,7 +36,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/configuration/ui", "/swagger-resources/**", "/configuration/security", "/swagger-ui.html", "/webjars/**",
 			"/CorrectionOfDuplicateApplicationNumber/updateApplicationNumber", "/ReturnMaterialDataController/save",
 			"/api/consumer/signup", "/api/user/erp/get_erp_estimate_doc/{applicationNo}", "/api/user/erp/downloadpdf",
-			"/api/user/erp/downloadpdf1", "/api/consumer/login/verification",
+			"/api/user/erp/downloadpdf1", "/api/consumer/login/verification","/ReSampling/allResamplingData",
 			"/api/consumer/qc-portal/conforbid/{applicationNo}", "/api/consumer/login/verificationCaptcha",
 			"/api/consumer/login/getCaptcha", "/api/consumer/login/changePassword", "/api/consumer/otp/getOtp/**",
 			"/api/consumer/otp/getLoginOtp/**", "/api/consumer/otp/verifyLoginOtp/**",

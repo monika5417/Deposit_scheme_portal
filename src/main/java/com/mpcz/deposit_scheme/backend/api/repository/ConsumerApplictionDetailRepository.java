@@ -1658,6 +1658,23 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 //			+ "and  (\"applicationStatusId\" IN(:applicationStatusIds))", nativeQuery = true)
 	
 	
+//	@Query(value="SELECT *\r\n"
+//			+ "FROM main_data\r\n"
+//			+ "WHERE (:discomid = 0 OR \"discomid\" = :discomid)\r\n"
+//			+ "  AND (:regionid = 0 OR \"regionid\" = :regionid)\r\n"
+//			+ "  AND (:CIR_ID = 0 OR \"CIR_ID\" = :CIR_ID)\r\n"
+//			+ "  AND (:DIV_ID = 0 OR \"DIV_ID\" = :DIV_ID)\r\n"
+//			+ "  AND (:subdivid = 0 OR \"subdivid\" = :subdivid)\r\n"
+//			+ "  AND (:dcId = 0 OR \"dcId\" = :dcId)\r\n"
+//			+ "  AND \"applicationStatusId\" IN (:applicationStatusIds) and \"schemeTypeId\" in (:schemeTypeId)",nativeQuery = true)
+//	public List<Map<String, Object>> getAllApplicationByApplicationStatusWithSchemeTypeId(
+//			@Param("applicationStatusIds") List<String> applicationStatusIds, @Param("discomid") Long discomId,
+//			@Param("regionid") Long regionId, @Param("CIR_ID") Long circleId, @Param("DIV_ID") Long divisionId,
+//			@Param("subdivid") Long subDivisionId, @Param("dcId") Long dcId, @Param("schemeTypeId") List<String> schemeTypeId);
+//	
+	
+	
+//	above code commented as in below method add createDate DESC 29-05-2026
 	@Query(value="SELECT *\r\n"
 			+ "FROM main_data\r\n"
 			+ "WHERE (:discomid = 0 OR \"discomid\" = :discomid)\r\n"
@@ -1666,7 +1683,10 @@ public interface ConsumerApplictionDetailRepository extends JpaRepository<Consum
 			+ "  AND (:DIV_ID = 0 OR \"DIV_ID\" = :DIV_ID)\r\n"
 			+ "  AND (:subdivid = 0 OR \"subdivid\" = :subdivid)\r\n"
 			+ "  AND (:dcId = 0 OR \"dcId\" = :dcId)\r\n"
-			+ "  AND \"applicationStatusId\" IN (:applicationStatusIds) and \"schemeTypeId\" in (:schemeTypeId)",nativeQuery = true)
+			+ "  AND \"applicationStatusId\" IN (:applicationStatusIds)\r\n"
+			+ "  AND \"schemeTypeId\" IN (:schemeTypeId)\r\n"
+			+ "\r\n"
+			+ "ORDER BY \"createdDate\" DESC",nativeQuery = true)
 	public List<Map<String, Object>> getAllApplicationByApplicationStatusWithSchemeTypeId(
 			@Param("applicationStatusIds") List<String> applicationStatusIds, @Param("discomid") Long discomId,
 			@Param("regionid") Long regionId, @Param("CIR_ID") Long circleId, @Param("DIV_ID") Long divisionId,

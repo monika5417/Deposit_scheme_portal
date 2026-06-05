@@ -249,6 +249,13 @@ public class ErpRevServiceIMP implements ErpRevService {
 
 						if (erpEstimateAmountData.getRegistrationCharges() != null) {
 							erpRev.setRegistrationCharges(erpEstimateAmountData.getRegistrationCharges());
+//							added this new Registration charge and else part 26-05-2026 and have to add newRegCharge in newPayAmnt
+							erpRev.setNewRegistrationCharges(erpEstimateAmountData.getRegistrationCharges());
+							erpRev.setPaidRegistrationCharges(erpEstimateAmountData.getRegistrationCharges());
+						} else {
+							erpRev.setRegistrationCharges(BigDecimal.ZERO);
+							erpRev.setNewRegistrationCharges(BigDecimal.ZERO);
+							erpRev.setPaidRegistrationCharges(BigDecimal.ZERO);
 						}
 
 						oldSupervisionAmount = erpEstimateAmountData.getSupervisionAmount();
@@ -380,9 +387,10 @@ public class ErpRevServiceIMP implements ErpRevService {
 							BigDecimal sspRegistrationCharge = BigDecimal.ZERO;
 							BigDecimal sspSecurityDeposit = BigDecimal.ZERO;
 							BigDecimal sspKvaLoad = BigDecimal.ZERO;
+							BigDecimal sspTotalAmount = BigDecimal.ZERO;
 
-							if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
-									.equals(2L)
+							if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+									.getNatureOfWorkTypeId().equals(2L)
 									|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
 											.getNatureOfWorkTypeId().equals(5L)) {
 								if (erpEstimateAmountData.getSspTotalAmount() != null
@@ -392,21 +400,25 @@ public class ErpRevServiceIMP implements ErpRevService {
 											.apply(erpEstimateAmountData.getSspRegistrationCharge());
 									sspSecurityDeposit = safeRound.apply(erpEstimateAmountData.getSecurityDeposit());
 									sspKvaLoad = safeRound.apply(erpEstimateAmountData.getKvaLoad());
+									sspTotalAmount = safeRound.apply(erpEstimateAmountData.getSspTotalAmount());
 
 									erpRev.setOldSspMeterCost(sspMeterCost);
 									erpRev.setOldSspRegCharge(sspRegistrationCharge);
 									erpRev.setOldSecurityAmt(sspSecurityDeposit);
 									erpRev.setOldkvaloadAmt(sspKvaLoad);
+									erpRev.setOldSspTotalAmount(sspTotalAmount);
 
 									erpRev.setNewSspMeterCost(sspMeterCost);
 									erpRev.setNewSspRegCharge(sspRegistrationCharge);
 									erpRev.setNewSecurityAmt(sspSecurityDeposit);
 									erpRev.setNewKvaAmt(sspKvaLoad);
+									erpRev.setNewSspTotalAmount(sspTotalAmount);
 
 									erpRev.setRemSspMeterCost(BigDecimal.ZERO);
 									erpRev.setRemSspRegCharge(BigDecimal.ZERO);
 									erpRev.setRemSecurityAmt(BigDecimal.ZERO);
 									erpRev.setRemKvaAmt(BigDecimal.ZERO);
+									erpRev.setRemSspTotalAmount(BigDecimal.ZERO);
 
 								}
 							}
@@ -425,6 +437,9 @@ public class ErpRevServiceIMP implements ErpRevService {
 //							minus cost code added on 27- august -2024 by monika rajpoot
 							minusCost = roundAmountCgstAndSgst(
 									new BigDecimal(jsonArray.getJSONObject(i).getString("MINUS_COST")));
+
+//							 as per ankit sir minus cost will not be added in Deposit application so it will be consider as 0 26-05-2026
+							minusCost = BigDecimal.ZERO;
 
 							BigDecimal newDepositAmount = newEstimateAmount.subtract(newSuperVisionAmt)
 									.subtract(newCgst).subtract(newSgst);
@@ -455,18 +470,18 @@ public class ErpRevServiceIMP implements ErpRevService {
 							}
 
 							erpRev.setNewPayAmt(roundAmountCgstAndSgst(
-									erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
-									.add(erpRev.getNewSgst()).add(erpRev.getNewMinusCost()).add(erpRev.getNewDepositAmt())));
-							
+									erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+											.add(erpRev.getNewMinusCost()).add(erpRev.getNewDepositAmt())));
+
 							erpRev.setPayAmt(
 									erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
 											.add(erpRev.getRemmDepositAmt()).add(erpRev.getRemReturnAmt()));
-							
+
 //							added this code for nsc deposit 11-05-2026 by Monika Rajpoot
-							if(findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId().equals(2l)) {
-								erpRev.setNewPayAmt(erpRev.getNewPayAmt().add(sspMeterCost)
-										.add(sspKvaLoad).add(sspSecurityDeposit)
-										.add(sspRegistrationCharge));
+							if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+									.getNatureOfWorkTypeId().equals(2l)) {
+								erpRev.setNewPayAmt(erpRev.getNewPayAmt().add(sspMeterCost).add(sspKvaLoad)
+										.add(sspSecurityDeposit).add(sspRegistrationCharge));
 							}
 //							added this code for nsc deposit 11-05-2026 by Monika Rajpoot
 
@@ -508,9 +523,6 @@ public class ErpRevServiceIMP implements ErpRevService {
 								}
 
 								if (newSuperVisionAmt.compareTo(erpRev.getOldSupervision()) < 0) {
-
-//									
-
 									erpRev.setRemSupervisionAmt(newSuperVisionAmt.subtract(erpRev.getOldSupervision()));
 									erpRev.setRemCgst(BigDecimal.ZERO);
 									erpRev.setRemSgst(BigDecimal.ZERO);
@@ -526,8 +538,6 @@ public class ErpRevServiceIMP implements ErpRevService {
 											erpRev.getRemSupervisionAmt().add(erpRev.getRemKvaAmt())));
 
 								} else {
-
-//								
 
 									erpRev.setRemSupervisionAmt(
 											erpRev.getNewSupervisionAmt().subtract(erpRev.getOldSupervision()));
@@ -802,6 +812,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 						BigDecimal sspRegistrationCharge = BigDecimal.ZERO;
 						BigDecimal sspSecurityDeposit = BigDecimal.ZERO;
 						BigDecimal sspKvaLoad = BigDecimal.ZERO;
+						BigDecimal sspTotalAmount = BigDecimal.ZERO;
 
 						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
 								.equals(2L)
@@ -814,21 +825,25 @@ public class ErpRevServiceIMP implements ErpRevService {
 										.apply(erpEstimateAmountData.getSspRegistrationCharge());
 								sspSecurityDeposit = safeRound.apply(erpEstimateAmountData.getSecurityDeposit());
 								sspKvaLoad = safeRound.apply(erpEstimateAmountData.getKvaLoad());
+								sspTotalAmount = safeRound.apply(erpEstimateAmountData.getSspTotalAmount());
 
 								erpRev.setOldSspMeterCost(sspMeterCost);
 								erpRev.setOldSspRegCharge(sspRegistrationCharge);
 								erpRev.setOldSecurityAmt(sspSecurityDeposit);
 								erpRev.setOldkvaloadAmt(sspKvaLoad);
+								erpRev.setOldSspTotalAmount(sspTotalAmount);
 
 								erpRev.setNewSspMeterCost(sspMeterCost);
 								erpRev.setNewSspRegCharge(sspRegistrationCharge);
 								erpRev.setNewSecurityAmt(sspSecurityDeposit);
 								erpRev.setNewKvaAmt(sspKvaLoad);
+								erpRev.setNewSspTotalAmount(sspTotalAmount);
 
 								erpRev.setRemSspMeterCost(BigDecimal.ZERO);
 								erpRev.setRemSspRegCharge(BigDecimal.ZERO);
 								erpRev.setRemSecurityAmt(BigDecimal.ZERO);
 								erpRev.setRemKvaAmt(BigDecimal.ZERO);
+								erpRev.setRemSspTotalAmount(BigDecimal.ZERO);
 
 							}
 						}
@@ -898,9 +913,10 @@ public class ErpRevServiceIMP implements ErpRevService {
 										roundAmountCgstAndSgst(new_JeReturnAmount.subtract(old_JeReturnAmount)));
 
 								erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
-										.add(erpRev.getNewCgst().add(erpRev.getNewSgst().add(new_JeReturnAmount).add(sspMeterCost)
-												.add(sspKvaLoad).add(sspSecurityDeposit)
-												.add(sspRegistrationCharge)))));
+										.add(erpRev.getNewCgst()
+												.add(erpRev.getNewSgst().add(new_JeReturnAmount).add(sspMeterCost)
+														.add(sspKvaLoad).add(sspSecurityDeposit)
+														.add(sspRegistrationCharge)))));
 
 								erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt().add(
 										erpRev.getRemCgst().add(erpRev.getRemSgst().add(erpRev.getRemReturnAmt())))));
@@ -1128,11 +1144,10 @@ public class ErpRevServiceIMP implements ErpRevService {
 								erpRev.setRemReturnAmt(
 										roundAmountCgstAndSgst(new_JeReturnAmount.subtract(old_JeReturnAmount)));
 
-								erpRev.setNewPayAmt(
-										roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
-												.add(erpRev.getNewSgst()).add(erpRev.getRemSecurityAmt()).add(sspMeterCost)
-												.add(sspKvaLoad).add(sspSecurityDeposit)
-												.add(sspRegistrationCharge)));
+								erpRev.setNewPayAmt(roundAmountCgstAndSgst(
+										erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst()).add(erpRev.getNewSgst())
+												.add(erpRev.getRemSecurityAmt()).add(sspMeterCost).add(sspKvaLoad)
+												.add(sspSecurityDeposit).add(sspRegistrationCharge)));
 
 								erpRev.setPayAmt(roundAmountCgstAndSgst(
 										erpRev.getRemSupervisionAmt().add(erpRev.getRemSecurityAmt())));
@@ -1144,10 +1159,10 @@ public class ErpRevServiceIMP implements ErpRevService {
 								erpRev.setRemReturnAmt(
 										roundAmountCgstAndSgst(new_JeReturnAmount.subtract(old_JeReturnAmount)));
 
-								erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
-										.add(erpRev.getNewCgst()).add(erpRev.getNewSgst()).add(new_JeReturnAmount).add(sspMeterCost)
-										.add(sspKvaLoad).add(sspSecurityDeposit)
-										.add(sspRegistrationCharge)));
+								erpRev.setNewPayAmt(
+										roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+												.add(erpRev.getNewSgst()).add(new_JeReturnAmount).add(sspMeterCost)
+												.add(sspKvaLoad).add(sspSecurityDeposit).add(sspRegistrationCharge)));
 
 								erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt().add(
 										erpRev.getRemCgst().add(erpRev.getRemSgst().add(erpRev.getRemSecurityAmt())))));
@@ -1242,6 +1257,8 @@ public class ErpRevServiceIMP implements ErpRevService {
 //			}
 
 //			17-Oct-2024 end	
+//			added this line on 26-05-2026 for adding NewRegistration Charge in newPayAmnt
+			erpRev.setNewPayAmt(erpRev.getNewPayAmt().add(erpRev.getNewRegistrationCharges()));
 			if (value == 2L) {
 
 				ErpRev save = erpRevRepository.save(erpRev);
@@ -1458,11 +1475,6 @@ public class ErpRevServiceIMP implements ErpRevService {
 							return erpRev;
 						}
 
-						if (newSuperVisionAmt.compareTo(BigDecimal.ZERO) < 0) {
-							erpRev.setSchemeCode("Supervision amount cannot be zero");
-							return erpRev;
-						}
-
 					}
 					if (jsonArray.getJSONObject(i).getString("ESTIMATED_COST") != null) {
 						newEstimateAmount = roundAmountCgstAndSgst(
@@ -1535,12 +1547,6 @@ public class ErpRevServiceIMP implements ErpRevService {
 					erpRev.setConsAppNo(applicationNo);
 
 					Long erpVersionInApi = findConsumerApplicationDetailByApplicationNo.getErpVersionInApi();
-//					Integer charAt = Integer.valueOf(erpVersion.charAt(1)) - 1;
-//
-//					String olderpVersion = "V" + charAt;
-//
-//					ErpRev oldErpDetailss = erpRevRepository.findByConsAppNoAndNewErpNoAndVersionNumber(applicationNo,
-//							findConsumerApplicationDetailByApplicationNo.getRevisedErpNumber(), erpVersionInApi);
 
 					ErpRev oldErpDetailss = erpRevRepository.findByConsAppNoAndVersionNumber(applicationNo,
 							erpVersionInApi);
@@ -1586,6 +1592,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 						colonyOrSlum = oldErpDetailss.getNewColonyOrSlum();
 						erpRev.setOldColonyOrSlum(colonyOrSlum);
 					}
+
 					if (oldErpDetailss.getNewKvaAmt() != null) {
 						erpRev.setOldkvaloadAmt(oldErpDetailss.getNewKvaAmt());
 					}
@@ -1650,7 +1657,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 //					}
 
 //					Deposit scheme ke liye
-
+					erpRev.setRemmDepositAmt(erpRev.getNewDepositAmt().subtract(erpRev.getOldDeposit()));
 					if (findConsumerApplicationDetailByApplicationNo.getSchemeType().getSchemeTypeId() == 2) {
 						BigDecimal oldKvaLoad = BigDecimal.ZERO;
 						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
@@ -1903,8 +1910,6 @@ public class ErpRevServiceIMP implements ErpRevService {
 
 							if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
 
-//								
-
 								erpRev.setRemCgst(BigDecimal.ZERO);
 								erpRev.setRemSgst(BigDecimal.ZERO);
 
@@ -2009,7 +2014,7 @@ public class ErpRevServiceIMP implements ErpRevService {
 								erpRev.setNewKvaAmt(newkvaAmt);
 
 								BigDecimal remKvaLoad = roundAmountCgstAndSgst(
-										newKvaLoadAmt.subtract(oldErpDetailss.getNewKvaAmt()));
+										newkvaAmt.subtract(oldErpDetailss.getNewKvaAmt()));
 								erpRev.setRemKvaAmt(remKvaLoad);
 
 								if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
@@ -2017,23 +2022,43 @@ public class ErpRevServiceIMP implements ErpRevService {
 									erpRev.setRemCgst(BigDecimal.ZERO);
 									erpRev.setRemSgst(BigDecimal.ZERO);
 
-									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
-											.add(erpRev.getNewCgst()).add(erpRev.getNewCgst())
-											.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
+//									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+//											.add(erpRev.getNewCgst()).add(erpRev.getNewCgst())
+//											.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
 
-									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
-											.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
-											.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+//									code updated for given line 31-05-2026
+									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt()
+											.add(erpRev.getRemCgst())
+											.add(erpRev.getRemSgst())
+											.add(erpRev.getRemReturnAmt()).add(erpRev.getRemKvaAmt())));
+									
+									erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+											.add(erpRev.getNewCgst())
+											.add(erpRev.getNewSgst())
+											.add(erpRev.getoAndMReturnAmt())
+											.add(erpRev.getNewKvaAmt())));
 
 								} else {
 
-									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
-											.add(erpRev.getNewCgst()).add(erpRev.getNewCgst())
-											.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
-
-									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
-											.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
-											.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+//									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+//											.add(erpRev.getNewCgst()).add(erpRev.getNewCgst())
+//											.add(erpRev.getNewKvaAmt()).add(erpRev.getNewMinusCost())));
+//
+//									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+//											.add(erpRev.getRemCgst()).add(erpRev.getRemSgst())
+//											.add(erpRev.getRemKvaAmt()).add(erpRev.getRemReturnAmt())));
+									
+//									code updated for given line 31-05-2026
+									erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt()
+											.add(erpRev.getRemCgst())
+											.add(erpRev.getRemSgst())
+											.add(erpRev.getRemReturnAmt()).add(erpRev.getRemKvaAmt())));
+									
+									erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+											.add(erpRev.getNewCgst())
+											.add(erpRev.getNewSgst())
+											.add(erpRev.getoAndMReturnAmt())
+											.add(erpRev.getNewKvaAmt())));
 
 								}
 
@@ -2123,6 +2148,104 @@ public class ErpRevServiceIMP implements ErpRevService {
 //
 //							}
 //						}
+
+						// code is written for dynamic revise NSC sspTotalAmount not null 19-05-2026
+//						Function<BigDecimal, BigDecimal> safeRound = val -> (roundAmountCgstAndSgst(
+//								Objects.isNull(val) ? BigDecimal.ZERO : val));
+//
+//						BigDecimal sspMeterCost = BigDecimal.ZERO;
+//						BigDecimal sspRegistrationCharge = BigDecimal.ZERO;
+//						BigDecimal sspSecurityDeposit = BigDecimal.ZERO;
+//						BigDecimal sspKvaLoad = BigDecimal.ZERO;
+//						BigDecimal sspTotalAmount = BigDecimal.ZERO;
+//
+//						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType().getNatureOfWorkTypeId()
+//								.equals(2L)
+//								|| findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+//										.getNatureOfWorkTypeId().equals(5L)) {
+//							if (oldErpDetailss.getNewSspTotalAmount() != null
+//									&& oldErpDetailss.getNewSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+//								sspMeterCost = safeRound.apply(oldErpDetailss.getNewSspMeterCost());
+//								sspRegistrationCharge = safeRound.apply(oldErpDetailss.getNewSspRegCharge());
+//								sspSecurityDeposit = safeRound.apply(oldErpDetailss.getOldSecurityAmt());
+//								sspKvaLoad = safeRound.apply(oldErpDetailss.getNewKvaAmt());
+//								sspTotalAmount = safeRound.apply(oldErpDetailss.getNewSspTotalAmount());
+//
+//								erpRev.setOldSspMeterCost(sspMeterCost);
+//								erpRev.setOldSspRegCharge(sspRegistrationCharge);
+//								erpRev.setOldSecurityAmt(sspSecurityDeposit);
+//								erpRev.setOldkvaloadAmt(sspKvaLoad);
+//								erpRev.setOldSspTotalAmount(sspTotalAmount);
+//
+//								erpRev.setNewSspMeterCost(sspMeterCost);
+//								erpRev.setNewSspRegCharge(sspRegistrationCharge);
+//								erpRev.setNewSecurityAmt(sspSecurityDeposit);
+//								erpRev.setNewKvaAmt(sspKvaLoad);
+//								erpRev.setNewSspTotalAmount(sspTotalAmount);
+//
+//								erpRev.setRemSspMeterCost(BigDecimal.ZERO);
+//								erpRev.setRemSspRegCharge(BigDecimal.ZERO);
+//								erpRev.setRemSecurityAmt(BigDecimal.ZERO);
+//								erpRev.setRemKvaAmt(BigDecimal.ZERO);
+//								erpRev.setRemSspTotalAmount(BigDecimal.ZERO);
+//
+//							}
+//						}
+//
+//						if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
+//								.getNatureOfWorkTypeId() == 2l) {
+////							if (newSuperVisionAmt.compareTo(old_SupervisionAmount) < 0) {
+////								erpRev.setRemSupervisionAmt(newSuperVisionAmt.subtract(old_SupervisionAmount));
+////								erpRev.setRemCgst(BigDecimal.ZERO);
+////								erpRev.setRemSgst(BigDecimal.ZERO);
+////								erpRev.setRemReturnAmt(new_JeReturnAmount.subtract(old_JeReturnAmount));
+////
+////								erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+////										.add(erpRev.getNewCgst()
+////												.add(erpRev.getNewSgst().add(new_JeReturnAmount).add(sspMeterCost)
+////														.add(sspKvaLoad).add(sspSecurityDeposit)
+////														.add(sspRegistrationCharge)))));
+////
+////								erpRev.setPayAmt(roundAmountCgstAndSgst(
+////										erpRev.getRemSupervisionAmt().add(erpRev.getRemReturnAmt())));
+////							} else {
+////								erpRev.setRemSupervisionAmt(newSuperVisionAmt.subtract(old_SupervisionAmount));
+////								erpRev.setRemCgst(newCgst.subtract(oldCgst));
+////								erpRev.setRemSgst(newSgst.subtract(oldSgst));
+////								erpRev.setRemReturnAmt(
+////										roundAmountCgstAndSgst(new_JeReturnAmount.subtract(old_JeReturnAmount)));
+////
+////								erpRev.setNewPayAmt(roundAmountCgstAndSgst(erpRev.getNewSupervisionAmt()
+////										.add(erpRev.getNewCgst().add(erpRev.getNewSgst().add(new_JeReturnAmount).add(sspMeterCost)
+////												.add(sspKvaLoad).add(sspSecurityDeposit)
+////												.add(sspRegistrationCharge)))));
+////
+////								erpRev.setPayAmt(roundAmountCgstAndSgst(erpRev.getRemSupervisionAmt().add(
+////										erpRev.getRemCgst().add(erpRev.getRemSgst().add(erpRev.getRemReturnAmt())))));
+////							}
+//
+//							if (erpRev.getNewSupervisionAmt().compareTo(erpRev.getOldSupervision()) < 0) {
+//								erpRev.setRemCgst(BigDecimal.ZERO);
+//								erpRev.setRemSgst(BigDecimal.ZERO);
+//							}
+//							BigDecimal newPayAmt = erpRev.getNewSupervisionAmt().add(erpRev.getNewCgst())
+//									.add(erpRev.getNewSgst()).add(erpRev.getNewMinusCost()).add(sspMeterCost)
+//									.add(sspKvaLoad).add(sspSecurityDeposit).add(sspRegistrationCharge);
+//
+//							BigDecimal payAmt = erpRev.getRemSupervisionAmt().add(erpRev.getRemCgst())
+//									.add(erpRev.getRemSgst()).add(erpRev.getRemReturnAmt()).add(sspMeterCost)
+//									.add(sspKvaLoad).add(sspSecurityDeposit).add(sspRegistrationCharge);
+//
+//							BigDecimal oldPayableAmt = erpRev.getOldSupervision().add(erpRev.getOldCgst())
+//									.add(erpRev.getOldSgst()).add(erpRev.getOldJeReturnAmt());
+//
+//							erpRev.setNewPayAmt(roundAmountCgstAndSgst(newPayAmt));
+//
+//							erpRev.setPayAmt(roundAmountCgstAndSgst(payAmt));
+//
+//							erpRev.setOldPayableAmt(roundAmountCgstAndSgst(oldPayableAmt));
+//						}
+// code is written for dynamic revise NSC sspTotalAmount not null 19-05-2026
 
 						else if (findConsumerApplicationDetailByApplicationNo.getNatureOfWorkType()
 								.getNatureOfWorkTypeId().equals(5L)) {

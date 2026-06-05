@@ -227,6 +227,31 @@ public class ErpRev extends Auditable<Long> {
 
 	@Transient
 	private BigDecimal registrationCharges;
+	
+	@Transient
+	private BigDecimal newRegistrationCharges;
+
+//	isme agar value hai it means registrationCharges  && newRegistrationCharges me 1180 ki value hogi joki demand me add krkr li hogi 01-06-2026
+	@Column(name = "PAID_REGISTRATION_CHARGES")
+	private BigDecimal paidRegistrationCharges;
+	
+	
+	
+	public BigDecimal getPaidRegistrationCharges() {
+		return paidRegistrationCharges;
+	}
+
+	public void setPaidRegistrationCharges(BigDecimal paidRegistrationCharges) {
+		this.paidRegistrationCharges = paidRegistrationCharges;
+	}
+
+	public BigDecimal getNewRegistrationCharges() {
+		return newRegistrationCharges;
+	}
+
+	public void setNewRegistrationCharges(BigDecimal newRegistrationCharges) {
+		this.newRegistrationCharges = newRegistrationCharges;
+	}
 
 	public BigDecimal getRegistrationCharges() {
 		return registrationCharges;
@@ -768,6 +793,8 @@ public class ErpRev extends Auditable<Long> {
 		return oldSspRegCharge;
 	}
 
+	
+	
 	public void setOldSspRegCharge(BigDecimal oldSspRegCharge) {
 		this.oldSspRegCharge = oldSspRegCharge;
 	}
