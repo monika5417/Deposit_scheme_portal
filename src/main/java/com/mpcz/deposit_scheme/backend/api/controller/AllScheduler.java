@@ -301,321 +301,321 @@ public class AllScheduler {
 //				.findById(ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId()).get()));
 //		consumerApplictionDetailRepository.saveAll(registrationFeesNotDoneRevertApp);
 //	}
-
-	@GetMapping("/RavindraSendDataForContractorSelectinon/{date}")
-//	@Scheduled(fixedRate = 300000)
-	public void RavindraSendDataForContractorSelectinon(@PathVariable String date) {
+//
+//	@GetMapping("/RavindraSendDataForContractorSelectinon/{date}")
+////	@Scheduled(fixedRate = 300000)
+//	public void RavindraSendDataForContractorSelectinon(@PathVariable String date) {
+////		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+////		Date date = new Date();
+////		String s = formatter.format(date);
+////		System.out.println(s+"datesdfhsdyertyuwe5ue4rtuerie5rdyietdftuj");
+//		List<BillDeskPaymentResponse> ravindraSendDataForContractorSelectinon = billPaymentResponseeeeeeeRepository
+//				.RavindraSendDataForContractorSelectinon(date);
+//
+//		ravindraSendDataForContractorSelectinon.stream().forEach(bill -> {
+//
+//			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+//					.findByConsumerApplicationNumber(bill.getConsumerApplicationNo());
+////			ErpEstimateAmountData findById = estimateAmountRepository.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber()).get();
+//
+//			Map<String, String> requestBody = new HashMap();
+//
+//			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8L) {
+//				MmkyPayAmount findByConsumer = mmkyPayAmountRespository
+//						.findByConsumerApplicationNumber(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//				requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//				requestBody.put("schema", findByConsumer.getSchemeCode());
+//			} else {
+//
+//				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
+//						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//				if (findById1.isPresent()) {
+//					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
+//					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
+//					requestBody.put("kwload", kwLoad);
+//
+//					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
+//					requestBody.put("kvaload", kvaLoad);
+//
+//					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
+//					requestBody.put("deposit_amount", depositAmount);
+//
+//					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
+//					requestBody.put("supervision_amount", superVisionAmt);
+//
+//					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
+//					requestBody.put("sgst", sgst);
+//
+//					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
+//					requestBody.put("cgst", cgst);
+//
+//					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
+//					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
+//
+//				}
+//			}
+//
+//			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
+//			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
+//
+//			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
+//
+//			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
+//			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
+//			requestBody.put("is_bid_submitted", "false");
+//			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
+//					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+//				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
+//				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
+//
+//			}
+//			RestTemplate restTemplate = new RestTemplate();
+//
+//			try {
+//				ResponseEntity<Map> postForEntity = restTemplate
+//						.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/", requestBody, Map.class);
+//				System.out.println("The result of Post api is :" + postForEntity.getBody());
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//
+//	}
+////monika code end
+//
+////	@GetMapping("/RavindraSendDataForContractorSelectinonBYPoseMachine")
+//	@Scheduled(fixedRate = 86400000)
+//	public void RavindraSendDataForContractorSelectinonBYPoseMachine() {
 //		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 //		Date date = new Date();
 //		String s = formatter.format(date);
-//		System.out.println(s+"datesdfhsdyertyuwe5ue4rtuerie5rdyietdftuj");
-		List<BillDeskPaymentResponse> ravindraSendDataForContractorSelectinon = billPaymentResponseeeeeeeRepository
-				.RavindraSendDataForContractorSelectinon(date);
-
-		ravindraSendDataForContractorSelectinon.stream().forEach(bill -> {
-
-			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
-					.findByConsumerApplicationNumber(bill.getConsumerApplicationNo());
-//			ErpEstimateAmountData findById = estimateAmountRepository.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber()).get();
-
-			Map<String, String> requestBody = new HashMap();
-
-			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8L) {
-				MmkyPayAmount findByConsumer = mmkyPayAmountRespository
-						.findByConsumerApplicationNumber(findByConsumerApplicationNumber.getConsumerApplicationNo());
-				requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
-				requestBody.put("schema", findByConsumer.getSchemeCode());
-			} else {
-
-				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
-						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
-				if (findById1.isPresent()) {
-					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
-					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
-					requestBody.put("kwload", kwLoad);
-
-					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
-					requestBody.put("kvaload", kvaLoad);
-
-					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
-					requestBody.put("deposit_amount", depositAmount);
-
-					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
-					requestBody.put("supervision_amount", superVisionAmt);
-
-					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
-					requestBody.put("sgst", sgst);
-
-					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
-					requestBody.put("cgst", cgst);
-
-					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
-					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
-
-				}
-			}
-
-			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
-			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
-			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
-
-			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
-
-			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
-			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
-			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
-			requestBody.put("is_bid_submitted", "false");
-			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
-					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
-				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
-
-			}
-			RestTemplate restTemplate = new RestTemplate();
-
-			try {
-				ResponseEntity<Map> postForEntity = restTemplate
-						.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/", requestBody, Map.class);
-				System.out.println("The result of Post api is :" + postForEntity.getBody());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-
-	}
-//monika code end
-
-//	@GetMapping("/RavindraSendDataForContractorSelectinonBYPoseMachine")
-	@Scheduled(fixedRate = 86400000)
-	public void RavindraSendDataForContractorSelectinonBYPoseMachine() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		Date date = new Date();
-		String s = formatter.format(date);
-		System.out.println(s + "datesdfhsdyertyuwe5ue4rtuerie5rdyietdftuj");
-
-		List<PoseMachinePostData> ravindraSendDataForContractorSelectinon = poseMachinePostDate.findAll();
-		ravindraSendDataForContractorSelectinon.stream().forEach(bill -> {
-
-			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
-					.findByConsumerApplicationNumber(bill.getApplicationNumber());
-//			ErpEstimateAmountData findById = estimateAmountRepository.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber()).get();
-
-			Map<String, String> requestBody = new HashMap();
-			System.out.println(s + "datesdfhsdyertyuwe5ue4rtuerie5rdyietdftuj");
-			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8L) {
-				MmkyPayAmount findByConsumer = mmkyPayAmountRespository
-						.findByConsumerApplicationNumber(findByConsumerApplicationNumber.getConsumerApplicationNo());
-				requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
-				requestBody.put("schema", findByConsumer.getSchemeCode());
-			} else {
-
-				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
-						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
-				if (findById1.isPresent()) {
-					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
-					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
-					requestBody.put("kwload", kwLoad);
-
-					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
-					requestBody.put("kvaload", kvaLoad);
-
-					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
-					requestBody.put("deposit_amount", depositAmount);
-
-					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
-					requestBody.put("supervision_amount", superVisionAmt);
-
-					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
-					requestBody.put("sgst", sgst);
-
-					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
-					requestBody.put("cgst", cgst);
-
-					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
-					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
-
-				}
-			}
-
-			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
-			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
-			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
-
-			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
-
-			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
-			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
-			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
-			requestBody.put("is_bid_submitted", "false");
-			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
-					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
-				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
-
-			}
-
-			RestTemplate restTemplate = new RestTemplate();
-
-			try {
-				ResponseEntity<Map> postForEntity = restTemplate
-						.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/", requestBody, Map.class);
-				System.out.println("The result of Post api is :" + postForEntity.getBody());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-
-	}
-
-//	@Scheduled(cron="0 0 */12 * * *")   //every 12 hours
-	@Scheduled(fixedRate = 86400000)
-	@GetMapping("/saveContractorExpectedDates")
-	public ResponseEntity<String> getBidNotParticipatedDocs() {
-		RestTemplate restTemplate = new RestTemplate();
-
-		// PROD URL
-		String url = "https://qcportal.mpcz.in/tkc/bid_not_participated_docs";
-
-		try {
-			ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-			String responseBody = response.getBody();
-
-			int notActionedCount = 0;
-			int rejectedCount = 0;
-			int acceptedCount = 0;
-
-			if (responseBody != null) {
-				List<ConsumerApplicationDetail> saveContractorExpectedDates = consumerApplicationDetailRepository
-						.saveContractorExpectedDates();
-
-				JSONArray dataArray = new JSONObject(responseBody).optJSONArray("data");
-
-				if (dataArray != null) {
-					for (ConsumerApplicationDetail consumerApp : saveContractorExpectedDates) {
-						String consumerApplicationNo = consumerApp.getConsumerApplicationNo();
-						boolean applicationFound = false;
-
-						for (int i = 0; i < dataArray.length(); i++) {
-							JSONObject item = dataArray.getJSONObject(i);
-							String consumerApplicationNumber = item.optString("consumer_application_no", null);
-
-							if (consumerApplicationNo.equals(consumerApplicationNumber)) {
-								applicationFound = true;
-
-								String isRejected = item.optString("is_rejected", "null");
-
-								// Handle different contractor statuses
-								if ("null".equals(isRejected)) {
-									System.out.println("Contractor did not take the action on application: "
-											+ consumerApplicationNo);
-									notActionedCount++;
-								} else if ("true".equals(isRejected)) {
-									System.out.println(
-											"The application is rejected by contractor: " + consumerApplicationNo);
-									rejectedCount++;
-								} else if ("false".equals(isRejected)) {
-									acceptedCount++;
-									System.out.println(
-											"The application is accepted by contractor: " + consumerApplicationNo);
-
-									String workStartDate = item.optString("contractor_work_started", null);
-									String materialHandover = item.optString("material_handover_site", null);
-									String materialInstallationStart = item.optString("material_installation_start",
-											null);
-									String materialInstallationFinish = item.optString("material_installation_finished",
-											null);
-									String workCompletion = item.optString("expected_work_completion_date", null);
-									String userId = item.optString("User_Id", null);
-
-									if (workStartDate != null && materialHandover != null
-											&& materialInstallationStart != null && materialInstallationFinish != null
-											&& workCompletion != null && userId != null) {
-										System.out.println("Work details available for consumer application: "
-												+ consumerApplicationNo);
-										System.out.println(
-												"The application is Accepted by contractor : " + consumerApplicationNo);
-										System.out.println("workStartDate : " + workStartDate);
-										System.out.println("materialHandover : " + materialHandover);
-										System.out.println("materialInstallationStart : " + materialInstallationStart);
-										System.out
-												.println("materialInstallationFinish : " + materialInstallationFinish);
-										System.out.println("expected workCompletion : " + workCompletion);
-										System.out.println("User_Id : " + userId);
-										ContractorForBidWorkStatus contractorForBidWorkStatus = new ContractorForBidWorkStatus();
-										contractorForBidWorkStatus.setConsumerApplicationNumber(consumerApplicationNo);
-										contractorForBidWorkStatus.setMaterialHandoverSiteDate(materialHandover);
-										contractorForBidWorkStatus
-												.setMaterialInstallFinishDate(materialInstallationFinish);
-										contractorForBidWorkStatus
-												.setMaterialInstallStartDate(materialInstallationStart);
-										contractorForBidWorkStatus.setConWorkStartedDate(workStartDate);
-										contractorForBidWorkStatus.setConWorkCompleteDate(workCompletion);
-										contractorForBidWorkStatus.setUserId(Long.parseLong(userId));
-
-										contractorForBidWorkStatusRepository.save(contractorForBidWorkStatus);
-
-										LinkedList<BillDeskPaymentResponse> byConsumerApplicationNoDemand = billPaymentResponseeeeeeeRepository
-												.findByConsumerApplicationNoDemand(consumerApplicationNo);
-
-										// Update consumer application status based on scheme type
-										if (consumerApp.getSchemeType().getSchemeTypeId().equals(1L)) {
-											if (consumerApp.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
-													&& byConsumerApplicationNoDemand.isEmpty()) {
-												consumerApp.setApplicationStatus(applicationStatusRepository.findById(
-														ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId())
-														.get());
-											} else {
-												consumerApp.setApplicationStatus(applicationStatusRepository
-														.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId())
-														.get());
-											}
-										} else {
-											consumerApp.setApplicationStatus(applicationStatusRepository
-													.findById(ApplicationStatusEnum.PENDING_FOR_WORK_COMPLETION.getId())
-													.get());
-										}
-
-										consumerApplicationDetailRepository.save(consumerApp);
-									} else {
-										System.out.println(
-												"Accepted application has missing dates for consumerApplicationNo: "
-														+ consumerApplicationNo);
-									}
-								}
-								break; // No need to continue searching if application found
-							}
-						}
-
-						if (!applicationFound) {
-							System.out.println(
-									"Application not found in tkc/bid_not_participated_docs: " + consumerApplicationNo);
-						}
-					}
-				} else {
-					System.out.println("No data found in the external response.");
-				}
-
-				System.out
-						.println("Total applications fetched from DSP Database: " + saveContractorExpectedDates.size());
-				System.out.println("Total applications where contractor did not take action: " + notActionedCount);
-				System.out.println("Total applications rejected by contractor: " + rejectedCount);
-				System.out.println("Total applications accepted by contractor: " + acceptedCount);
-
-				return ResponseEntity.ok("Processing completed successfully.");
-			} else {
-				return ResponseEntity.status(500).body("Error: Received empty response from the external API.");
-			}
-		} catch (HttpClientErrorException.NotAcceptable ex) {
-			return ResponseEntity.status(ex.getRawStatusCode()).body(ex.getResponseBodyAsString());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return ResponseEntity.status(500).body("Internal Server Error occurred: " + ex.getMessage());
-		}
-	}
+//		System.out.println(s + "datesdfhsdyertyuwe5ue4rtuerie5rdyietdftuj");
+//
+//		List<PoseMachinePostData> ravindraSendDataForContractorSelectinon = poseMachinePostDate.findAll();
+//		ravindraSendDataForContractorSelectinon.stream().forEach(bill -> {
+//
+//			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+//					.findByConsumerApplicationNumber(bill.getApplicationNumber());
+////			ErpEstimateAmountData findById = estimateAmountRepository.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber()).get();
+//
+//			Map<String, String> requestBody = new HashMap();
+//			System.out.println(s + "datesdfhsdyertyuwe5ue4rtuerie5rdyietdftuj");
+//			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8L) {
+//				MmkyPayAmount findByConsumer = mmkyPayAmountRespository
+//						.findByConsumerApplicationNumber(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//				requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//				requestBody.put("schema", findByConsumer.getSchemeCode());
+//			} else {
+//
+//				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
+//						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//				if (findById1.isPresent()) {
+//					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
+//					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
+//					requestBody.put("kwload", kwLoad);
+//
+//					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
+//					requestBody.put("kvaload", kvaLoad);
+//
+//					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
+//					requestBody.put("deposit_amount", depositAmount);
+//
+//					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
+//					requestBody.put("supervision_amount", superVisionAmt);
+//
+//					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
+//					requestBody.put("sgst", sgst);
+//
+//					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
+//					requestBody.put("cgst", cgst);
+//
+//					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
+//					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
+//
+//				}
+//			}
+//
+//			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
+//			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
+//
+//			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
+//
+//			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
+//			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
+//			requestBody.put("is_bid_submitted", "false");
+//			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
+//					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+//				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
+//				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
+//
+//			}
+//
+//			RestTemplate restTemplate = new RestTemplate();
+//
+//			try {
+//				ResponseEntity<Map> postForEntity = restTemplate
+//						.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/", requestBody, Map.class);
+//				System.out.println("The result of Post api is :" + postForEntity.getBody());
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//
+//	}
+//
+////	@Scheduled(cron="0 0 */12 * * *")   //every 12 hours
+//	@Scheduled(fixedRate = 86400000)
+//	@GetMapping("/saveContractorExpectedDates")
+//	public ResponseEntity<String> getBidNotParticipatedDocs() {
+//		RestTemplate restTemplate = new RestTemplate();
+//
+//		// PROD URL
+//		String url = "https://qcportal.mpcz.in/tkc/bid_not_participated_docs";
+//
+//		try {
+//			ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//			String responseBody = response.getBody();
+//
+//			int notActionedCount = 0;
+//			int rejectedCount = 0;
+//			int acceptedCount = 0;
+//
+//			if (responseBody != null) {
+//				List<ConsumerApplicationDetail> saveContractorExpectedDates = consumerApplicationDetailRepository
+//						.saveContractorExpectedDates();
+//
+//				JSONArray dataArray = new JSONObject(responseBody).optJSONArray("data");
+//
+//				if (dataArray != null) {
+//					for (ConsumerApplicationDetail consumerApp : saveContractorExpectedDates) {
+//						String consumerApplicationNo = consumerApp.getConsumerApplicationNo();
+//						boolean applicationFound = false;
+//
+//						for (int i = 0; i < dataArray.length(); i++) {
+//							JSONObject item = dataArray.getJSONObject(i);
+//							String consumerApplicationNumber = item.optString("consumer_application_no", null);
+//
+//							if (consumerApplicationNo.equals(consumerApplicationNumber)) {
+//								applicationFound = true;
+//
+//								String isRejected = item.optString("is_rejected", "null");
+//
+//								// Handle different contractor statuses
+//								if ("null".equals(isRejected)) {
+//									System.out.println("Contractor did not take the action on application: "
+//											+ consumerApplicationNo);
+//									notActionedCount++;
+//								} else if ("true".equals(isRejected)) {
+//									System.out.println(
+//											"The application is rejected by contractor: " + consumerApplicationNo);
+//									rejectedCount++;
+//								} else if ("false".equals(isRejected)) {
+//									acceptedCount++;
+//									System.out.println(
+//											"The application is accepted by contractor: " + consumerApplicationNo);
+//
+//									String workStartDate = item.optString("contractor_work_started", null);
+//									String materialHandover = item.optString("material_handover_site", null);
+//									String materialInstallationStart = item.optString("material_installation_start",
+//											null);
+//									String materialInstallationFinish = item.optString("material_installation_finished",
+//											null);
+//									String workCompletion = item.optString("expected_work_completion_date", null);
+//									String userId = item.optString("User_Id", null);
+//
+//									if (workStartDate != null && materialHandover != null
+//											&& materialInstallationStart != null && materialInstallationFinish != null
+//											&& workCompletion != null && userId != null) {
+//										System.out.println("Work details available for consumer application: "
+//												+ consumerApplicationNo);
+//										System.out.println(
+//												"The application is Accepted by contractor : " + consumerApplicationNo);
+//										System.out.println("workStartDate : " + workStartDate);
+//										System.out.println("materialHandover : " + materialHandover);
+//										System.out.println("materialInstallationStart : " + materialInstallationStart);
+//										System.out
+//												.println("materialInstallationFinish : " + materialInstallationFinish);
+//										System.out.println("expected workCompletion : " + workCompletion);
+//										System.out.println("User_Id : " + userId);
+//										ContractorForBidWorkStatus contractorForBidWorkStatus = new ContractorForBidWorkStatus();
+//										contractorForBidWorkStatus.setConsumerApplicationNumber(consumerApplicationNo);
+//										contractorForBidWorkStatus.setMaterialHandoverSiteDate(materialHandover);
+//										contractorForBidWorkStatus
+//												.setMaterialInstallFinishDate(materialInstallationFinish);
+//										contractorForBidWorkStatus
+//												.setMaterialInstallStartDate(materialInstallationStart);
+//										contractorForBidWorkStatus.setConWorkStartedDate(workStartDate);
+//										contractorForBidWorkStatus.setConWorkCompleteDate(workCompletion);
+//										contractorForBidWorkStatus.setUserId(Long.parseLong(userId));
+//
+//										contractorForBidWorkStatusRepository.save(contractorForBidWorkStatus);
+//
+//										LinkedList<BillDeskPaymentResponse> byConsumerApplicationNoDemand = billPaymentResponseeeeeeeRepository
+//												.findByConsumerApplicationNoDemand(consumerApplicationNo);
+//
+//										// Update consumer application status based on scheme type
+//										if (consumerApp.getSchemeType().getSchemeTypeId().equals(1L)) {
+//											if (consumerApp.getNatureOfWorkType().getNatureOfWorkTypeId().equals(5l)
+//													&& byConsumerApplicationNoDemand.isEmpty()) {
+//												consumerApp.setApplicationStatus(applicationStatusRepository.findById(
+//														ApplicationStatusEnum.PENDING_FOR_REGISTRATION_FEES.getId())
+//														.get());
+//											} else {
+//												consumerApp.setApplicationStatus(applicationStatusRepository
+//														.findById(ApplicationStatusEnum.PENDING_FOR_WORK_ORDER.getId())
+//														.get());
+//											}
+//										} else {
+//											consumerApp.setApplicationStatus(applicationStatusRepository
+//													.findById(ApplicationStatusEnum.PENDING_FOR_WORK_COMPLETION.getId())
+//													.get());
+//										}
+//
+//										consumerApplicationDetailRepository.save(consumerApp);
+//									} else {
+//										System.out.println(
+//												"Accepted application has missing dates for consumerApplicationNo: "
+//														+ consumerApplicationNo);
+//									}
+//								}
+//								break; // No need to continue searching if application found
+//							}
+//						}
+//
+//						if (!applicationFound) {
+//							System.out.println(
+//									"Application not found in tkc/bid_not_participated_docs: " + consumerApplicationNo);
+//						}
+//					}
+//				} else {
+//					System.out.println("No data found in the external response.");
+//				}
+//
+//				System.out
+//						.println("Total applications fetched from DSP Database: " + saveContractorExpectedDates.size());
+//				System.out.println("Total applications where contractor did not take action: " + notActionedCount);
+//				System.out.println("Total applications rejected by contractor: " + rejectedCount);
+//				System.out.println("Total applications accepted by contractor: " + acceptedCount);
+//
+//				return ResponseEntity.ok("Processing completed successfully.");
+//			} else {
+//				return ResponseEntity.status(500).body("Error: Received empty response from the external API.");
+//			}
+//		} catch (HttpClientErrorException.NotAcceptable ex) {
+//			return ResponseEntity.status(ex.getRawStatusCode()).body(ex.getResponseBodyAsString());
+//		} catch (Exception ex) {
+//			ex.printStackTrace();
+//			return ResponseEntity.status(500).body("Internal Server Error occurred: " + ex.getMessage());
+//		}
+//	}
 
 //	@GetMapping("/settlementDate")
 	@Scheduled(fixedRate = 86400000)
-	@Scheduled(cron = "0 0 5,23 * * ?") //5:00 AM and 11:00 PM
+//	@Scheduled(cron = "0 0 5,23 * * ?") //5:00 AM and 11:00 PM
 	public Response<Object> settlementDate() {
 		Response<Object> response = new Response<>();
 		try {
@@ -789,7 +789,8 @@ public class AllScheduler {
 //        RSAPrivateKey privateKey = (RSAPrivateKey) VerifyJWS.loadPrivateKey();
 
 		String keyStorePath = "D:\\jks\\mpcz.jks"; // Provide the correct path to the uploaded JKS file
-		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+//		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+		String alias = "1";   //18-06-2026
 		String keyStorePassword = "changeit"; // Replace with the password for the keystore
 		String keyPassword = "changeit"; // Replace with the password for the private key
 		String convertObjectInString = null;
@@ -827,7 +828,8 @@ public class AllScheduler {
 	public static String decryptBilldeskData(String encryptedResponse) throws Exception {
 
 		String keyStorePath = "D:\\jks\\mpcz.jks"; // Provide the correct path to the uploaded JKS file
-		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+//		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+		String alias = "1";   //18-06-2026
 		String keyStorePassword = "changeit"; // Replace with the password for the keystore
 		String keyPassword = "changeit"; // Replace with the password for the private key
 		String convertObjectInString = null;
@@ -985,213 +987,213 @@ public class AllScheduler {
 //			return ResponseEntity.status(500).body("Internal Server Error occurred: " + ex.getMessage());
 //		}
 //	}
-
-	@Scheduled(cron = "0 30 23 * * *") // Runs every night at 11:30 PM
-	public void RavindraSendDataForContractorSelectinon1() {
-		YearMonth yearMonth = YearMonth.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
-		String formattedYearMonth = yearMonth.format(formatter) + "%";
-		System.out.println(formattedYearMonth);
-		List<BillDeskPaymentResponse> ravindraSendDataForContractorSelectinon = billPaymentResponseeeeeeeRepository
-				.RavindraSendDataForContractorSelectinon1(formattedYearMonth);
-
-		ravindraSendDataForContractorSelectinon.stream().forEach(bill -> {
-
-			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
-					.findByConsumerApplicationNumber(bill.getConsumerApplicationNo());
-//			ErpEstimateAmountData findById = estimateAmountRepository.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber()).get();
-
-			Map<String, String> requestBody = new HashMap();
-
-			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8L) {
-				MmkyPayAmount findByConsumer = mmkyPayAmountRespository
-						.findByConsumerApplicationNumber(findByConsumerApplicationNumber.getConsumerApplicationNo());
-				requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
-				requestBody.put("schema", findByConsumer.getSchemeCode());
-			} else {
-
-				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
-						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
-				if (findById1.isPresent()) {
-					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
-					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
-					requestBody.put("kwload", kwLoad);
-
-					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
-					requestBody.put("kvaload", kvaLoad);
-
-					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
-					requestBody.put("deposit_amount", depositAmount);
-
-					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
-					requestBody.put("supervision_amount", superVisionAmt);
-
-					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
-					requestBody.put("sgst", sgst);
-
-					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
-					requestBody.put("cgst", cgst);
-
-					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
-					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
-
-				}
-			}
-
-			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
-			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
-			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
-
-			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
-
-			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
-			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
-			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
-			requestBody.put("is_bid_submitted", "false");
-			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
-					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
-				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
-
-			}
-			RestTemplate restTemplate = new RestTemplate();
-
-			try {
-				ResponseEntity<Map> postForEntity = restTemplate
-						.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/", requestBody, Map.class);
-				System.out.println("The result of Post api is :" + postForEntity.getBody());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-
-	}
-
-	@Scheduled(cron = "0 0 * * * *") // every Hour
-	public void createInvoiceProcedure() {
-		try {
-			consumerApplictionDetailRepository.createInvoice();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Autowired
-	private DynamicQueryRepository dynamicQueryRepository;
-
-	@Autowired
-	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-
-	@Scheduled(cron = "0 0 * * * *") // everHour run hoga
-	public void RavindraSendDataForContractorSelectinonDataForNewOYTApplication() throws DynamicQueryException {
-		YearMonth yearMonth = YearMonth.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
-		String formattedYearMonth = yearMonth.format(formatter) + "%";
-		System.out.println(formattedYearMonth);
-		RestTemplate restTemplate = new RestTemplate();
-		DynamicQuery queryData = dynamicQueryRepository.findByQueryNameData("NEW_OYT_CONTRACTOR_SELECTION_QUERY")
-				.orElseThrow(() -> new DynamicQueryException(new Response<>(HttpCode.NOT_ACCEPTABLE,
-						"Query Not Found : NEW_OYT_CONTRACTOR_SELECTION_QUERY")));
-		String query = queryData.getQueryText();
-
-		List<Map<String, Object>> newOytContractorList = namedParameterJdbcTemplate.queryForList(query,
-				new HashMap<>());
-
-		List<String> dataSent = new ArrayList<>();
-		List<String> dataAlreadyExist = new ArrayList<>();
-		AtomicLong dataSentCount = new AtomicLong(0);
-		AtomicLong dataAlreadyExistCount = new AtomicLong(0);
-		newOytContractorList.stream().forEach(bill -> {
-
-			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
-					.findByConsumerApplicationNumber(bill.get("CONSUMER_APPLICATION_NUMBER").toString());
-			Map<String, String> requestBody = new HashMap<>();
-
-			if (findByConsumerApplicationNumber.getErpWorkFlowNumber() != null) {
-				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
-						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
-				if (findById1.isPresent()) {
-					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
-					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
-					requestBody.put("kwload", kwLoad);
-
-					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
-					requestBody.put("kvaload", kvaLoad);
-
-					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
-					requestBody.put("deposit_amount", depositAmount);
-
-					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
-					requestBody.put("supervision_amount", superVisionAmt);
-
-					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
-					requestBody.put("sgst", sgst);
-
-					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
-					requestBody.put("cgst", cgst);
-
-					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
-					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
-
-				}
-			}
-			requestBody.put("schema", "OYT");
-			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
-			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
-			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
-
-			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
-
-			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
-			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
-			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
-			requestBody.put("is_bid_submitted", "false");
-			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
-					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
-				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
-
-			}
-
-			try {
-				System.err.println("aaaaaaaaaaaaaaaa : " + ravinraSendDataAfterPayment);
-				ResponseEntity<Map> response = restTemplate.postForEntity(ravinraSendDataAfterPayment, requestBody,
-						Map.class);
-
-				Map<String, Object> body = response.getBody();
-
-				if (body != null && "201".equals(String.valueOf(body.get("status")))) {
-
-					findByConsumerApplicationNumber.setContractorSelectionData("Data Send");
-					consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
-
-					dataSent.add(findByConsumerApplicationNumber.getConsumerApplicationNo());
-					dataSentCount.incrementAndGet();
-				}
-
-			} catch (HttpServerErrorException ex) {
-
-				if (ex.getResponseBodyAsString().toLowerCase().contains("duplicate")) {
-
-					findByConsumerApplicationNumber.setContractorSelectionData("Data Already exist");
-					consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
-
-					dataAlreadyExist.add(findByConsumerApplicationNumber.getConsumerApplicationNo());
-					dataAlreadyExistCount.incrementAndGet();
-				} else {
-					throw ex;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-
-		System.err.println("Total Application data : " + newOytContractorList.size());
-		System.err.println("Total Sent Data : " + new Gson().toJson(dataSent));
-		System.err.println("Total Sent Data count : " + dataSentCount.get());
-		System.err.println("Total Already Exist Data : " + new Gson().toJson(dataAlreadyExist));
-		System.err.println("Total Already Exist Data Count : " + dataAlreadyExistCount.get());
-	}
+//
+//	@Scheduled(cron = "0 30 23 * * *") // Runs every night at 11:30 PM
+//	public void RavindraSendDataForContractorSelectinon1() {
+//		YearMonth yearMonth = YearMonth.now();
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+//		String formattedYearMonth = yearMonth.format(formatter) + "%";
+//		System.out.println(formattedYearMonth);
+//		List<BillDeskPaymentResponse> ravindraSendDataForContractorSelectinon = billPaymentResponseeeeeeeRepository
+//				.RavindraSendDataForContractorSelectinon1(formattedYearMonth);
+//
+//		ravindraSendDataForContractorSelectinon.stream().forEach(bill -> {
+//
+//			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+//					.findByConsumerApplicationNumber(bill.getConsumerApplicationNo());
+////			ErpEstimateAmountData findById = estimateAmountRepository.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber()).get();
+//
+//			Map<String, String> requestBody = new HashMap();
+//
+//			if (findByConsumerApplicationNumber.getNatureOfWorkType().getNatureOfWorkTypeId() == 8L) {
+//				MmkyPayAmount findByConsumer = mmkyPayAmountRespository
+//						.findByConsumerApplicationNumber(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//				requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//				requestBody.put("schema", findByConsumer.getSchemeCode());
+//			} else {
+//
+//				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
+//						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//				if (findById1.isPresent()) {
+//					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
+//					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
+//					requestBody.put("kwload", kwLoad);
+//
+//					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
+//					requestBody.put("kvaload", kvaLoad);
+//
+//					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
+//					requestBody.put("deposit_amount", depositAmount);
+//
+//					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
+//					requestBody.put("supervision_amount", superVisionAmt);
+//
+//					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
+//					requestBody.put("sgst", sgst);
+//
+//					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
+//					requestBody.put("cgst", cgst);
+//
+//					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
+//					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
+//
+//				}
+//			}
+//
+//			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
+//			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
+//
+//			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
+//
+//			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
+//			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
+//			requestBody.put("is_bid_submitted", "false");
+//			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
+//					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+//				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
+//				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
+//
+//			}
+//			RestTemplate restTemplate = new RestTemplate();
+//
+//			try {
+//				ResponseEntity<Map> postForEntity = restTemplate
+//						.postForEntity("https://qcportal.mpcz.in/tkc/get_consumer/", requestBody, Map.class);
+//				System.out.println("The result of Post api is :" + postForEntity.getBody());
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//
+//	}
+//
+//	@Scheduled(cron = "0 0 * * * *") // every Hour
+//	public void createInvoiceProcedure() {
+//		try {
+//			consumerApplictionDetailRepository.createInvoice();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	@Autowired
+//	private DynamicQueryRepository dynamicQueryRepository;
+//
+//	@Autowired
+//	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+//
+//
+//	@Scheduled(cron = "0 0 * * * *") // everHour run hoga
+//	public void RavindraSendDataForContractorSelectinonDataForNewOYTApplication() throws DynamicQueryException {
+//		YearMonth yearMonth = YearMonth.now();
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+//		String formattedYearMonth = yearMonth.format(formatter) + "%";
+//		System.out.println(formattedYearMonth);
+//		RestTemplate restTemplate = new RestTemplate();
+//		DynamicQuery queryData = dynamicQueryRepository.findByQueryNameData("NEW_OYT_CONTRACTOR_SELECTION_QUERY")
+//				.orElseThrow(() -> new DynamicQueryException(new Response<>(HttpCode.NOT_ACCEPTABLE,
+//						"Query Not Found : NEW_OYT_CONTRACTOR_SELECTION_QUERY")));
+//		String query = queryData.getQueryText();
+//
+//		List<Map<String, Object>> newOytContractorList = namedParameterJdbcTemplate.queryForList(query,
+//				new HashMap<>());
+//
+//		List<String> dataSent = new ArrayList<>();
+//		List<String> dataAlreadyExist = new ArrayList<>();
+//		AtomicLong dataSentCount = new AtomicLong(0);
+//		AtomicLong dataAlreadyExistCount = new AtomicLong(0);
+//		newOytContractorList.stream().forEach(bill -> {
+//
+//			ConsumerApplicationDetail findByConsumerApplicationNumber = consumerApplictionDetailRepository
+//					.findByConsumerApplicationNumber(bill.get("CONSUMER_APPLICATION_NUMBER").toString());
+//			Map<String, String> requestBody = new HashMap<>();
+//
+//			if (findByConsumerApplicationNumber.getErpWorkFlowNumber() != null) {
+//				Optional<ErpEstimateAmountData> findById1 = estimateAmountRepository
+//						.findById(findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//				if (findById1.isPresent()) {
+//					ErpEstimateAmountData erpEstimateAmountData = findById1.get();
+//					String kwLoad = String.valueOf(erpEstimateAmountData.getKwLoad());
+//					requestBody.put("kwload", kwLoad);
+//
+//					String kvaLoad = String.valueOf(erpEstimateAmountData.getKvaLoad());
+//					requestBody.put("kvaload", kvaLoad);
+//
+//					String depositAmount = String.valueOf(erpEstimateAmountData.getDepositAmount());
+//					requestBody.put("deposit_amount", depositAmount);
+//
+//					String superVisionAmt = String.valueOf(erpEstimateAmountData.getSupervisionAmount());
+//					requestBody.put("supervision_amount", superVisionAmt);
+//
+//					String sgst = String.valueOf(erpEstimateAmountData.getSgst());
+//					requestBody.put("sgst", sgst);
+//
+//					String cgst = String.valueOf(erpEstimateAmountData.getCgst());
+//					requestBody.put("cgst", cgst);
+//
+//					requestBody.put("estimate_name", erpEstimateAmountData.getEstimateName());
+//					requestBody.put("schema", erpEstimateAmountData.getSchemeCode());
+//
+//				}
+//			}
+//			requestBody.put("schema", "OYT");
+//			requestBody.put("consumer_mobile_no", findByConsumerApplicationNumber.getConsumers().getConsumerMobileNo());
+//			requestBody.put("consumerApplicationNo", findByConsumerApplicationNumber.getConsumerApplicationNo());
+//			requestBody.put("consumer_email_id", findByConsumerApplicationNumber.getConsumers().getConsumerEmailId());
+//
+//			requestBody.put("address", findByConsumerApplicationNumber.getAddress());
+//
+//			requestBody.put("shortDescriptionOfWork", findByConsumerApplicationNumber.getShortDescriptionOfWork());
+//			requestBody.put("erp_no", findByConsumerApplicationNumber.getErpWorkFlowNumber());
+//			requestBody.put("consumerName", findByConsumerApplicationNumber.getConsumerName());
+//			requestBody.put("is_bid_submitted", "false");
+//			if (Objects.nonNull(findByConsumerApplicationNumber.getSspTotalAmount())
+//					&& findByConsumerApplicationNumber.getSspTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+//				requestBody.put("sspTotalAmount", findByConsumerApplicationNumber.getSspTotalAmount().toString());
+//				requestBody.put("sspApplicationNo", findByConsumerApplicationNumber.getNscApplicationNo());
+//
+//			}
+//
+//			try {
+//				System.err.println("aaaaaaaaaaaaaaaa : " + ravinraSendDataAfterPayment);
+//				ResponseEntity<Map> response = restTemplate.postForEntity(ravinraSendDataAfterPayment, requestBody,
+//						Map.class);
+//
+//				Map<String, Object> body = response.getBody();
+//
+//				if (body != null && "201".equals(String.valueOf(body.get("status")))) {
+//
+//					findByConsumerApplicationNumber.setContractorSelectionData("Data Send");
+//					consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
+//
+//					dataSent.add(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//					dataSentCount.incrementAndGet();
+//				}
+//
+//			} catch (HttpServerErrorException ex) {
+//
+//				if (ex.getResponseBodyAsString().toLowerCase().contains("duplicate")) {
+//
+//					findByConsumerApplicationNumber.setContractorSelectionData("Data Already exist");
+//					consumerApplictionDetailRepository.save(findByConsumerApplicationNumber);
+//
+//					dataAlreadyExist.add(findByConsumerApplicationNumber.getConsumerApplicationNo());
+//					dataAlreadyExistCount.incrementAndGet();
+//				} else {
+//					throw ex;
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//
+//		System.err.println("Total Application data : " + newOytContractorList.size());
+//		System.err.println("Total Sent Data : " + new Gson().toJson(dataSent));
+//		System.err.println("Total Sent Data count : " + dataSentCount.get());
+//		System.err.println("Total Already Exist Data : " + new Gson().toJson(dataAlreadyExist));
+//		System.err.println("Total Already Exist Data Count : " + dataAlreadyExistCount.get());
+//	}
 
 }

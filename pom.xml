@@ -103,16 +103,14 @@
 			<version>0.9.1</version>
 		</dependency>
 
-		<!--
-		https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
+		<!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-core</artifactId>
 			<version>5.7.3</version>
 		</dependency>
 
-		<!--
-		https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
+		<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
@@ -126,8 +124,7 @@
 			<version>2.9.2</version>
 		</dependency>
 
-		<!--
-		https://mvnrepository.com/artifact/io.springfox/springfox-bean-validators -->
+		<!-- https://mvnrepository.com/artifact/io.springfox/springfox-bean-validators -->
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-bean-validators</artifactId>
@@ -164,8 +161,7 @@
 			<version>6.4.0</version>
 		</dependency>
 
-		<!--
-		https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -195,13 +191,8 @@
 			<version>20090211</version>
 		</dependency>
 
-		<!-- 
-		<dependency>
-			<groupId>com.nimbusds</groupId>
-			<artifactId>nimbus-jose-jwt</artifactId>
-			<version>5.3</version>
-		</dependency>
-		 -->
+		<!-- <dependency> <groupId>com.nimbusds</groupId> <artifactId>nimbus-jose-jwt</artifactId> 
+			<version>5.3</version> </dependency> -->
 		<!-- Thanks for using https://jar-download.com -->
 
 		<dependency>
@@ -256,6 +247,11 @@
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 	</dependencies>
 	<repositories>
 		<repository>
@@ -273,8 +269,7 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>Hoxton.SR8</version> <!-- ✅ Compatible with Spring Boot
-				2.3.3 and Java 8 -->
+				<version>Hoxton.SR8</version> <!-- ✅ Compatible with Spring Boot 2.3.3 and Java 8 -->
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

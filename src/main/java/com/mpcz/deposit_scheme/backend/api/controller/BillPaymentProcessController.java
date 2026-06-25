@@ -1891,6 +1891,7 @@ public class BillPaymentProcessController {
 			HttpHeaders headers = createHeaders();
 
 			String convertObjectInString = encryptBilldeskData(sendDataBillDesk.toString());
+			System.out.println("convertObjectInString : " + convertObjectInString);
 			if (convertObjectInString == null) {
 				throw new RuntimeException("Payload encryption failed");
 			}
@@ -2042,7 +2043,8 @@ public class BillPaymentProcessController {
 
 //		String keyStorePath = "C:\\Users\\M.M\\Desktop\\jose fram work\\mpcz.jks"; // Provide the correct path to the uploaded JKS file
 
-		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+//		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+		String alias = "1";   //18-06-2026
 		String keyStorePassword = "changeit"; // Replace with the password for the keystore
 		String keyPassword = "changeit"; // Replace with the password for the private key
 		String convertObjectInString = null;
@@ -2083,7 +2085,9 @@ public class BillPaymentProcessController {
 
 //		String keyStorePath = "C:\\Users\\M.M\\Desktop\\jose fram work\\mpcz.jks"; // Provide the correct path to the uploaded JKS file
 
-		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+//		String alias = "mpcz_alias"; // Replace with the alias for your key or certificate
+		//18-06-2026
+		String alias = "1";
 		String keyStorePassword = "changeit"; // Replace with the password for the keystore
 		String keyPassword = "changeit"; // Replace with the password for the private key
 		String convertObjectInString = null;

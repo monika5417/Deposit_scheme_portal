@@ -163,6 +163,9 @@ public class VerifyJWS {
 
 	    // Retrieve the private key
 	    Key key = keyStore.getKey(alias, keyPassword.toCharArray());
+	    
+	    System.out.println("key       : " +key);
+	    
 	    if (key == null || !(key instanceof RSAPrivateKey)) {
 	        throw new Exception("Private key not found or invalid for alias: " + alias);
 	    }

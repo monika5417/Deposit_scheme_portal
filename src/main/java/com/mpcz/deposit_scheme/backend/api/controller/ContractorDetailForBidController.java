@@ -148,6 +148,9 @@ public class ContractorDetailForBidController {
 
 	@Value("${ravindra.api.for.contractor.selection}")
 	private String ravindraApiForContractorSelection;
+	
+	@Value("${qc.Api.For.NDScheme.ContracorSelection}")
+	private String qcApiForNDSchemeContracorSelection;
 
 	@Autowired
 	private ContractorForBidWorkStatusRepository contractorForBidWorkStatusRepository;
@@ -1517,8 +1520,8 @@ public class ContractorDetailForBidController {
 
 		try {
 			// 🔹 3rd Party API URL
-			String url = "https://qualitycheckuat.mpcz.in:8080/api/get_rca_by_circle/?circle_id=" + circleId;
-
+			String url = qcApiForNDSchemeContracorSelection + circleId;
+             System.err.println("url : "+url);
 			// 🔹 RestTemplate Object
 			RestTemplate restTemplate = new RestTemplate();
 
@@ -1555,6 +1558,8 @@ public class ContractorDetailForBidController {
 
 				String issueDate = (String) item.get("issue_date");
 				String expiryDate = (String) item.get("expairy_date");
+				Long userId = Long.valueOf(String.valueOf(item.get("user_Id")));
+				ContractorParticipateAndNotPartiDto.setUserId(userId);				
 				ContractorParticipateAndNotPartiDto.setAuthenticationId(registrationNo);
 				ContractorParticipateAndNotPartiDto.setCompanyAdd1(add1);
 				ContractorParticipateAndNotPartiDto.setCompanyAdd2(add2);

@@ -939,6 +939,10 @@ public class ErpEstimateAmountServiceImpl implements ErpEstimateAmountService {
 				estimateAmountDto.setRegistrationCharges(new BigDecimal(1180));
 
 			}
+			
+//			set jeReturnAmount as 0 because revise k time iski value substract hokr aa rhi thi 25-06-2026
+			estimateAmountDto.setJeReturnAmount(BigDecimal.ZERO);
+			erpEstimateAmount.setJeReturnAmount(BigDecimal.ZERO);
 			estimateAmountRepository.save(erpEstimateAmount);
 			return estimateAmountDto;
 

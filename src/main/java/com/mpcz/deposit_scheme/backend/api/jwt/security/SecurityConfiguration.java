@@ -45,7 +45,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			"/api/user/login/changePassword", "/api/user/otp/getOtp/**", "/api/user/otp/getLoginOtp/**",
 			"/api/user/otp/verifyLoginOtp/**", "/api/user/login/forgotPassword/**", "/api/user/work-status/get",
 			"/api/user/work-status/get/{ConsumerApplicationNumber}", "/api/user/region/getAll", "/mis_details/mis",
-			"/api/user/consumer-application/getAllPaginate/", "/ReSampling/post-resample-data",
+			"/api/user/consumer-application/getAllPaginate/", "/ReSampling/post-resample-data","/actuator/**",
 			"/ReSampling/post-resample-data1", "/ReSampling/safling-data-by-autenotication-ID/{authenticationId}",
 			"/ReSampling/safling-data-by-autenotication-ID1/{authenticationId}/{userID}",
 			"/ReSampling/safling-data-by-autenotication-ID1/{authenticationId}/{userID}/{circleId}/{divisionId}",
